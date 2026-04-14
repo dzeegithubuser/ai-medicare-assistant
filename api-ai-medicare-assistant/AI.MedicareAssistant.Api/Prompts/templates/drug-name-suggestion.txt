@@ -1,0 +1,7 @@
+Identify the correct drug names from the following user input. Focus only on the drug names — ignore dosages, frequencies, and quantities.
+
+User input:
+{{INPUT}}
+
+Return a single strict JSON object that follows the provided schema exactly.
+Do not include markdown, labels, or explanatory text.

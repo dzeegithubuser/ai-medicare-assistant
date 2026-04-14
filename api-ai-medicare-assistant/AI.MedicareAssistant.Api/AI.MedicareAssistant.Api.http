@@ -1,0 +1,91 @@
+@AI.MedicareAssistant.Api_HostAddress = http://localhost:5024
+@email = test.user@example.com
+@phone = 9990001234
+@password = Test@12345
+@jwtToken = REPLACE_WITH_JWT_TOKEN
+
+### Public health check (reference data)
+GET {{AI.MedicareAssistant.Api_HostAddress}}/api/ReferenceData
+
+### Sign up (run once; may fail if email/phone already exists)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "phone": "{{phone}}",
+  "password": "{{password}}",
+  "confirmPassword": "{{password}}"
+}
+
+### Sign in (copy token from response and set @jwtToken)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/auth/signin
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Suggest drug names (Step 1)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/drug/suggest-names
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "input": "Eliqis 5mg, Ibuprofen 400mg"
+}
+
+### Analyze drugs (Step 2)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/drug/analyze
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prescription": "Eliquis 5mg, Ibuprofen 400mg"
+}
+
+### Analyze invalid input (expected empty drugs + message)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/drug/analyze
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prescription": "xyzabc 123"
+}
+
+### Migration: list applied migrations (AllowAnonymous)
+GET {{AI.MedicareAssistant.Api_HostAddress}}/api/migration/applied
+
+### Migration: list pending migrations (AllowAnonymous)
+GET {{AI.MedicareAssistant.Api_HostAddress}}/api/migration/pending
+
+### Migration: apply pending migrations (AllowAnonymous)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/migration/apply
+
+### Pharmacy nearby (lightweight NPI lookup, no pricing)
+GET {{AI.MedicareAssistant.Api_HostAddress}}/api/pharmacy/nearby?zip=90210
+Authorization: Bearer {{jwtToken}}
+
+### Plan recommendation (with selected pharmacies)
+POST {{AI.MedicareAssistant.Api_HostAddress}}/api/PlanRecommendation
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "drugs": [
+    {
+      "rxCui": "1364430",
+      "drugName": "apixaban",
+      "genericName": "apixaban",
+      "ndc": "00003-0894-21",
+      "estimatedRetailPrice": 500
+    }
+  ],
+  "selectedPharmacies": [
+    { "npi": "1234567890", "name": "CVS PHARMACY", "pharmacyType": "Community/Retail Pharmacy" },
+    { "npi": "9876543210", "name": "WALGREENS", "pharmacyType": "Community/Retail Pharmacy" }
+  ]
+}
+
+###

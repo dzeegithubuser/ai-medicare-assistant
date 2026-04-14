@@ -1,0 +1,498 @@
+﻿@let l = left();
+@let r = right();
+
+<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="200ms">
+
+  <!-- Tab: Overview -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">dashboard</mat-icon> Overview</span>
+    </ng-template>
+    <div class="pt-4 space-y-5">
+
+      <!-- KPI Strip -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="col-span-2 md:col-span-4 flex items-center gap-2 mb-1">
+          <mat-icon class="!text-base text-gray-400">insights</mat-icon>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost Deltas&nbsp;(Left &minus; Right)</p>
+        </div>
+        @for (kpi of [
+          { label: 'Total Cost', value: costDelta() },
+          { label: 'Present Value', value: pvDelta() },
+          { label: 'Avg Annual', value: avgAnnualDelta() }
+        ]; track kpi.label) {
+          <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+            <p class="text-[10px] text-gray-500 uppercase leading-tight mb-1">{{ kpi.label }}</p>
+            <p class="text-base font-bold" [class]="kpi.value <= 0 ? 'text-green-700' : 'text-red-700'">
+              {{ kpi.value | currency:'USD':'symbol':'1.0-0' }}
+            </p>
+            <div class="flex items-center justify-center gap-0.5 mt-0.5">
+              <mat-icon class="!text-xs" [class]="kpi.value <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaIcon(kpi.value) }}</mat-icon>
+              <span class="text-[10px]" [class]="kpi.value <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaLabel(kpi.value) }}</span>
+            </div>
+          </div>
+        }
+        <!-- Projection Years (non-delta) -->
+        <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+          <p class="text-[10px] text-gray-500 uppercase leading-tight mb-1">Projection Years</p>
+          <div class="flex items-center justify-center gap-3 mt-1">
+            <div>
+              <p class="text-sm font-bold text-indigo-700">{{ l.ltcSnapshot?.evaluation?.projectionYears ?? '—' }}</p>
+              <p class="text-[10px] text-gray-400">Left</p>
+            </div>
+            <span class="text-gray-300">|</span>
+            <div>
+              <p class="text-sm font-bold text-cyan-700">{{ r.ltcSnapshot?.evaluation?.projectionYears ?? '—' }}</p>
+              <p class="text-[10px] text-gray-400">Right</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Winner Banner -->
+      @if (winner() !== 'tie') {
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+          <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+            <mat-icon class="text-green-600 !text-xl">emoji_events</mat-icon>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-green-800">
+              {{ winnerName() }} saves {{ winnerSavings() | currency:'USD':'symbol':'1.0-0' }} in long-term care costs
+            </p>
+            <p class="text-xs text-green-600 mt-0.5">Based on total projected cost comparison</p>
+          </div>
+        </div>
+      }
+
+      <!-- Profile Differences -->
+      <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
+              <mat-icon class="!text-base text-violet-600">person</mat-icon>
+            </div>
+            <p class="text-sm font-semibold text-gray-800">Profile Differences</p>
+            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium"
+                  [class]="profileDiffs().length ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+              {{ profileDiffs().length ? profileDiffs().length + ' differ' : 'Identical' }}
+            </span>
+          </div>
+          @if (profileDiffs().length) {
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-xs">
+                <thead>
+                  <tr class="border-b border-gray-200 bg-gray-50/80">
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of profileDiffs(); track row.label) {
+                    <tr class="border-b border-gray-100 bg-amber-50/40">
+                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-400">{{ row.icon }}</mat-icon></td>
+                      <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
+                      <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
+                      <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="text-xs text-gray-400 italic">Both analyses use identical profile settings.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Care Config Summary -->
+      <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+              <mat-icon class="!text-base text-purple-600">elderly</mat-icon>
+            </div>
+            <p class="text-sm font-semibold text-gray-800">Care Configuration</p>
+            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium"
+                  [class]="careConfigDiffs().length ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+              {{ careConfigDiffs().length ? careConfigDiffs().length + ' differ' : 'Identical' }}
+            </span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @for (row of careConfigRows(); track row.label) {
+              <div class="rounded-lg p-3 border" [class]="row.left !== row.right ? 'border-amber-200 bg-amber-50/40' : 'border-gray-100 bg-gray-50/40'">
+                <div class="flex items-center gap-2 mb-1">
+                  <mat-icon class="!text-sm text-gray-400">{{ row.icon }}</mat-icon>
+                  <p class="text-[10px] text-gray-500 uppercase font-semibold">{{ row.label }}</p>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex-1">
+                    <p class="text-[10px] text-indigo-500 uppercase">{{ l.name }}</p>
+                    <p class="text-sm font-bold text-gray-900">{{ row.left }}</p>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-[10px] text-cyan-500 uppercase">{{ r.name }}</p>
+                    <p class="text-sm font-bold text-gray-900">{{ row.right }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Trajectory Comparison -->
+      @if (l.ltcSnapshot?.evaluation || r.ltcSnapshot?.evaluation) {
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div class="p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                <mat-icon class="!text-base text-blue-600">trending_up</mat-icon>
+              </div>
+              <p class="text-sm font-semibold text-gray-800">Cost Trajectory</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              @if (l.ltcSnapshot?.evaluation; as lev) {
+                <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
+                  <p class="text-[10px] text-gray-500 uppercase font-semibold mb-2">{{ l.name }}</p>
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                         [class]="lev.costTrajectory === 'Rising' ? 'bg-red-100' : lev.costTrajectory === 'Declining' ? 'bg-green-100' : 'bg-blue-100'">
+                      <mat-icon class="!text-sm" [class]="getTrajectoryColor(lev.costTrajectory)">{{ getTrajectoryIcon(lev.costTrajectory) }}</mat-icon>
+                    </div>
+                    <span class="text-sm font-semibold" [class]="getTrajectoryColor(lev.costTrajectory)">{{ lev.costTrajectory }}</span>
+                  </div>
+                  <p class="text-xs text-gray-500 line-clamp-2">{{ lev.trajectoryExplanation }}</p>
+                </div>
+              }
+              @if (r.ltcSnapshot?.evaluation; as rev) {
+                <div class="rounded-lg border border-cyan-100 bg-cyan-50/40 p-3">
+                  <p class="text-[10px] text-gray-500 uppercase font-semibold mb-2">{{ r.name }}</p>
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                         [class]="rev.costTrajectory === 'Rising' ? 'bg-red-100' : rev.costTrajectory === 'Declining' ? 'bg-green-100' : 'bg-blue-100'">
+                      <mat-icon class="!text-sm" [class]="getTrajectoryColor(rev.costTrajectory)">{{ getTrajectoryIcon(rev.costTrajectory) }}</mat-icon>
+                    </div>
+                    <span class="text-sm font-semibold" [class]="getTrajectoryColor(rev.costTrajectory)">{{ rev.costTrajectory }}</span>
+                  </div>
+                  <p class="text-xs text-gray-500 line-clamp-2">{{ rev.trajectoryExplanation }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </mat-tab>
+
+  <!-- Tab: Profile -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
+    </ng-template>
+    <div class="pt-4 space-y-4">
+      @for (section of [
+        { title: 'Personal', icon: 'badge', color: 'indigo', group: 'personal' },
+        { title: 'Location', icon: 'location_on', color: 'blue', group: 'location' },
+        { title: 'Health', icon: 'favorite', color: 'rose', group: 'health' },
+        { title: 'Financial', icon: 'account_balance', color: 'amber', group: 'financial' }
+      ]; track section.group) {
+        @let rows = profileRows().filter(r => r.group === section.group);
+        @if (rows.length) {
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                   [class]="'bg-' + section.color + '-100'">
+                <mat-icon class="!text-base" [class]="'text-' + section.color + '-600'">{{ section.icon }}</mat-icon>
+              </div>
+              <p class="text-sm font-semibold text-gray-800">{{ section.title }}</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-xs">
+                <thead>
+                  <tr class="border-b border-gray-200 bg-gray-50/80">
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+                    <th class="py-2 px-3 text-center text-gray-500 uppercase font-semibold w-12">Match</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of rows; track row.label) {
+                    <tr class="border-b border-gray-100" [class.bg-amber-50/40]="row.left !== row.right">
+                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-400">{{ row.icon }}</mat-icon></td>
+                      <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
+                      <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
+                      <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
+                      <td class="py-2 px-3 text-center">
+                        <mat-icon class="!text-sm" [class]="row.left === row.right ? 'text-green-500' : 'text-amber-500'">
+                          {{ row.left === row.right ? 'check_circle' : 'warning' }}
+                        </mat-icon>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </mat-tab>
+
+  <!-- Tab: Care Config -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">elderly</mat-icon> Care Config</span>
+    </ng-template>
+    <div class="pt-4 space-y-4">
+      <!-- Config Table -->
+      <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+          <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
+            <mat-icon class="!text-base text-violet-600">settings</mat-icon>
+          </div>
+          <p class="text-sm font-semibold text-gray-800">Care Type Configuration</p>
+          <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium"
+                [class]="careConfigDiffs().length ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+            {{ careConfigDiffs().length ? careConfigDiffs().length + ' differ' : 'All match' }}
+          </span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50/80">
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Setting</th>
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+                <th class="py-2 px-3 text-center text-gray-500 uppercase font-semibold w-12">Match</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of careConfigRows(); track row.label) {
+                <tr class="border-b border-gray-100" [class.bg-amber-50/40]="row.left !== row.right">
+                  <td class="py-2.5 px-3"><mat-icon class="!text-sm text-gray-400">{{ row.icon }}</mat-icon></td>
+                  <td class="py-2.5 px-3 font-medium text-gray-700">{{ row.label }}</td>
+                  <td class="py-2.5 px-3 text-gray-900 font-semibold">{{ row.left }}</td>
+                  <td class="py-2.5 px-3 text-gray-900 font-semibold">{{ row.right }}</td>
+                  <td class="py-2.5 px-3 text-center">
+                    <mat-icon class="!text-sm" [class]="row.left === row.right ? 'text-green-500' : 'text-amber-500'">
+                      {{ row.left === row.right ? 'check_circle' : 'warning' }}
+                    </mat-icon>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cost Totals Side by Side -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-indigo-100 bg-indigo-50/40">
+            <p class="text-xs text-indigo-700 uppercase font-semibold">{{ l.name }}</p>
+          </div>
+          <div class="p-4 grid grid-cols-2 gap-3">
+            <div class="text-center">
+              <p class="text-[10px] text-gray-400 uppercase font-semibold">Total Cost</p>
+              <p class="text-lg font-bold text-gray-900 mt-0.5">{{ (l.ltcSnapshot?.totalCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            </div>
+            <div class="text-center">
+              <p class="text-[10px] text-gray-400 uppercase font-semibold">Present Value</p>
+              <p class="text-lg font-bold text-emerald-700 mt-0.5">{{ (l.ltcSnapshot?.totalPresentValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-cyan-100 bg-cyan-50/40">
+            <p class="text-xs text-cyan-700 uppercase font-semibold">{{ r.name }}</p>
+          </div>
+          <div class="p-4 grid grid-cols-2 gap-3">
+            <div class="text-center">
+              <p class="text-[10px] text-gray-400 uppercase font-semibold">Total Cost</p>
+              <p class="text-lg font-bold text-gray-900 mt-0.5">{{ (r.ltcSnapshot?.totalCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            </div>
+            <div class="text-center">
+              <p class="text-[10px] text-gray-400 uppercase font-semibold">Present Value</p>
+              <p class="text-lg font-bold text-emerald-700 mt-0.5">{{ (r.ltcSnapshot?.totalPresentValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-tab>
+
+  <!-- Tab: Cost Analysis -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">analytics</mat-icon> Cost Analysis</span>
+    </ng-template>
+    <div class="pt-4 space-y-5">
+      @if (l.ltcSnapshot?.evaluation || r.ltcSnapshot?.evaluation) {
+
+        <!-- Category comparison -->
+        @if (l.ltcSnapshot?.evaluation?.categories?.length || r.ltcSnapshot?.evaluation?.categories?.length) {
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <mat-icon class="!text-base text-indigo-600">category</mat-icon>
+                </div>
+                <p class="text-sm font-semibold text-gray-800">Care Category Comparison</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @if (l.ltcSnapshot?.evaluation?.categories; as leftCats) {
+                  <div>
+                    <p class="text-[10px] text-indigo-600 uppercase font-semibold mb-2">{{ l.name }}</p>
+                    <div class="space-y-2">
+                      @for (cat of leftCats; track cat.name) {
+                        <div class="p-3 rounded-lg border border-indigo-100 bg-indigo-50/30">
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-gray-800">{{ cat.name }}</span>
+                            <span class="text-xs font-medium text-gray-600">{{ cat.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-indigo-500 h-1.5 rounded-full" [style.width.%]="cat.percentOfTotal"></div>
+                          </div>
+                          <div class="flex items-center justify-between mt-1">
+                            <p class="text-[10px] text-gray-500 line-clamp-1">{{ cat.insight }}</p>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0"
+                                  [class.bg-red-100]="cat.trend === 'Rising'" [class.text-red-700]="cat.trend === 'Rising'"
+                                  [class.bg-green-100]="cat.trend === 'Declining'" [class.text-green-700]="cat.trend === 'Declining'"
+                                  [class.bg-blue-100]="cat.trend === 'Stable'" [class.text-blue-700]="cat.trend === 'Stable'">{{ cat.trend }}</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (r.ltcSnapshot?.evaluation?.categories; as rightCats) {
+                  <div>
+                    <p class="text-[10px] text-cyan-600 uppercase font-semibold mb-2">{{ r.name }}</p>
+                    <div class="space-y-2">
+                      @for (cat of rightCats; track cat.name) {
+                        <div class="p-3 rounded-lg border border-cyan-100 bg-cyan-50/30">
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold text-gray-800">{{ cat.name }}</span>
+                            <span class="text-xs font-medium text-gray-600">{{ cat.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-cyan-500 h-1.5 rounded-full" [style.width.%]="cat.percentOfTotal"></div>
+                          </div>
+                          <div class="flex items-center justify-between mt-1">
+                            <p class="text-[10px] text-gray-500 line-clamp-1">{{ cat.insight }}</p>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0"
+                                  [class.bg-red-100]="cat.trend === 'Rising'" [class.text-red-700]="cat.trend === 'Rising'"
+                                  [class.bg-green-100]="cat.trend === 'Declining'" [class.text-green-700]="cat.trend === 'Declining'"
+                                  [class.bg-blue-100]="cat.trend === 'Stable'" [class.text-blue-700]="cat.trend === 'Stable'">{{ cat.trend }}</span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Savings Tips -->
+        @if (l.ltcSnapshot?.evaluation?.savingsTips?.length || r.ltcSnapshot?.evaluation?.savingsTips?.length) {
+          <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center">
+                  <mat-icon class="!text-base text-green-600">savings</mat-icon>
+                </div>
+                <p class="text-sm font-semibold text-gray-800">Savings Recommendations</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @if (l.ltcSnapshot?.evaluation?.savingsTips; as leftTips) {
+                  <div>
+                    <p class="text-[10px] text-indigo-600 uppercase font-semibold mb-2">{{ l.name }}</p>
+                    <div class="space-y-2">
+                      @for (tip of leftTips; track tip.title) {
+                        <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
+                          <mat-icon class="!text-base !text-green-600 mt-0.5">lightbulb</mat-icon>
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-0.5">
+                              <p class="text-xs font-semibold text-gray-800">{{ tip.title }}</p>
+                              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" [class]="getPriorityColor(tip.priority)">{{ tip.priority }}</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500">{{ tip.description }}</p>
+                            @if (tip.estimatedSavings) {
+                              <p class="text-[10px] text-green-700 font-medium mt-0.5">{{ tip.estimatedSavings }}</p>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (r.ltcSnapshot?.evaluation?.savingsTips; as rightTips) {
+                  <div>
+                    <p class="text-[10px] text-cyan-600 uppercase font-semibold mb-2">{{ r.name }}</p>
+                    <div class="space-y-2">
+                      @for (tip of rightTips; track tip.title) {
+                        <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
+                          <mat-icon class="!text-base !text-green-600 mt-0.5">lightbulb</mat-icon>
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-0.5">
+                              <p class="text-xs font-semibold text-gray-800">{{ tip.title }}</p>
+                              <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" [class]="getPriorityColor(tip.priority)">{{ tip.priority }}</span>
+                            </div>
+                            <p class="text-[10px] text-gray-500">{{ tip.description }}</p>
+                            @if (tip.estimatedSavings) {
+                              <p class="text-[10px] text-green-700 font-medium mt-0.5">{{ tip.estimatedSavings }}</p>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Overall Assessment -->
+        @if (l.ltcSnapshot?.evaluation?.overallAssessment || r.ltcSnapshot?.evaluation?.overallAssessment) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @if (l.ltcSnapshot?.evaluation?.overallAssessment; as la) {
+              <div class="rounded-xl border-l-4 border-indigo-500 bg-white border border-gray-200 p-4 shadow-sm">
+                <div class="flex items-start gap-2">
+                  <mat-icon class="!text-indigo-600 mt-0.5">assessment</mat-icon>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-800 mb-1">{{ l.name }}</p>
+                    <p class="text-xs text-gray-600 leading-relaxed">{{ la }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (r.ltcSnapshot?.evaluation?.overallAssessment; as ra) {
+              <div class="rounded-xl border-l-4 border-cyan-500 bg-white border border-gray-200 p-4 shadow-sm">
+                <div class="flex items-start gap-2">
+                  <mat-icon class="!text-cyan-600 mt-0.5">assessment</mat-icon>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-800 mb-1">{{ r.name }}</p>
+                    <p class="text-xs text-gray-600 leading-relaxed">{{ ra }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        <div class="flex flex-col items-center py-12 text-gray-400">
+          <mat-icon class="!text-5xl !w-14 !h-14 mb-2 opacity-40">analytics</mat-icon>
+          <p class="text-sm">No cost evaluation data available for comparison</p>
+        </div>
+      }
+    </div>
+  </mat-tab>
+</mat-tab-group>

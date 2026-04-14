@@ -1,0 +1,37 @@
+Analyze the prescription input and return structured drug metadata with clinical intelligence.
+
+Required per-drug outputs:
+- drugInput
+- normalizedDrugName
+- brandNames
+- genericName
+- synonyms
+- therapeuticCategory
+- drugClass
+- mechanismOfAction
+- dosageForms
+- formulations (dosageForm + strength + packaging + ndcCode=null)
+- rxNormId
+- estimatedRetailCostUSD
+- estimatedMedicarePartDCostUSD
+- medicareNegotiatedPriceUSD
+- medicareVerificationLink
+- confidenceScore
+- alternatives
+- genericSwitchSuggestion
+- contraindications
+
+Required top-level outputs:
+- drugs
+- interactions
+- dosageAlerts
+- duplicateTherapies
+- message
+
+Behavior requirements:
+- Analyze all pairwise interactions for recognized drugs.
+- Add dosage alerts for clearly low/high doses relative to typical approved ranges.
+- Detect duplicate therapies for overlapping classes.
+- Keep response machine-parse safe: all required arrays must be present.
+- If input has no recognizable drugs, return:
+	drugs=[], interactions=[], dosageAlerts=[], duplicateTherapies=[], and a short message.

@@ -1,0 +1,10 @@
+Generate realistic per-pharmacy drug pricing for {{PHARMACY_COUNT}} pharmacies near ZIP {{ZIP_CODE}}.
+
+Pharmacies:
+{{PHARMACY_LIST}}
+
+Drugs:
+{{DRUG_DESCRIPTIONS}}
+
+Return a single strict JSON array that follows the provided schema exactly.
+Do not include markdown, labels, or explanatory text.

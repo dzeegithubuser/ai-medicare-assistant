@@ -1,0 +1,56 @@
+<div class="border-t-2 border-blue-200">
+  <div class="px-4 py-3 bg-teal-50">
+    <div class="flex items-center gap-2 mb-2">
+      <mat-icon class="!text-teal-600 !text-lg">shield</mat-icon>
+      <h3 class="text-xs font-bold text-teal-800">Fill the Gap — Select a Medigap Plan</h3>
+    </div>
+    <p class="text-[10px] text-teal-700 mb-3">Medigap supplements fill coverage gaps in Original Medicare (Part A &amp; B) that Part D doesn't cover.</p>
+
+    <!-- Medigap Filters -->
+    <div class="flex items-end gap-3 mb-3">
+      <div class="flex-1">
+        <label class="text-[10px] text-gray-600 font-medium block mb-0.5">Data Source</label>
+        <select class="w-full border border-gray-300 rounded-md text-xs px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400"
+                [ngModel]="selectedDataSource()"
+                (ngModelChange)="dataSourceChanged.emit($event)">
+          @for (src of medigapDataSources; track src.label) {
+            <option [ngValue]="src.value">{{ src.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="text-[10px] text-gray-600 font-medium block mb-0.5">Plan Type</label>
+        <select class="w-full border border-gray-300 rounded-md text-xs px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400"
+                [ngModel]="selectedPlanType()"
+                (ngModelChange)="planTypeChanged.emit($event)">
+          @for (pt of medigapPlanTypes; track pt.value) {
+            <option [value]="pt.value">{{ pt.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medigap Cards -->
+  <div class="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+    @if (state.isMedigapLoading()) {
+      <div class="flex items-center justify-center py-6">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span class="ml-2 text-xs text-gray-500">Loading Medigap quotes...</span>
+      </div>
+    } @else if (state.hasMedigapQuotes()) {
+      @for (plan of state.medigapQuotes()!.planList; track plan.key) {
+        <app-medigap-card
+          [plan]="plan"
+          [selected]="isSelected(plan)"
+          [enriched]="getEnriched(plan)"
+          (click)="planSelected.emit(plan)"
+          (seeDetails)="detailRequested.emit($event)" />
+      }
+    } @else {
+      <div class="text-center py-4 text-gray-400">
+        <p class="text-xs">No Medigap quotes loaded</p>
+      </div>
+    }
+  </div>
+</div>

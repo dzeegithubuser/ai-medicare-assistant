@@ -1,0 +1,68 @@
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+  <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+    <div class="px-5 sm:px-8 py-6 border-b border-gray-100">
+      <h2 class="text-xl sm:text-2xl font-semibold text-gray-900">Long-Term Care Inputs</h2>
+      <p class="text-sm text-gray-600 mt-1">
+        Select care quality and the number of years for each care type. Projection starts automatically.
+      </p>
+    </div>
+
+    <div class="px-5 sm:px-8 py-6 sm:py-8">
+      <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Quality of Care</mat-label>
+          <mat-select formControlName="healthProfile">
+            @for (opt of healthProfileOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Adult Day Care (Years)</mat-label>
+          <mat-select formControlName="adultDayYears">
+            @for (yr of yearOptions; track yr) {
+              <mat-option [value]="yr">{{ yr }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>In-Home Care (Years)</mat-label>
+          <mat-select formControlName="homeCareYears">
+            @for (yr of yearOptions; track yr) {
+              <mat-option [value]="yr">{{ yr }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Nursing Care (Years)</mat-label>
+          <mat-select formControlName="nursingCareYears">
+            @for (yr of yearOptions; track yr) {
+              <mat-option [value]="yr">{{ yr }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </form>
+
+      <div class="mt-4 text-xs text-gray-500">
+        Not needed = 0 years. Assisted Care is fixed to 0 years in the LTC payload.
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button mat-raised-button color="primary"
+                class="!rounded-xl !px-6 !min-w-[220px] inline-flex items-center justify-center gap-2"
+                [disabled]="!canRunProjection"
+                (click)="runProjection()">
+          @if (state.isCallingApi()) {
+            <mat-spinner diameter="20" class="!inline-block"></mat-spinner>
+          } @else {
+            <mat-icon class="!text-lg">monitoring</mat-icon>
+          }
+          <span>{{ state.isCallingApi() ? 'Calculating projection…' : 'Run Projection' }}</span>
+        </button>
+      </div>
+    </div>
+  </mat-card>
+</div>

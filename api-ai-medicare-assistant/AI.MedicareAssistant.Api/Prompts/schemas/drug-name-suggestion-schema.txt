@@ -1,0 +1,30 @@
+Return JSON using this schema exactly:
+
+{
+  "suggestions": [
+    {
+      "inputName": "eliqis",
+      "candidates": [
+        {
+          "name": "Eliquis",
+          "type": "Brand",
+          "confidence": 0.98
+        },
+        {
+          "name": "apixaban",
+          "type": "Generic",
+          "confidence": 0.94
+        }
+      ]
+    }
+  ]
+}
+
+Schema rules:
+- Use only the top-level key: suggestions.
+- inputName is the extracted medication token(s) from user text.
+- candidates must be ordered highest confidence first.
+- candidates length is 0 to 3.
+- type must be exactly Brand or Generic.
+- confidence must be numeric between 0.0 and 1.0.
+- For non-drug mentions, include the entry with candidates=[].

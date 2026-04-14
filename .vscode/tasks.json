@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build: api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/api-ai-medicare-assistant/AI.MedicareAssistant.slnx",
+        "--configuration",
+        "Debug"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "serve: ui",
+      "type": "shell",
+      "command": "npm run start:dev",
+      "options": {
+        "cwd": "${workspaceFolder}/ui-ai-medicare-assistant"
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": {
+        "owner": "angular",
+        "source": "angular",
+        "fileLocation": ["relative", "${workspaceFolder}/ui-ai-medicare-assistant"],
+        "pattern": {
+          "regexp": "^(ERROR|WARNING) in (.+)\\((\\d+),(\\d+)\\)$",
+          "severity": 1,
+          "file": 2,
+          "line": 3,
+          "column": 4
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Building\\.\\.\\.",
+          "endsPattern": "Local:\\s+http://localhost:4200"
+        }
+      }
+    }
+  ]
+}

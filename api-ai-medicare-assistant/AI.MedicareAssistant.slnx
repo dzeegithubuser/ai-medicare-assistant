@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="AI.MedicareAssistant.Api/AI.MedicareAssistant.Api.csproj" Id="6d8c8b39-91f7-46eb-a746-7754a0dae7d3" />
+  <Project Path="AI.MedicareAssistant.Application/AI.MedicareAssistant.Application.csproj" Id="e1562b35-07ea-4fde-a72f-ff438ea83c3f" />
+  <Project Path="AI.MedicareAssistant.Infrastructure/AI.MedicareAssistant.Infrastructure.csproj" Id="dd73ecbe-0d84-46cc-b35c-83f98ac612be" />
+  <Project Path="AI.MedicareAssistant.Domain/AI.MedicareAssistant.Domain.csproj" Id="a1b2c3d4-5678-9abc-def0-123456789abc" />
+  <Project Path="AI.MedicareAssistant.Tests/AI.MedicareAssistant.Tests.csproj" />
+</Solution>

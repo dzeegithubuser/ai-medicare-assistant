@@ -1,0 +1,78 @@
+Return JSON using this schema exactly (top-level keys must match and be present):
+
+{
+ "drugs": [
+  {
+   "drugInput": "",
+   "normalizedDrugName": "",
+   "brandNames": [],
+   "genericName": "",
+   "synonyms": [],
+   "therapeuticCategory": "",
+   "drugClass": "",
+   "mechanismOfAction": "",
+   "dosageForms": ["tablet", "suspension"],
+   "formulations": [
+    {"dosageForm": "tablet", "strength": "250 mg", "packaging": "Bottle of 100 tablets", "ndcCode": null},
+    {"dosageForm": "suspension", "strength": "125 mg/5 mL", "packaging": "Bottle of 473 mL", "ndcCode": null}
+   ],
+   "rxNormId": "",
+   "estimatedRetailCostUSD": "",
+   "estimatedMedicarePartDCostUSD": "",
+   "medicareNegotiatedPriceUSD": "",
+   "medicareVerificationLink": "",
+   "confidenceScore": 0.95,
+   "alternatives": [
+    {
+     "name": "",
+     "type": "Generic",
+     "costDifference": "-$200/year",
+     "clinicalNote": ""
+    }
+   ],
+   "genericSwitchSuggestion": {
+    "from": "",
+    "to": "",
+    "estimatedSavings": "$250/year"
+   },
+   "contraindications": ["Severe renal impairment", "Active bleeding"]
+  }
+ ],
+ "interactions": [
+  {
+   "drugA": "",
+   "drugB": "",
+   "severity": "High",
+   "description": "",
+   "clinicalConsequence": "",
+   "recommendation": ""
+  }
+ ],
+ "dosageAlerts": [
+  {
+   "drugName": "",
+   "inputDosage": "",
+   "recommendedRange": "",
+   "severity": "High",
+   "message": ""
+  }
+ ],
+ "duplicateTherapies": [
+  {
+   "drugs": ["", ""],
+   "therapeuticClass": "",
+   "message": ""
+  }
+ ],
+ "message": null
+}
+
+Output rules:
+- Use only these top-level keys: drugs, interactions, dosageAlerts, duplicateTherapies, message.
+- interactions must include all detected pairwise interactions; otherwise [].
+- dosageAlerts must include all clinically notable dose anomalies; otherwise [].
+- duplicateTherapies must include overlapping therapeutic classes; otherwise [].
+- alternatives can contain up to 3 entries per drug; otherwise [].
+- genericSwitchSuggestion must be null if already generic or no clear switch exists.
+- confidenceScore must be numeric in [0.0, 1.0].
+- ndcCode must be null in AI output (resolved later by backend).

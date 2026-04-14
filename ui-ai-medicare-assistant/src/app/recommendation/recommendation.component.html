@@ -1,0 +1,314 @@
+<div class="h-full overflow-y-auto p-6 bg-slate-200">
+
+  <!-- ── Welcome Card ───────────────────────────────────────────────────── -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
+    <p class="text-sm font-medium text-teal-700 uppercase tracking-wide mb-1">Welcome</p>
+    <h1 class="text-2xl font-bold text-gray-900">What would you like to do today?</h1>
+    <p class="text-sm text-gray-500 mt-1">Choose an action below, then continue in the chat on the right if needed.</p>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      <button mat-flat-button color="primary" class="!rounded-lg !h-9 !px-4 !gap-1" (click)="startMedicareAnalysis()">
+        <mat-icon>analytics</mat-icon>Medicare Analysis
+      </button>
+      <button mat-stroked-button class="!rounded-lg !h-9 !px-4 !gap-1" (click)="startLongTermAnalysis()">
+        <mat-icon>timeline</mat-icon>Long Term Analysis
+      </button>
+      <button mat-stroked-button class="!rounded-lg !h-9 !px-4 !gap-1" (click)="refreshRecommendations()">
+        <mat-icon>refresh</mat-icon>Refresh Saved List
+      </button>
+    </div>
+
+    @if (topMessage()) {
+      <div class="mt-3 flex items-start justify-between gap-2 text-sm rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
+        <span>{{ topMessage() }}</span>
+        <button mat-icon-button class="!w-7 !h-7" (click)="clearTopMessage()">
+          <mat-icon class="!text-base">close</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ── Compare Ribbon (shown when ≥1 item selected) ───────────────────── -->
+  @if (compareCount() > 0) {
+    <div class="mb-4 rounded-2xl border-2 border-indigo-300 bg-indigo-50 p-4 shadow-sm">
+
+      <!-- Ribbon header -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <mat-icon class="!text-indigo-600">compare_arrows</mat-icon>
+          <span class="font-semibold text-indigo-900 text-sm">Compare Basket</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-200 text-indigo-800 font-medium">
+            {{ compareCount() }}/2 selected
+          </span>
+          @if (compareCount() === 2) {
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold"
+                  [class]="compareTypeIcon() === 'analytics' ? 'bg-teal-100 text-teal-800' : compareTypeIcon() === 'timeline' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'">
+              <mat-icon class="!text-xs !w-3.5 !h-3.5 align-middle">{{ compareTypeIcon() }}</mat-icon>
+              {{ compareTypeLabel() }}
+            </span>
+          }
+        </div>
+        <button mat-icon-button class="!w-8 !h-8 !text-indigo-600" matTooltip="Clear compare basket" (click)="clearCompare()">
+          <mat-icon class="!text-lg">close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Two slots side by side -->
+      <div class="grid grid-cols-2 gap-3 mb-3">
+
+        <!-- Slot 1 -->
+        <div class="rounded-xl border-2 p-3 min-h-[72px] flex flex-col justify-between"
+             [class]="selectedForCompare()[0] ? 'border-indigo-400 bg-white' : 'border-dashed border-indigo-300 bg-indigo-50/60'">
+          @if (selectedForCompare()[0]; as rec) {
+            <div class="flex items-start justify-between gap-1">
+              <div class="min-w-0">
+                <p class="font-semibold text-gray-900 text-sm truncate uppercase">{{ rec.name }}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" [class]="categoryColor(rec.type)">
+                  {{ categoryLabel(rec.type) }}
+                </span>
+              </div>
+              <button mat-icon-button class="!w-6 !h-6 shrink-0" matTooltip="Remove" (click)="removeFromCompare(rec.id)">
+                <mat-icon class="!text-sm text-gray-400">close</mat-icon>
+              </button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-1">Saved {{ rec.createdAt | date:'MMM d, y' }}</p>
+          } @else {
+            <div class="flex flex-col items-center justify-center h-full text-indigo-400 text-center py-1">
+              <mat-icon class="!text-2xl mb-0.5">add_circle_outline</mat-icon>
+              <p class="text-xs">Add first recommendation</p>
+            </div>
+          }
+        </div>
+
+        <!-- Slot 2 -->
+        <div class="rounded-xl border-2 p-3 min-h-[72px] flex flex-col justify-between"
+             [class]="selectedForCompare()[1] ? 'border-indigo-400 bg-white' : 'border-dashed border-indigo-300 bg-indigo-50/60'">
+          @if (selectedForCompare()[1]; as rec) {
+            <div class="flex items-start justify-between gap-1">
+              <div class="min-w-0">
+                <p class="font-semibold text-gray-900 text-sm truncate uppercase">{{ rec.name }}</p>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium" [class]="categoryColor(rec.type)">
+                  {{ categoryLabel(rec.type) }}
+                </span>
+              </div>
+              <button mat-icon-button class="!w-6 !h-6 shrink-0" matTooltip="Remove" (click)="removeFromCompare(rec.id)">
+                <mat-icon class="!text-sm text-gray-400">close</mat-icon>
+              </button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-1">Saved {{ rec.createdAt | date:'MMM d, y' }}</p>
+          } @else {
+            <div class="flex flex-col items-center justify-center h-full text-indigo-400 text-center py-1">
+              <mat-icon class="!text-2xl mb-0.5">add_circle_outline</mat-icon>
+              <p class="text-xs">Add second recommendation</p>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-2">
+        <button mat-stroked-button class="!rounded-lg !h-8 !text-xs !px-3 !gap-1 !border-indigo-400 !text-indigo-700" (click)="clearCompare()">
+          <mat-icon class="!text-sm">clear_all</mat-icon>Clear
+        </button>
+        <button mat-flat-button color="primary" class="!rounded-lg !h-8 !text-xs !px-4 !gap-1"
+                [disabled]="!compareReady()" (click)="launchCompare()">
+          <mat-icon class="!text-sm">compare_arrows</mat-icon>
+          Compare Now
+        </button>
+      </div>
+
+    </div>
+  }
+
+  <!-- ── Saved List Header + Filter Bar ─────────────────────────────────── -->
+  <div class="bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm">
+
+    <!-- Header row -->
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">Saved recommendations</h2>
+        @if (!loadingRecommendations()) {
+          <p class="text-xs text-gray-500">
+            {{ totalItems() }} result{{ totalItems() === 1 ? '' : 's' }}
+            @if (searchQuery() || filterType() !== 'all') {
+              &middot;
+              <button class="text-teal-600 hover:underline" (click)="clearFilters()">Clear filters</button>
+            }
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Filter / sort row -->
+    <div class="flex flex-wrap gap-2 items-center">
+
+      <!-- Search -->
+      <div class="relative">
+        <mat-icon class="absolute left-2 top-1/2 -translate-y-1/2 !text-base text-gray-400 pointer-events-none">search</mat-icon>
+        <input
+          class="h-8 pl-8 pr-3 text-sm rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-400 w-44"
+          placeholder="Search by name..."
+          [value]="searchQuery()"
+          (input)="setSearch($any($event.target).value)">
+      </div>
+
+      <!-- Type pills -->
+      <div class="flex items-center gap-1">
+        @for (opt of typeOptions; track opt.value) {
+          <button class="h-8 px-3 text-xs rounded-full font-medium border transition-colors"
+                  [class]="filterType() === opt.value
+                    ? 'bg-teal-600 text-white border-teal-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+                  (click)="setFilterType(opt.value)">
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <span class="flex-1"></span>
+
+      <!-- Sort -->
+      <select class="h-8 pl-2 pr-6 text-xs rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none"
+              [value]="sortBy()" (change)="setSortBy($any($event.target).value)">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="name-asc">Name A–Z</option>
+        <option value="name-desc">Name Z–A</option>
+        <option value="cost-high">Cost: High → Low</option>
+        <option value="cost-low">Cost: Low → High</option>
+      </select>
+
+    </div>
+  </div>
+
+  <!-- ── Cards ─────────────────────────────────────────────────────────── -->
+  <div class="pt-1">
+    @if (loadingRecommendations()) {
+      <div class="flex justify-center py-12">
+        <mat-spinner diameter="36"></mat-spinner>
+      </div>
+    } @else if (recommendations().length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 px-4 text-center text-gray-500 bg-white rounded-xl border border-gray-200">
+        <mat-icon class="!text-6xl !w-16 !h-16 mb-4 text-gray-300">bookmark_border</mat-icon>
+        <p class="text-xl font-semibold text-gray-700">No recommendation yet</p>
+        <p class="text-sm mt-2 max-w-md">Run a Medicare analysis and save it. It will appear here.</p>
+      </div>
+    } @else if (filteredAndSorted().length === 0) {
+      <div class="flex flex-col items-center justify-center py-12 px-4 text-center text-gray-500 bg-white rounded-xl border border-gray-200">
+        <mat-icon class="!text-5xl !w-14 !h-14 mb-3 text-gray-300">search_off</mat-icon>
+        <p class="text-lg font-semibold text-gray-700">No matching recommendations</p>
+        <p class="text-sm mt-1 max-w-xs">Try adjusting your search or filters.</p>
+        <button mat-stroked-button class="!rounded-lg !mt-3 !px-4 !h-8 !text-xs" (click)="clearFilters()">
+          <mat-icon class="!text-sm">filter_alt_off</mat-icon> Clear filters
+        </button>
+      </div>
+    } @else {
+      <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+        @for (rec of pagedRecommendations(); track rec.id) {
+          <mat-card class="!rounded-xl !bg-white !border-l-4 !border !border-gray-300 !shadow hover:!shadow-lg transition-all"
+                    [class.!border-l-teal-500]="!isInCompare(rec.id)"
+                    [class.!border-l-indigo-500]="isInCompare(rec.id)"
+                    [class.!ring-2]="isInCompare(rec.id)"
+                    [class.!ring-indigo-400]="isInCompare(rec.id)">
+            <mat-card-content class="!p-3">
+
+              <!-- Row 1: icon + name | status + type badges -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        [class]="rec.hasCostSnapshot ? 'bg-green-100' : 'bg-amber-100'">
+                    <mat-icon [class]="rec.hasCostSnapshot ? '!text-green-600 !text-base' : '!text-amber-600 !text-base'">
+                      {{ rec.hasCostSnapshot ? 'check_circle' : 'pending' }}
+                    </mat-icon>
+                  </div>
+                  <h3 class="font-semibold text-gray-900 text-sm truncate uppercase">{{ rec.name }}</h3>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap" [class]="categoryColor(rec.type)">
+                    {{ categoryLabel(rec.type) }}
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
+                        [class]="rec.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+                    {{ rec.status }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Row 2: date -->
+              <p class="text-[11px] text-gray-500 mt-1.5 ml-10">Saved {{ rec.createdAt | date:'MMM d, y \'at\' h:mm a' }}</p>
+
+              <!-- Row 3: stats -->
+              <div class="flex items-center gap-3 mt-2 ml-10 text-[11px] text-gray-600">
+                <span class="flex items-center gap-0.5">
+                  <mat-icon class="!text-xs !w-3.5 !h-3.5">medication</mat-icon>
+                  {{ rec.drugCount }} drug{{ rec.drugCount === 1 ? '' : 's' }}
+                </span>
+                <span class="flex items-center gap-0.5">
+                  <mat-icon class="!text-xs !w-3.5 !h-3.5">health_and_safety</mat-icon>
+                  {{ rec.planCount }} plan{{ rec.planCount === 1 ? '' : 's' }}
+                </span>
+                @if (rec.hasCostSnapshot) {
+                  <span class="flex items-center gap-0.5 font-semibold text-indigo-700">
+                    <mat-icon class="!text-xs !w-3.5 !h-3.5">payments</mat-icon>
+                    {{ rec.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}
+                  </span>
+                }
+              </div>
+
+              <!-- Row 4: action buttons -->
+              <div class="mt-3 ml-10 flex items-center gap-2">
+                <button mat-flat-button color="primary" (click)="viewDetails(rec.id)" class="!rounded-lg !h-8 !text-xs !px-3 !gap-1">
+                  <mat-icon class="!text-sm">visibility</mat-icon>
+                  View details
+                </button>
+
+                @if (isInCompare(rec.id)) {
+                  <button mat-stroked-button class="!rounded-lg !h-8 !text-xs !px-3 !gap-1 !border-indigo-400 !text-indigo-700"
+                          (click)="removeFromCompare(rec.id)">
+                    <mat-icon class="!text-sm">remove_circle_outline</mat-icon>
+                    Remove
+                  </button>
+                } @else {
+                  <button mat-stroked-button class="!rounded-lg !h-8 !text-xs !px-3 !gap-1"
+                          [disabled]="!canAdd(rec.id)"
+                          [matTooltip]="compareCount() >= 2 ? 'Compare basket is full' : 'Add to compare'"
+                          (click)="addToCompare(rec)">
+                    <mat-icon class="!text-sm">add_circle_outline</mat-icon>
+                    Compare
+                  </button>
+                }
+              </div>
+
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <!-- ── Pagination ───────────────────────────────────────────── -->
+      @if (totalPages() > 1 || totalItems() > 6) {
+        <div class="flex items-center justify-between mt-3 bg-white rounded-xl border border-gray-200 px-4 py-2">
+          <p class="text-xs text-gray-500">
+            Showing {{ pageStart() }}–{{ pageEnd() }} of {{ totalItems() }}
+          </p>
+          <div class="flex items-center gap-1">
+            <select class="h-7 px-1.5 text-xs rounded-md border border-gray-300 bg-white mr-2"
+                    [value]="pageSize()" (change)="setPageSize(+$any($event.target).value)">
+              <option value="6">6 / page</option>
+              <option value="12">12 / page</option>
+              <option value="24">24 / page</option>
+            </select>
+            <button mat-icon-button class="!w-8 !h-8" [disabled]="currentPage() <= 1" (click)="prevPage()">
+              <mat-icon class="!text-base">chevron_left</mat-icon>
+            </button>
+            <span class="text-xs font-medium text-gray-700 px-1">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button mat-icon-button class="!w-8 !h-8" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+              <mat-icon class="!text-base">chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+
+    }
+  </div>
+</div>

@@ -1,0 +1,21 @@
+Recommend Medicare plans for a {{AGE}}-year-old patient in ZIP {{ZIP_CODE}} ({{COUNTY_NAME}} county).
+
+Patient profile:
+- MAGI tier: {{MAGI_TIER}}
+- Annual income: ${{ANNUAL_INCOME}}
+- Household size: {{HOUSEHOLD_SIZE}}
+- Filing status: {{FILING_STATUS}}
+- Employer coverage: {{HAS_EMPLOYER_COVERAGE}}
+- Disability status: {{DISABILITY_STATUS}}
+- Chronic condition: {{HAS_CHRONIC_CONDITION}}
+- Chronic details: {{CHRONIC_DETAILS}}
+- LIS eligibility: {{LIS_TIER}}
+
+Drugs requiring coverage:
+{{DRUG_LIST}}
+
+Selected pharmacies:
+{{PHARMACY_CONTEXT}}
+
+Return a single strict JSON object that follows the provided schema exactly.
+Do not include markdown, labels, or explanatory text.

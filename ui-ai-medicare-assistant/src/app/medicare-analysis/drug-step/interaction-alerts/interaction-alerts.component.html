@@ -1,0 +1,30 @@
+@if (interactions().length > 0) {
+<section class="border border-red-200 rounded-2xl bg-red-50/30 p-5">
+  <div class="flex items-center gap-2 mb-4">
+    <mat-icon class="text-red-500 !text-xl">warning</mat-icon>
+    <h3 class="text-base font-semibold text-gray-700">Drug Interactions</h3>
+    <span class="ml-auto text-xs font-medium text-red-500">{{ interactions().length }} found</span>
+  </div>
+  <div class="space-y-3">
+    @for (interaction of interactions(); track interaction.drugA + interaction.drugB) {
+      <div class="rounded-xl border p-4"
+           [class]="getSeverityClass(interaction.severity)">
+        <div class="flex items-start gap-2 mb-2">
+          <mat-icon class="!text-lg shrink-0 mt-0.5">{{ getSeverityIcon(interaction.severity) }}</mat-icon>
+          <span class="font-semibold text-sm flex-1">{{ interaction.drugA }} + {{ interaction.drugB }}</span>
+          <span class="shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                [class]="interaction.severity === 'High' ? 'bg-red-200 text-red-800'
+                        : interaction.severity === 'Moderate' ? 'bg-amber-200 text-amber-800'
+                        : 'bg-blue-200 text-blue-800'">
+            {{ interaction.severity }}
+          </span>
+        </div>
+        <p class="text-sm leading-relaxed ml-7">{{ interaction.description }}</p>
+        @if (interaction.recommendation) {
+          <p class="text-sm mt-1.5 italic opacity-80 ml-7">{{ interaction.recommendation }}</p>
+        }
+      </div>
+    }
+  </div>
+</section>
+}

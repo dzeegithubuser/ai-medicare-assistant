@@ -1,0 +1,76 @@
+<div class="h-full flex flex-col overflow-hidden">
+  <div class="shrink-0 bg-white border-b border-gray-200 px-6 py-3">
+    <div class="flex items-center justify-between">
+      <div class="w-[120px]"></div>
+
+      <div class="flex items-center gap-0">
+        @for (step of steps; track step.number; let last = $last) {
+          <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors"
+                  [class.bg-cyan-50]="state.currentStep() === step.number"
+                  [class.text-cyan-700]="state.currentStep() === step.number"
+                  [class.font-semibold]="state.currentStep() === step.number"
+                  [class.text-gray-400]="state.currentStep() !== step.number"
+                  [class.cursor-pointer]="step.number <= state.currentStep()"
+                  [class.cursor-default]="step.number > state.currentStep()"
+                  (click)="goToStep(step.number)">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                 [class.bg-cyan-600]="state.currentStep() === step.number"
+                 [class.text-white]="state.currentStep() === step.number"
+                 [class.bg-cyan-100]="state.currentStep() > step.number"
+                 [class.text-cyan-700]="state.currentStep() > step.number"
+                 [class.bg-gray-200]="state.currentStep() < step.number"
+                 [class.text-gray-500]="state.currentStep() < step.number">
+              @if (state.currentStep() > step.number) {
+                <mat-icon class="!text-sm !w-4 !h-4">check</mat-icon>
+              } @else {
+                {{ step.number }}
+              }
+            </div>
+            <span class="text-sm hidden sm:inline">{{ step.label }}</span>
+          </button>
+          @if (!last) {
+            <div class="w-8 h-px mx-1"
+                 [class.bg-cyan-400]="state.currentStep() > step.number"
+                 [class.bg-gray-300]="state.currentStep() <= step.number"></div>
+          }
+        }
+      </div>
+
+      <div class="w-[120px]"></div>
+    </div>
+  </div>
+
+  <div class="flex-1 overflow-y-auto">
+    <router-outlet />
+  </div>
+
+  <div class="shrink-0 bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-between">
+    @if (canGoBack) {
+      <button mat-stroked-button class="!rounded-xl !px-5" (click)="goBack()">
+        <mat-icon class="!text-lg mr-1">arrow_back</mat-icon>
+        Back
+      </button>
+    } @else {
+      <div></div>
+    }
+
+    @if (canContinue) {
+      <button mat-raised-button color="primary"
+              class="!rounded-xl !px-6 !min-w-[220px] inline-flex items-center justify-center gap-2"
+              [disabled]="profileService.chatSaveInProgress()"
+              (click)="goNext()">
+        @if (profileService.chatSaveInProgress()) {
+          <mat-spinner diameter="20" class="!inline-block"></mat-spinner>
+          <span>Saving profile…</span>
+        } @else {
+          <span class="inline-flex items-center justify-center gap-2">
+            {{ continueLabel }}
+            <mat-icon class="!text-lg">arrow_forward</mat-icon>
+          </span>
+        }
+      </button>
+    } @else {
+      <div></div>
+    }
+  </div>
+</div>

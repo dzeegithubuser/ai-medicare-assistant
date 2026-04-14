@@ -1,0 +1,213 @@
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+  @if (result(); as data) {
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100">
+          <mat-icon class="text-emerald-600">elderly</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Long-Term Care Cost Projections</h2>
+          <p class="text-sm text-gray-500">AI-powered analysis of your projected long-term care expenses</p>
+        </div>
+      </div>
+      <button mat-stroked-button (click)="startNewAnalysis()" class="!rounded-xl">
+        <mat-icon class="mr-1">add_circle_outline</mat-icon>
+        New Analysis
+      </button>
+    </div>
+
+    <!-- Summary Cards -->
+    @if (evaluation(); as ev) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <mat-card class="!rounded-2xl !border !border-indigo-100 !shadow-sm">
+          <div class="p-4">
+            <p class="text-xs uppercase tracking-wide text-indigo-600">Total LTC Cost</p>
+            <p class="text-xl font-bold text-gray-900">{{ ev.lifetimeSummary.totalCost | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ ev.lifetimeSummary.projectionYears }} year projection</p>
+          </div>
+        </mat-card>
+        <mat-card class="!rounded-2xl !border !border-emerald-100 !shadow-sm">
+          <div class="p-4">
+            <p class="text-xs uppercase tracking-wide text-emerald-600">Total Present Value</p>
+            <p class="text-xl font-bold text-gray-900">{{ ev.lifetimeSummary.totalPresentValue | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">Today's dollars</p>
+          </div>
+        </mat-card>
+        <mat-card class="!rounded-2xl !border !border-cyan-100 !shadow-sm">
+          <div class="p-4">
+            <p class="text-xs uppercase tracking-wide text-cyan-600">Avg Annual Cost</p>
+            <p class="text-xl font-bold text-gray-900">{{ ev.lifetimeSummary.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
+            <p class="text-xs text-gray-500 mt-1">Per year</p>
+          </div>
+        </mat-card>
+        @if (projection(); as p) {
+          <mat-card class="!rounded-2xl !border !border-amber-100 !shadow-sm">
+            <div class="p-4">
+              <p class="text-xs uppercase tracking-wide text-amber-600">PV Home Care</p>
+              <p class="text-xl font-bold text-gray-900">{{ p.presentValueExpectedHomeCare | currency:'USD':'symbol':'1.0-0' }}</p>
+            </div>
+          </mat-card>
+          <mat-card class="!rounded-2xl !border !border-rose-100 !shadow-sm">
+            <div class="p-4">
+              <p class="text-xs uppercase tracking-wide text-rose-600">PV Nursing Care</p>
+              <p class="text-xl font-bold text-gray-900">{{ p.presentValueExpectedNursingCare | currency:'USD':'symbol':'1.0-0' }}</p>
+            </div>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Trajectory Banner -->
+      <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mt-5">
+        <div class="p-4 flex items-center gap-3">
+          <mat-icon [class]="getTrajectoryColor()">{{ getTrajectoryIcon() }}</mat-icon>
+          <div>
+            <p class="font-semibold text-gray-900">
+              Cost Trajectory: <span [class]="getTrajectoryColor()">{{ ev.costTrajectory }}</span>
+            </p>
+            <p class="text-sm text-gray-600">{{ ev.trajectoryExplanation }}</p>
+          </div>
+        </div>
+      </mat-card>
+    }
+
+    <!-- Charts Row 1: Line + Stacked Bar -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-5 sm:mt-6">
+      <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+        <div class="p-4 sm:p-5 border-b border-gray-100">
+          <h3 class="font-semibold text-gray-900">Cost Trend Over Time</h3>
+          <p class="text-xs text-gray-500 mt-1">Year-by-year care type trends</p>
+        </div>
+        <div class="p-4 sm:p-5">
+          <div class="chart-container"><canvas #lineChart></canvas></div>
+        </div>
+      </mat-card>
+
+      <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+        <div class="p-4 sm:p-5 border-b border-gray-100">
+          <h3 class="font-semibold text-gray-900">Annual Expense Breakdown</h3>
+          <p class="text-xs text-gray-500 mt-1">Stacked care type expenses per year</p>
+        </div>
+        <div class="p-4 sm:p-5">
+          <div class="chart-container"><canvas #stackedChart></canvas></div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Charts Row 2: Doughnut -->
+    @if (evaluation()?.categories?.length) {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-5 sm:mt-6">
+        <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+          <div class="p-4 sm:p-5 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-900">Lifetime Cost Distribution</h3>
+            <p class="text-xs text-gray-500 mt-1">Share of total cost by care type</p>
+          </div>
+          <div class="p-4 sm:p-5">
+            <div class="chart-container"><canvas #doughnutChart></canvas></div>
+          </div>
+        </mat-card>
+      </div>
+    }
+
+    <!-- Yearly Highlights -->
+    @if (evaluation(); as ev) {
+      @if (ev.yearlyHighlights.length) {
+        <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mt-5 sm:mt-6">
+          <div class="p-4 sm:p-5 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-900">Yearly Highlights</h3>
+          </div>
+          <div class="p-4 sm:p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              @for (h of ev.yearlyHighlights; track h.year) {
+                <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
+                  <span [class]="'flex items-center justify-center w-8 h-8 rounded-lg text-sm ' + getFlagColor(h.flag)">
+                    <mat-icon class="!text-[18px]">{{ getFlagIcon(h.flag) }}</mat-icon>
+                  </span>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-gray-900 text-sm">
+                      {{ h.year }} &mdash; {{ h.totalCost | currency:'USD':'symbol':'1.0-0' }}
+                    </p>
+                    <p class="text-xs text-gray-600 mt-0.5">{{ h.explanation }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-card>
+      }
+
+      <!-- Category Insights -->
+      @if (ev.categories.length) {
+        <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mt-5 sm:mt-6">
+          <div class="p-4 sm:p-5 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-900">Category Insights</h3>
+          </div>
+          <div class="p-4 sm:p-5 space-y-4">
+            @for (cat of ev.categories; track cat.name) {
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-sm text-gray-900">{{ cat.name }}</span>
+                    <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full bg-gray-100"
+                          [class]="getTrendColor(cat.trend)">
+                      <mat-icon class="!text-[14px]">{{ getTrendIcon(cat.trend) }}</mat-icon>
+                      {{ cat.trend }}
+                    </span>
+                  </div>
+                  <span class="text-sm font-semibold text-gray-900">{{ cat.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-emerald-500 h-2 rounded-full transition-all" [style.width.%]="cat.percentOfTotal"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">{{ cat.insight }}</p>
+              </div>
+            }
+          </div>
+        </mat-card>
+      }
+
+      <!-- Savings Tips -->
+      @if (ev.savingsTips.length) {
+        <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mt-5 sm:mt-6">
+          <div class="p-4 sm:p-5 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-900">Savings Tips</h3>
+          </div>
+          <div class="p-4 sm:p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @for (tip of ev.savingsTips; track tip.title) {
+                <div class="p-4 rounded-xl border border-gray-100 bg-gray-50">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-semibold text-sm text-gray-900">{{ tip.title }}</h4>
+                    <span [class]="'text-xs px-2 py-0.5 rounded-full font-medium ' + getPriorityColor(tip.priority)">
+                      {{ tip.priority }}
+                    </span>
+                  </div>
+                  <p class="text-sm text-gray-600">{{ tip.description }}</p>
+                  @if (tip.estimatedSavings) {
+                    <p class="text-xs text-emerald-600 font-medium mt-2">Potential savings: {{ tip.estimatedSavings }}</p>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </mat-card>
+      }
+
+      <!-- Overall Assessment -->
+      @if (ev.overallAssessment) {
+        <mat-card class="!rounded-2xl !shadow-sm !border-l-4 !border-l-emerald-500 !border !border-gray-200 mt-5 sm:mt-6">
+          <div class="p-4 sm:p-5">
+            <h3 class="font-semibold text-gray-900 mb-2">Overall Assessment</h3>
+            <p class="text-sm text-gray-700 leading-relaxed">{{ ev.overallAssessment }}</p>
+          </div>
+        </mat-card>
+      }
+    }
+  } @else {
+    <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+      <div class="p-6 text-gray-600">
+        No LTC projection found yet. Go to Care Type and generate a projection.
+      </div>
+    </mat-card>
+  }
+</div>

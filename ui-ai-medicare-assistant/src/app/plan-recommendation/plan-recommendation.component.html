@@ -1,0 +1,223 @@
+<!-- ═══════════════════════════════════════════════════════════════
+     Selected Plans Summary + Calculate Lifetime Cost
+     ═══════════════════════════════════════════════════════════════ -->
+@if (hasCompleteSelection()) {
+  <app-selected-plans-summary
+    [costLoading]="costLoading()"
+    [maIncludesPartD]="maIncludesPartD()"
+    (calculateCost)="calculateLifetimeCost()" />
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     Section Switch Warning Dialog
+     ═══════════════════════════════════════════════════════════════ -->
+@if (showSectionWarning()) {
+  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full mx-4 p-6">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+          <mat-icon class="!text-amber-600">warning</mat-icon>
+        </div>
+        <h3 class="text-sm font-semibold text-gray-800">Switch Plan Section?</h3>
+      </div>
+      <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+        Your current plan selections will be lost if you switch to the other section. Do you want to continue?
+      </p>
+      <div class="flex justify-end gap-2">
+        <button mat-stroked-button class="!rounded-lg !text-xs !border-gray-300" (click)="cancelSectionSwitch()">Cancel</button>
+        <button mat-flat-button class="!rounded-lg !text-xs !bg-amber-600 !text-white" (click)="confirmSectionSwitch()">Switch</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     Section Chooser (shown when no section is active)
+     ═══════════════════════════════════════════════════════════════ -->
+@if (!state.activeSection()) {
+  <div class="flex flex-col items-center justify-center py-12">
+    <p class="text-sm text-gray-500 mb-6">Choose a plan type to get started</p>
+    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-6 w-full max-w-xl items-center">
+
+      <!-- PDP + Medigap button -->
+      <button class="group rounded-xl border-2 border-blue-200 hover:border-blue-400 bg-white hover:bg-blue-50 p-6 transition-all text-left"
+              (click)="activateSection('partd')">
+        <div class="w-12 h-12 rounded-xl bg-blue-100 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
+          <mat-icon class="!text-2xl text-blue-600 group-hover:!text-white transition-colors">medication</mat-icon>
+        </div>
+        <h3 class="text-base font-bold text-gray-800 mb-1">Part D + Medigap</h3>
+        <p class="text-xs text-gray-500 leading-relaxed">Standalone prescription drug coverage paired with a Medigap supplement plan</p>
+      </button>
+
+      <!-- OR Divider -->
+      <div class="hidden sm:flex flex-col items-center gap-2">
+        <div class="w-px h-10 bg-gray-300"></div>
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">or</span>
+        <div class="w-px h-10 bg-gray-300"></div>
+      </div>
+      <div class="sm:hidden flex items-center gap-3 justify-center">
+        <div class="h-px flex-1 bg-gray-300"></div>
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">or</span>
+        <div class="h-px flex-1 bg-gray-300"></div>
+      </div>
+
+      <!-- Medicare Advantage button -->
+      <button class="group rounded-xl border-2 border-purple-200 hover:border-purple-400 bg-white hover:bg-purple-50 p-6 transition-all text-left"
+              (click)="activateSection('ma')">
+        <div class="w-12 h-12 rounded-xl bg-purple-100 group-hover:bg-purple-600 flex items-center justify-center mb-4 transition-colors">
+          <mat-icon class="!text-2xl text-purple-600 group-hover:!text-white transition-colors">health_and_safety</mat-icon>
+        </div>
+        <h3 class="text-base font-bold text-gray-800 mb-1">Medicare Advantage</h3>
+        <p class="text-xs text-gray-500 leading-relaxed">All-in-one coverage that may include prescription drug benefits</p>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     Part D Section (full-width, shown only when partd is active)
+     ═══════════════════════════════════════════════════════════════ -->
+@if (state.activeSection() === 'partd') {
+  <!-- Switch to MA button -->
+  <div class="mb-4 flex items-center gap-3">
+    <button mat-stroked-button class="!rounded-xl !text-xs !border-purple-300 !text-purple-700"
+            (click)="activateSection('ma')">
+      <mat-icon class="!text-sm mr-1">swap_horiz</mat-icon>
+      Switch to Medicare Advantage
+    </button>
+  </div>
+
+  <div class="rounded-xl border-2 border-blue-400 shadow-md overflow-hidden">
+    <!-- Section Header -->
+    <div class="px-4 py-3 flex items-center justify-between bg-blue-50">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+          <mat-icon class="!text-white !text-lg">medication</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-blue-800">Part D Plans</h2>
+          <p class="text-[10px] text-gray-500">Standalone prescription drug coverage + Medigap supplement</p>
+        </div>
+      </div>
+      @if (state.hasPartDPlans()) {
+        <span class="text-[10px] text-gray-400">{{ state.partDPlans()!.recommendationList.length }} plans</span>
+      }
+    </div>
+
+    <!-- Part D Plan Cards -->
+    <div class="p-4 space-y-3 max-h-[500px] overflow-y-auto">
+      @if (state.isPartDLoading()) {
+        <div class="flex items-center justify-center py-8">
+          <mat-spinner diameter="28"></mat-spinner>
+          <span class="ml-3 text-xs text-gray-500">Loading Part D plans...</span>
+        </div>
+      } @else if (state.hasPartDPlans()) {
+        @for (plan of state.partDPlans()!.recommendationList; track plan.contractId + plan.planId) {
+          <app-recommendation-card
+            [plan]="plan"
+            [selected]="isPartDSelected(plan)"
+            [accentColor]="'blue'"
+            [cardType]="'partd'"
+            [enriched]="getPartDEnriched(plan)"
+            (click)="selectPartDPlan(plan)"
+            (seeDetails)="openPlanDetail({ type: 'partd', plan: $event })" />
+        }
+      } @else {
+        <div class="text-center py-6 text-gray-400">
+          <mat-icon class="!text-4xl !w-10 !h-10 opacity-40 mb-2">medication</mat-icon>
+          <p class="text-xs">No Part D plans loaded yet</p>
+        </div>
+      }
+    </div>
+
+    <!-- Medigap Fill-the-Gap (shown when Part D selected) -->
+    @if (state.selectedPartDPlan()) {
+      <app-medigap-gap-section
+        [selectedDataSource]="selectedMedigapDataSource()"
+        [selectedPlanType]="selectedMedigapPlanType()"
+        (dataSourceChanged)="selectedMedigapDataSource.set($event); onMedigapFilterChange()"
+        (planTypeChanged)="selectedMedigapPlanType.set($event); onMedigapFilterChange()"
+        (planSelected)="selectMedigapPlan($event)"
+        (detailRequested)="openPlanDetail({ type: 'medigap', plan: $event })" />
+    }
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     Medicare Advantage Section (full-width, shown only when ma is active)
+     ═══════════════════════════════════════════════════════════════ -->
+@if (state.activeSection() === 'ma') {
+  <!-- Switch to PDP button -->
+  <div class="mb-4 flex items-center gap-3">
+    <button mat-stroked-button class="!rounded-xl !text-xs !border-blue-300 !text-blue-700"
+            (click)="activateSection('partd')">
+      <mat-icon class="!text-sm mr-1">swap_horiz</mat-icon>
+      Switch to Part D + Medigap
+    </button>
+  </div>
+
+  <div class="rounded-xl border-2 border-purple-400 shadow-md overflow-hidden">
+    <!-- Section Header -->
+    <div class="px-4 py-3 flex items-center justify-between bg-purple-50">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
+          <mat-icon class="!text-white !text-lg">health_and_safety</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-purple-800">Medicare Advantage Plans</h2>
+          <p class="text-[10px] text-gray-500">All-in-one coverage that may include Part D</p>
+        </div>
+      </div>
+      @if (state.hasMAPlans()) {
+        <span class="text-[10px] text-gray-400">{{ state.maPlans()!.recommendationList.length }} plans</span>
+      }
+    </div>
+
+    <!-- MA Plan Cards -->
+    <div class="p-4 space-y-3 max-h-[500px] overflow-y-auto">
+      @if (state.isMALoading()) {
+        <div class="flex items-center justify-center py-8">
+          <mat-spinner diameter="28"></mat-spinner>
+          <span class="ml-3 text-xs text-gray-500">Loading Medicare Advantage plans...</span>
+        </div>
+      } @else if (state.hasMAPlans()) {
+        @for (plan of state.maPlans()!.recommendationList; track plan.contractId + plan.planId) {
+          <app-recommendation-card
+            [plan]="plan"
+            [selected]="isMASelected(plan)"
+            [accentColor]="'purple'"
+            [cardType]="'ma'"
+            [enriched]="getMAEnriched(plan)"
+            (click)="selectMAPlan(plan)"
+            (seeDetails)="openPlanDetail({ type: 'ma', plan: $event })">
+            <ng-container badges>
+              @if (getFirstRec(plan); as rec) {
+                @if (rec.prescriptionDrugCovered) {
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                    <mat-icon class="!text-[10px] !w-3 !h-3 align-middle">check_circle</mat-icon> Part D Included
+                  </span>
+                } @else {
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                    <mat-icon class="!text-[10px] !w-3 !h-3 align-middle">info</mat-icon> No Part D
+                  </span>
+                }
+              }
+            </ng-container>
+          </app-recommendation-card>
+        }
+      } @else {
+        <div class="text-center py-6 text-gray-400">
+          <mat-icon class="!text-4xl !w-10 !h-10 opacity-40 mb-2">health_and_safety</mat-icon>
+          <p class="text-xs">No Medicare Advantage plans loaded yet</p>
+        </div>
+      }
+    </div>
+
+    <!-- Part D Fill-the-Gap (shown when MA selected but doesn't include Part D) -->
+    @if (state.selectedMAPlan() && !maIncludesPartD()) {
+      <app-partd-gap-section
+        (planSelected)="selectMAGapPartDPlan($event)"
+        (detailRequested)="openPlanDetail({ type: 'partd', plan: $event })" />
+    }
+  </div>
+}

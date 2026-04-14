@@ -1,0 +1,50 @@
+Return valid JSON matching this schema exactly:
+
+{
+  "lifetimeSummary": {
+    "totalCost": 0,
+    "totalPresentValue": 0,
+    "projectionYears": 0,
+    "averageAnnualCost": 0
+  },
+  "costTrajectory": "Rising | Stable | Declining | Mixed",
+  "trajectoryExplanation": "1-2 sentence explanation of the overall cost trend",
+  "yearlyHighlights": [
+    {
+      "year": 2030,
+      "totalCost": 0,
+      "flag": "Highest | Lowest | Spike | Normal",
+      "explanation": "Brief explanation of why this year stands out"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Adult Day Health Care | Home Care | Assisted Care | Nursing Care",
+      "lifetimeTotal": 0,
+      "presentValue": 0,
+      "percentOfTotal": 0,
+      "trend": "Rising | Stable | Declining",
+      "insight": "1 sentence about this category"
+    }
+  ],
+  "savingsTips": [
+    {
+      "title": "Short tip title",
+      "description": "1-2 sentences explaining how to save or plan",
+      "estimatedSavings": "$X–$Y per year or total",
+      "priority": "High | Medium | Low"
+    }
+  ],
+  "overallAssessment": "2-3 sentence overall evaluation of the long-term care cost outlook and planning recommendations"
+}
+
+Output rules:
+- lifetimeSummary fields must be numbers (not strings).
+- yearlyHighlights must include at least the highest, lowest, and any spike years.
+- categories must cover all care types present in the data (only include care types with years > 0).
+- savingsTips must have 3–5 items, prioritized by potential impact.
+- percentOfTotal must be a number between 0 and 100.
+- costTrajectory must be one of: "Rising", "Stable", "Declining", "Mixed".
+- presentValue fields must reflect the present value amounts provided.
+- Do NOT include any markdown, code fences, or explanation outside the JSON.
+- Return ONLY the JSON object, nothing else.

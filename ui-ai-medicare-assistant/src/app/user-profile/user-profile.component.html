@@ -1,0 +1,265 @@
+<div class="h-full flex flex-col overflow-hidden">
+  <!-- Header -->
+  <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-cyan-50 to-white">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-cyan-600 shadow-sm">
+      <mat-icon class="text-white !text-xl !w-5 !h-5">person</mat-icon>
+    </div>
+    <div>
+      <span class="font-bold text-lg text-gray-900">Edit Profile</span>
+      <p class="text-xs text-gray-500">
+        Update your personal details, tax filing, and address information
+      </p>
+    </div>
+    <span class="flex-1"></span>
+    @if (hasUnsavedChanges()) {
+    <button
+      class="ml-2 px-4 py-2 text-xs font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-sm transition-colors"
+      type="button"
+      (click)="discardUnsavedChanges()">
+      Discard Changes
+    </button>
+    }
+  </div>
+
+  <!-- Form -->
+  <div class="flex-1 overflow-y-auto p-6 bg-slate-50/60">
+    <form [formGroup]="form" class="max-w-4xl mx-auto space-y-5">
+
+      <!-- Row 1: Personal Details + Tax Filing -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+      <!-- ── Personal Details (3/5 width) ── -->
+      <section class="section-card lg:col-span-3">
+        <h3 class="section-title">
+          <mat-icon class="section-icon">person</mat-icon>Personal Details
+        </h3>
+
+        <div class="grid grid-cols-2 gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName">
+            @if (form.controls.firstName.hasError('required')) {
+              <mat-error>First name is required</mat-error>
+            } @else if (form.controls.firstName.hasError('pattern')) {
+              <mat-error>Letters only — spaces, hyphens, apostrophes allowed</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName">
+            @if (form.controls.lastName.hasError('required')) {
+              <mat-error>Last name is required</mat-error>
+            } @else if (form.controls.lastName.hasError('pattern')) {
+              <mat-error>Letters only — spaces, hyphens, apostrophes allowed</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="field-group">
+            <label class="field-label">Gender</label>
+            <mat-radio-group formControlName="gender" class="flex gap-6">
+              @for (g of genderOptions; track g.value) {
+              <mat-radio-button [value]="g.value">{{ g.label }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Tobacco Use</label>
+            <mat-radio-group formControlName="tobaccoStatus" class="flex gap-6">
+              @for (o of yesNoOptions; track o.value) {
+              <mat-radio-button [value]="o.value">{{ o.label }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline" class="mt-3 w-full">
+          <mat-label>Date of Birth</mat-label>
+          <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          @if (form.controls.dateOfBirth.hasError('minAge')) {
+          <mat-error>Must be at least 18 years old</mat-error>
+          }
+        </mat-form-field>
+        @if (isMedicareAge()) {
+        <div class="flex items-center gap-1.5 text-xs text-cyan-700 -mt-2 bg-cyan-50 rounded-lg px-3 py-1.5">
+          <mat-icon class="!text-sm !w-4 !h-4">info</mat-icon>
+          <span>Age 65+ — eligible for Medicare benefits</span>
+        </div>
+        }
+      </section>
+
+      <!-- ── Tax & MAGI (2/5 width) ── -->
+      <section class="section-card lg:col-span-2">
+        <h3 class="section-title">
+          <mat-icon class="section-icon">account_balance</mat-icon>Tax Filing
+        </h3>
+
+        <div class="field-group">
+          <label class="field-label">Tax Filing Status</label>
+          <mat-radio-group formControlName="taxFilingStatus" class="flex flex-wrap gap-4">
+            @for (s of refData.taxFilingStatuses(); track s.value) {
+            <mat-radio-button [value]="s.value">{{ s.label }}</mat-radio-button>
+            }
+          </mat-radio-group>
+          @if (form.controls.taxFilingStatus.touched && form.controls.taxFilingStatus.hasError('required')) {
+          <mat-error class="mt-1">Required</mat-error>
+          }
+        </div>
+
+        <mat-form-field appearance="outline" class="mt-4 w-full">
+          <mat-label>MAGI Tier</mat-label>
+          <mat-select formControlName="magiTier">
+            @for (t of magiTiers(); track t.value) {
+            <mat-option [value]="'' + t.value">{{ t.label }}</mat-option>
+            }
+          </mat-select>
+          @if (loadingMagiTiers()) {
+          <mat-hint>Loading MAGI tiers...</mat-hint>
+          } @else if (magiTiers().length === 0) {
+          <mat-hint>Select a filing status first</mat-hint>
+          }
+        </mat-form-field>
+      </section>
+
+      </div><!-- end row 1 -->
+
+      <!-- Row 2: Concierge + Planning -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+      <!-- ── Concierge ── -->
+      <section class="section-card">
+        <h3 class="section-title">
+          <mat-icon class="section-icon">support_agent</mat-icon>Concierge Service
+        </h3>
+
+        <div class="field-group">
+          <label class="field-label">Concierge</label>
+          <mat-radio-group formControlName="concierge" class="flex gap-6">
+            @for (o of yesNoOptions; track o.value) {
+            <mat-radio-button [value]="o.value">{{ o.label }}</mat-radio-button>
+            }
+          </mat-radio-group>
+        </div>
+
+        @if (form.controls.concierge.value === 1) {
+        <mat-form-field appearance="outline" class="mt-4 w-full">
+          <mat-label>Concierge Amount</mat-label>
+          <span matPrefix class="pl-2">$&nbsp;</span>
+          <input matInput type="number" formControlName="conciergeAmount" placeholder="0.00">
+        </mat-form-field>
+        }
+      </section>
+
+      <!-- ── Life Expectancy ── -->
+      <section class="section-card">
+        <h3 class="section-title">
+          <mat-icon class="section-icon">timeline</mat-icon>Planning
+        </h3>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Health Condition</mat-label>
+          <mat-select formControlName="healthCondition">
+            @for (h of healthConditions; track h.value) {
+            <mat-option [value]="h.value">{{ h.value }} — {{ h.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Life Expectancy</mat-label>
+          <input matInput type="number" formControlName="lifeExpectancy" min="65" max="120">
+          <mat-hint>Range: 65–120</mat-hint>
+          @if (form.controls.lifeExpectancy.hasError('min') || form.controls.lifeExpectancy.hasError('max')) {
+          <mat-error>Must be between 65 and 120</mat-error>
+          }
+        </mat-form-field>
+      </section>
+
+      </div><!-- end row 2 -->
+
+      <!-- Row 3: Contact (full width) -->
+      <section class="section-card">
+        <h3 class="section-title">
+          <mat-icon class="section-icon">contact_mail</mat-icon>Alternate Contact
+        </h3>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Alternate Email</mat-label>
+            <input matInput type="email" formControlName="alternateEmail" placeholder="alt@example.com">
+            @if (form.controls.alternateEmail.hasError('email')) {
+            <mat-error>Enter a valid email</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Alternate Mobile</mat-label>
+            <input matInput formControlName="alternateMobile" placeholder="(555) 123-4567">
+          </mat-form-field>
+        </div>
+      </section>
+
+      <!-- Row 4: Address (full width) -->
+      <section class="section-card">
+        <h3 class="section-title">
+          <mat-icon class="section-icon">home</mat-icon>Address
+        </h3>
+
+        <!-- ZIP Code (entry point — triggers lookup) -->
+        <mat-form-field class="w-full" appearance="outline">
+          <mat-label>ZIP Code</mat-label>
+          <input matInput formControlName="zipCode" placeholder="10001" maxlength="10">
+          @if (form.controls.zipCode.hasError('pattern')) {
+          <mat-error>Enter a valid US ZIP (e.g. 10001 or 10001-1234)</mat-error>
+          }
+          @if (loadingCounty()) {
+          <mat-hint>Looking up ZIP code...</mat-hint>
+          }
+        </mat-form-field>
+
+        <!-- State, County, City, Address (auto-populated after ZIP lookup) -->
+        @if (zipLookupDone()) {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" readonly>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>County</mat-label>
+            <mat-select formControlName="countyCode" (selectionChange)="onCountyChange($event.value)">
+              @for (c of counties(); track c.countyCode) {
+              <mat-option [value]="c.countyCode">{{ c.countyName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>City</mat-label>
+            <mat-select formControlName="city" (selectionChange)="onCityChange($event.value)">
+              @for (c of cities(); track c) {
+              <mat-option [value]="c">{{ c }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="w-full" appearance="outline">
+            <mat-label>Address Line 1</mat-label>
+            <input matInput formControlName="addressLine1" placeholder="123 Main St">
+          </mat-form-field>
+        </div>
+        }
+
+        <!-- Hidden field for countyCode -->
+        <input type="hidden" formControlName="countyCode">
+      </section>
+
+    </form>
+  </div>
+</div>

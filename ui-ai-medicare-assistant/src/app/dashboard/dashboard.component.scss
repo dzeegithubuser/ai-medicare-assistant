@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+::ng-deep .user-dropdown-menu {
+  min-width: 200px;
+
+  .mat-mdc-menu-item {
+    font-size: 0.875rem;
+  }
+}

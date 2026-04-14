@@ -1,0 +1,9 @@
+The beneficiary has selected the following Medicare plan:
+
+**Plan Name:** {{PLAN_NAME}}
+**Plan Type:** {{PLAN_TYPE}}
+
+This plan is **missing** the following coverages:
+{{MISSING_COVERAGES}}
+
+Please recommend complementary plans to fill these coverage gaps.

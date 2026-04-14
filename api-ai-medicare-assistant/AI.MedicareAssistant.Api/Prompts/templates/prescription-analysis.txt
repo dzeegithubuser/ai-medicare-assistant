@@ -1,0 +1,7 @@
+Analyze the following prescription list.
+
+Prescription:
+{{PRESCRIPTION}}
+
+Return normalized pharmaceutical metadata as a single strict JSON object that follows the provided schema exactly.
+Do not include markdown, labels, or explanatory text.

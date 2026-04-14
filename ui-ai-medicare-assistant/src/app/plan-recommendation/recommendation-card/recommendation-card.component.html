@@ -1,0 +1,153 @@
+@if (rec; as r) {
+  <div class="rounded-lg border p-3 cursor-pointer transition-all duration-150"
+       [class.border-blue-400]="selected() && accentColor() === 'blue'"
+       [class.bg-blue-50]="selected() && accentColor() === 'blue'"
+       [class.ring-2]="selected()"
+       [class.ring-blue-300]="selected() && accentColor() === 'blue'"
+       [class.border-purple-400]="selected() && accentColor() === 'purple'"
+       [class.bg-purple-50]="selected() && accentColor() === 'purple'"
+       [class.ring-purple-300]="selected() && accentColor() === 'purple'"
+       [class.border-orange-400]="selected() && accentColor() === 'orange'"
+       [class.bg-orange-50]="selected() && accentColor() === 'orange'"
+       [class.ring-orange-300]="selected() && accentColor() === 'orange'"
+       [class.border-gray-200]="!selected()"
+       [class.hover:border-blue-300]="!selected() && accentColor() === 'blue'"
+       [class.hover:bg-blue-50/50]="!selected() && accentColor() === 'blue'"
+       [class.hover:border-purple-300]="!selected() && accentColor() === 'purple'"
+       [class.hover:bg-purple-50/50]="!selected() && accentColor() === 'purple'"
+       [class.hover:border-orange-300]="!selected() && accentColor() === 'orange'"
+       [class.hover:bg-orange-50/50]="!selected() && accentColor() === 'orange'">
+
+    <!-- Header: plan name, carrier, plan ID, star rating -->
+    <div class="flex items-start justify-between mb-2">
+      <div>
+        <h4 class="text-xs font-semibold text-gray-800">{{ plan().planName }}</h4>
+        <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          <span class="text-[10px] text-gray-500">{{ r.planType }}</span>
+          @if (enriched(); as e) {
+            <span class="text-[10px] text-gray-400">·</span>
+            <span class="text-[10px] text-gray-500 font-medium">{{ e.planIdDisplay }}</span>
+            @if (e.insuranceCarrier) {
+              <span class="text-[10px] text-gray-400">·</span>
+              <span class="text-[10px] text-gray-600 font-medium">{{ e.insuranceCarrier }}</span>
+            }
+          } @else {
+            <span class="text-[10px] text-gray-400">·</span>
+            <span class="text-[10px] text-gray-500">{{ plan().contractId }}</span>
+          }
+          <ng-content select="[badges]"></ng-content>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 text-[10px]">
+        <mat-icon class="!text-amber-400 !text-xs !w-3 !h-3">star</mat-icon>
+        <span class="text-gray-600">{{ r.starRating }}</span>
+      </div>
+    </div>
+
+    <!-- Core metrics -->
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div>
+        <p class="text-[10px] text-gray-500">Premium</p>
+        <p class="text-xs font-semibold" [class.text-green-600]="r.premium === 0">{{ r.premium | currency }}</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-gray-500">Deductible</p>
+        <p class="text-xs font-semibold">{{ r.deductible | currency }}</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-gray-500">Total Cost</p>
+        <p class="text-xs font-bold text-indigo-700">{{ r.totalPlanCost | currency }}</p>
+      </div>
+    </div>
+
+    <!-- Enriched Part D fields -->
+    @if (enrichedPartD; as pd) {
+      <div class="grid grid-cols-3 gap-2 text-center mt-2 pt-2 border-t border-gray-100">
+        <div>
+          <p class="text-[10px] text-gray-500">Part D Surcharge</p>
+          <p class="text-xs font-semibold" [class.text-green-600]="pd.partDSurcharge === 0">{{ pd.partDSurcharge | currency }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-gray-500">Rx OOP</p>
+          <p class="text-xs font-semibold">{{ pd.prescriptionOOP | currency }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-gray-500">Drugs Covered</p>
+          <p class="text-xs font-semibold" [class.text-red-600]="pd.drugsCovered < pd.totalDrugs">
+            {{ pd.drugsCovered }}/{{ pd.totalDrugs }}
+          </p>
+        </div>
+      </div>
+      @if (pd.totalSelectedPharmacies > 0) {
+        <div class="mt-1 text-center">
+          <span class="text-[10px] text-gray-500">Pharmacies In Network:
+            <span class="font-semibold" [class.text-green-600]="pd.pharmaciesInNetwork === pd.totalSelectedPharmacies"
+                  [class.text-amber-600]="pd.pharmaciesInNetwork < pd.totalSelectedPharmacies">
+              {{ pd.pharmaciesInNetwork }}/{{ pd.totalSelectedPharmacies }}
+            </span>
+          </span>
+        </div>
+      }
+    }
+
+    <!-- Enriched MA fields -->
+    @if (enrichedMA; as ma) {
+      <div class="grid grid-cols-3 gap-2 text-center mt-2 pt-2 border-t border-gray-100">
+        @if (ma.surcharges > 0) {
+          <div>
+            <p class="text-[10px] text-gray-500">Surcharges</p>
+            <p class="text-xs font-semibold text-amber-600">{{ ma.surcharges | currency }}</p>
+          </div>
+        }
+        @if (ma.hasPrescriptionDrug) {
+          <div>
+            <p class="text-[10px] text-gray-500">Rx OOP</p>
+            <p class="text-xs font-semibold">{{ ma.prescriptionOOP | currency }}</p>
+          </div>
+        }
+        <div>
+          <p class="text-[10px] text-gray-500">Healthcare OOP</p>
+          <p class="text-xs font-semibold">{{ ma.healthcareOOP | currency }}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-center mt-1">
+        <div>
+          <p class="text-[10px] text-gray-500">Drugs Covered</p>
+          <p class="text-xs font-semibold" [class.text-red-600]="ma.drugsCovered < ma.totalDrugs">
+            {{ ma.drugsCovered }}/{{ ma.totalDrugs }}
+          </p>
+        </div>
+        @if (ma.totalSelectedPharmacies > 0) {
+          <div>
+            <p class="text-[10px] text-gray-500">Pharmacies In Network</p>
+            <p class="text-xs font-semibold" [class.text-green-600]="ma.pharmaciesInNetwork === ma.totalSelectedPharmacies"
+                    [class.text-amber-600]="ma.pharmaciesInNetwork < ma.totalSelectedPharmacies">
+              {{ ma.pharmaciesInNetwork }}/{{ ma.totalSelectedPharmacies }}
+            </p>
+          </div>
+        }
+      </div>
+    }
+
+    @if ((r.unavailableDrugs?.length ?? 0) > 0 && !enriched()) {
+      <p class="text-[10px] text-red-500 mt-1">
+        <mat-icon class="!text-[10px] !w-3 !h-3 align-middle">warning</mat-icon>
+        {{ r.unavailableDrugs!.length }} drug(s) not covered
+      </p>
+    }
+
+    <div class="flex justify-end mt-2">
+      <button mat-stroked-button
+              class="!text-[10px] !h-6 !min-w-0 !px-2 !rounded-full"
+              [class.!border-blue-300]="accentColor() === 'blue'"
+              [class.!text-blue-600]="accentColor() === 'blue'"
+              [class.!border-purple-300]="accentColor() === 'purple'"
+              [class.!text-purple-600]="accentColor() === 'purple'"
+              [class.!border-orange-300]="accentColor() === 'orange'"
+              [class.!text-orange-600]="accentColor() === 'orange'"
+              (click)="$event.stopPropagation(); seeDetails.emit(plan())">
+        See Details
+      </button>
+    </div>
+  </div>
+}

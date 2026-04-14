@@ -1,0 +1,28 @@
+Return valid JSON matching this schema exactly:
+
+{
+  "gapPlans": [
+    {
+      "category": "Hospital & Medical | Supplement | Dental | Vision | Hearing",
+      "planName": "Display name of the plan",
+      "planType": "Original Medicare | Medigap Plan G | DHMO | Vision PPO | Hearing Discount",
+      "carrier": "Insurance company or provider name",
+      "monthlyPremiumRange": "$50–$150",
+      "annualDeductible": "$0 or dollar amount",
+      "coverageHighlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
+      "whyNeeded": "1 sentence explaining why this fills the gap for the beneficiary's current plan",
+      "enrollmentTip": "1 sentence about when/how to enroll or eligibility requirements",
+      "priority": "Essential | Recommended | Optional"
+    }
+  ],
+  "comparisonTip": "1-2 sentence tip comparing their PDP + supplements strategy vs. a Medicare Advantage plan"
+}
+
+Output rules:
+- gapPlans array must contain 4–6 plans covering all the listed missing coverages.
+- category must be one of: "Hospital & Medical", "Supplement", "Dental", "Vision", "Hearing".
+- priority must be one of: "Essential", "Recommended", "Optional".
+- monthlyPremiumRange must be a string with a dollar range (e.g., "$100–$250").
+- coverageHighlights must have 2–4 items.
+- Do NOT include any markdown, code fences, or explanation outside the JSON.
+- Return ONLY the JSON object, nothing else.

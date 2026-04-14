@@ -1,0 +1,51 @@
+Return valid JSON matching this schema exactly:
+
+{
+  "planName": "Name of the evaluated plan",
+  "planBundleCode": "The plan bundle code",
+  "lifetimeSummary": {
+    "totalPremiums": 0,
+    "totalOutOfPocket": 0,
+    "totalCombined": 0,
+    "projectionYears": 0,
+    "averageAnnualCost": 0
+  },
+  "costTrajectory": "Rising | Stable | Declining | Mixed",
+  "trajectoryExplanation": "1-2 sentence explanation of the overall cost trend",
+  "yearlyHighlights": [
+    {
+      "year": 2026,
+      "totalCost": 0,
+      "flag": "Highest | Lowest | Spike | Normal",
+      "explanation": "Brief explanation of why this year stands out"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Part A Premiums | Part B Premiums | Part D Premiums | Medicare Advantage | Out-of-Pocket | Surcharges | Concierge | Dental",
+      "lifetimeTotal": 0,
+      "percentOfTotal": 0,
+      "trend": "Rising | Stable | Declining",
+      "insight": "1 sentence about this category"
+    }
+  ],
+  "savingsTips": [
+    {
+      "title": "Short tip title",
+      "description": "1-2 sentences explaining how to save",
+      "estimatedSavings": "$X–$Y per year",
+      "priority": "High | Medium | Low"
+    }
+  ],
+  "overallAssessment": "2-3 sentence overall evaluation of the plan's cost-effectiveness and outlook"
+}
+
+Output rules:
+- lifetimeSummary fields must be numbers (not strings).
+- yearlyHighlights must include at least the highest, lowest, and any spike years.
+- categories must cover all major cost categories present in the data.
+- savingsTips must have 3–5 items, prioritized by potential impact.
+- percentOfTotal must be a number between 0 and 100.
+- costTrajectory must be one of: "Rising", "Stable", "Declining", "Mixed".
+- Do NOT include any markdown, code fences, or explanation outside the JSON.
+- Return ONLY the JSON object, nothing else.

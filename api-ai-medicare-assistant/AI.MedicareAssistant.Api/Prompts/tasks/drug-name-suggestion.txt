@@ -1,0 +1,14 @@
+Identify likely intended drug names from free-text input.
+
+For each detected drug mention:
+1. Extract inputName as the medication token(s) only.
+2. Ignore dosage, strength, route, schedule, and quantity terms.
+3. Provide up to 3 real candidate names ordered by confidence descending.
+4. Mark each candidate type as Brand or Generic.
+5. Use confidence values in [0.0, 1.0].
+
+Behavior rules:
+- If mention is already a clear valid drug, return one high-confidence candidate.
+- If mention is misspelled/ambiguous, return best plausible matches.
+- If mention is not a plausible medication, return that inputName with candidates=[].
+- Return strict JSON only.

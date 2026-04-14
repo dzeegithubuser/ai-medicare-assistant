@@ -1,0 +1,29 @@
+<div class="border-t-2 border-purple-200">
+  <div class="px-4 py-3 bg-orange-50">
+    <div class="flex items-center gap-2 mb-1">
+      <mat-icon class="!text-orange-600 !text-lg">medication</mat-icon>
+      <h3 class="text-xs font-bold text-orange-800">Fill the Gap — Select a Part D Plan</h3>
+    </div>
+    <p class="text-[10px] text-orange-700 mb-2">This Medicare Advantage plan doesn't include prescription drug coverage. Select a Part D plan to add drug coverage.</p>
+  </div>
+
+  <div class="p-4 space-y-3 max-h-[400px] overflow-y-auto">
+    @if (state.isPartDLoading()) {
+      <div class="flex items-center justify-center py-6">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span class="ml-2 text-xs text-gray-500">Loading Part D plans...</span>
+      </div>
+    } @else if (state.hasPartDPlans()) {
+      @for (plan of state.partDPlans()!.recommendationList; track plan.contractId + plan.planId) {
+        <app-recommendation-card
+          [plan]="plan"
+          [selected]="isSelected(plan)"
+          [accentColor]="'orange'"
+          [cardType]="'partd'"
+          [enriched]="getEnriched(plan)"
+          (click)="planSelected.emit(plan)"
+          (seeDetails)="detailRequested.emit($event)" />
+      }
+    }
+  </div>
+</div>

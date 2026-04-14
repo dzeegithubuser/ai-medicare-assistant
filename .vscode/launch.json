@@ -1,0 +1,55 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API: Launch (Debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: api",
+      "program": "${workspaceFolder}/api-ai-medicare-assistant/AI.MedicareAssistant.Api/bin/Debug/net10.0/AI.MedicareAssistant.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/api-ai-medicare-assistant/AI.MedicareAssistant.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    },
+    {
+      "name": "API: Attach to Process",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "UI: Serve & Debug (Chrome)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "preLaunchTask": "serve: ui",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/ui-ai-medicare-assistant/src"
+    },
+    {
+      "name": "UI: Serve & Debug (Edge)",
+      "type": "pwa-msedge",
+      "request": "launch",
+      "preLaunchTask": "serve: ui",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/ui-ai-medicare-assistant/src"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack: API + UI (Chrome)",
+      "configurations": ["API: Launch (Debug)", "UI: Serve & Debug (Chrome)"],
+      "stopAll": true
+    },
+    {
+      "name": "Full Stack: API + UI (Edge)",
+      "configurations": ["API: Launch (Debug)", "UI: Serve & Debug (Edge)"],
+      "stopAll": true
+    }
+  ]
+}

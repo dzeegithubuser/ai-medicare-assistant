@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* Slide-in animation for cart drawer */
+@keyframes slideIn {
+  from {
+    width: 0;
+    min-width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 380px;
+    min-width: 380px;
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}

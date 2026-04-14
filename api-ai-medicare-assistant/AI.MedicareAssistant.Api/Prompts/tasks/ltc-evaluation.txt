@@ -1,0 +1,1 @@
+Analyze the individual's lifetime long-term care cost projection data and produce a comprehensive financial evaluation. Break down lifetime totals by care type, identify cost trends across all years, flag high-cost years, and provide actionable recommendations for managing long-term care expenses. Return as structured JSON matching the provided schema.

@@ -1,0 +1,61 @@
+Return valid JSON matching this schema exactly:
+
+{
+  "lisEligible": true,
+  "lisTier": "None|Partial|Full",
+  "recommendedPlanType": "MedicareAdvantage|PartDPlusMedigap|DSNPDualEligible",
+  "eligibilitySummary": "2-3 sentence plain-language summary of why these plans were recommended",
+  "lisCallToAction": "string or null — if LIS eligible, explain what Extra Help means",
+  "rankedPlans": [
+    {
+      "planId": "H1234-001",
+      "planName": "Plan display name",
+      "planType": "MA-PD|PDP|D-SNP",
+      "planCategory": "MA_ONLY|PDP_ONLY|PDP_MEDIGAP|MA_PDP",
+      "insuranceName": "Insurance company name",
+      "monthlyPremium": 0.00,
+      "annualDeductible": 0.00,
+      "annualMoop": 4900.00,
+      "estimatedAnnualDrugCost": 680.00,
+      "estimatedAnnualTotalCost": 680.00,
+      "drugCoverages": [
+        {
+          "drugName": "drug name",
+          "rxCui": "RxCUI string",
+          "isCovered": true,
+          "formularyTier": 2,
+          "monthlyCopay": 47.00,
+          "requiresPriorAuth": false,
+          "hasQuantityLimit": true,
+          "quantityLimitDetail": "60 tablets per 30 days"
+        }
+      ],
+      "aiExplanation": "2-4 sentence explanation of this plan's value for this patient",
+      "starRating": "4.5",
+      "hasPreferredPharmacyNetwork": true,
+      "planFinderUrl": "https://www.medicare.gov/plan-compare/#/plan-details/PLANID",
+      "networkType": "HMO|PPO|PFFS|HMO-POS",
+      "includesDental": true,
+      "includesVision": true,
+      "includesHearing": true,
+      "includesFitness": false,
+      "includesOtc": true,
+      "otcAllowancePerQuarter": 50.00,
+      "gapCoverage": "None|Some|Full",
+      "mailOrderSavings": true,
+      "providerNetworkSize": "Large|Medium|Small",
+      "emergencyCoverage": true,
+      "pros": ["Low premiums", "$0 dental cleanings"],
+      "cons": ["HMO requires referrals", "No out-of-network coverage"]
+    }
+  ]
+}
+
+Output rules:
+- Use only the keys shown above.
+- All required fields must be present; do not add extra keys.
+- rankedPlans array must contain exactly 5 plans.
+- drugCoverages array must contain one entry per input drug.
+- monthlyCopay must be numeric (not a percentage string) for tiers 1-4.
+- For tier 5 coinsurance, express monthlyCopay as the estimated dollar amount.
+- starRating must be a string representation of a number between 2.5 and 5.0.

@@ -1,0 +1,1 @@
+Analyze the beneficiary's lifetime Medicare cost projection data and produce a comprehensive financial evaluation. Break down lifetime totals, identify cost trends, flag high-cost years, and provide actionable savings recommendations. Return as structured JSON matching the provided schema.

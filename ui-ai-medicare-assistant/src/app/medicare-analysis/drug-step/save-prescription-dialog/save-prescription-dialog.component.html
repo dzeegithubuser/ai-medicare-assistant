@@ -1,0 +1,40 @@
+<div class="p-6">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center">
+      <mat-icon class="!text-white !text-xl">{{ icon }}</mat-icon>
+    </div>
+    <div>
+      <h2 class="text-lg font-bold text-gray-900">{{ title }}</h2>
+      <p class="text-sm text-gray-500">{{ subtitle }}</p>
+    </div>
+  </div>
+
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>Prescription Name</mat-label>
+    <input matInput
+           [ngModel]="prescriptionName()"
+           (ngModelChange)="prescriptionName.set($event)"
+           placeholder="e.g. Monthly Rx, Dad's Medications"
+           (keydown.enter)="submit()"
+           maxlength="200"
+           cdkFocusInitial />
+    <mat-icon matPrefix class="!text-gray-400 mr-1">description</mat-icon>
+    <mat-hint>Give your prescription a memorable name</mat-hint>
+  </mat-form-field>
+
+  <div class="flex gap-3 mt-6 justify-end">
+    <button mat-stroked-button
+            class="!rounded-xl"
+            (click)="cancel()">
+      Cancel
+    </button>
+    <button mat-raised-button
+            color="primary"
+            class="!rounded-xl"
+            [disabled]="!prescriptionName().trim()"
+            (click)="submit()">
+      <mat-icon class="!text-lg mr-1">check</mat-icon>
+      Submit
+    </button>
+  </div>
+</div>

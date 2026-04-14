@@ -1,0 +1,304 @@
+<div class="max-h-[80vh] overflow-y-auto">
+  <div class="flex items-center justify-between px-6 pt-5 pb-3">
+    <h2 class="text-lg font-bold text-gray-900">Plan Details</h2>
+    <button mat-icon-button (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Part D / MA Plan Detail -->
+  @if (isPartD) {
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        <h3 class="text-base font-semibold text-gray-800">{{ partDPlan.planName }}</h3>
+        <p class="text-xs text-gray-500">Contract: {{ partDPlan.contractId }} · Plan&nbsp;ID: {{ partDPlan.planId }} · Segment: {{ partDPlan.segmentId }}</p>
+      </div>
+
+      @if (firstPharmacy; as rec) {
+        <!-- Cost Summary -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Monthly Premium</span>
+            <p class="text-sm font-semibold text-gray-800">{{ rec.premium | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Annual Deductible</span>
+            <p class="text-sm font-semibold text-gray-800">{{ rec.deductible | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Total Rx Cost</span>
+            <p class="text-sm font-semibold text-gray-800">{{ rec.totalPrescriptionCost | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-indigo-50">
+            <span class="text-[10px] text-indigo-600 uppercase tracking-wide font-medium">Total Plan Cost</span>
+            <p class="text-base font-bold text-indigo-700">{{ rec.totalPlanCost | currency }}</p>
+          </div>
+        </div>
+
+        <!-- Premiums / ICL -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Total Premium</span>
+            <p class="text-sm font-semibold">{{ rec.totalPremiumToPay | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Star Rating</span>
+            <p class="text-sm font-semibold">{{ rec.starRating }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">ICL</span>
+            <p class="text-sm font-semibold">{{ rec.icl | currency }}</p>
+          </div>
+        </div>
+
+        <!-- Rx Full Year Cost -->
+        <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <span class="text-[10px] text-amber-700 uppercase tracking-wide font-medium">Full Year Rx Cost</span>
+          <p class="text-sm font-bold text-amber-800">{{ rec.totalPrescriptionCostFullYear | currency }}</p>
+        </div>
+
+        <!-- Part A/B Service Costs -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part A+B Service</span>
+            <p class="text-sm font-semibold">{{ rec.partAandBBenefitServiceCost | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part A Service</span>
+            <p class="text-sm font-semibold">{{ rec.partABenefitServiceCost | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part B Service</span>
+            <p class="text-sm font-semibold">{{ rec.partBBenefitServiceCost | currency }}</p>
+          </div>
+        </div>
+
+        <!-- Pharmacy Info -->
+        <div>
+          <h4 class="text-xs font-semibold text-gray-700 mb-2">Pharmacy</h4>
+          <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+            <mat-icon class="!text-gray-400 !text-lg">local_pharmacy</mat-icon>
+            <div>
+              <p class="text-xs font-medium text-gray-800">{{ rec.pharmacyName }}</p>
+              <p class="text-[10px] text-gray-500">{{ rec.pharmacyRetailType }} · Dispense Fee: {{ rec.dispenseFee | currency }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pharmacy Networks -->
+        @if (rec.pharmacyNetworks.length > 0) {
+          <div>
+            <h4 class="text-xs font-semibold text-gray-700 mb-2">Pharmacy Networks</h4>
+            <div class="space-y-1">
+              @for (net of rec.pharmacyNetworks; track net.pharmacyNumber) {
+                <div class="flex items-center justify-between text-xs px-2 py-1 bg-gray-50 rounded">
+                  <span class="text-gray-700">{{ net.pharmacyName }}</span>
+                  <span class="text-gray-500">{{ net.pharmacyNetworkType }} · {{ net.distance }} mi</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Unavailable Drugs -->
+        @if ((rec.unavailableDrugs?.length ?? 0) > 0) {
+          <div class="p-3 rounded-lg bg-red-50 border border-red-200">
+            <p class="text-xs font-semibold text-red-700 mb-1">
+              <mat-icon class="!text-sm !w-4 !h-4 align-middle mr-0.5">warning</mat-icon>
+              Unavailable Drugs
+            </p>
+            @for (drug of rec.unavailableDrugs; track drug) {
+              <p class="text-xs text-red-600">• {{ drug }}</p>
+            }
+          </div>
+        }
+
+        <!-- Monthly Expenses -->
+        @if (rec.planExpenses.length > 0) {
+          <div>
+            <h4 class="text-xs font-semibold text-gray-700 mb-2">Monthly Expense Breakdown</h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-[10px] border-collapse">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="px-2 py-1 text-left text-gray-600">Month</th>
+                    <th class="px-2 py-1 text-right text-gray-600">OOP</th>
+                    <th class="px-2 py-1 text-right text-gray-600">Premium</th>
+                    <th class="px-2 py-1 text-right text-gray-600">Drug Retail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (exp of rec.planExpenses; track exp.month) {
+                    <tr class="border-b border-gray-100">
+                      <td class="px-2 py-1 text-gray-700">{{ exp.month }}</td>
+                      <td class="px-2 py-1 text-right text-gray-700">{{ exp.oop | currency }}</td>
+                      <td class="px-2 py-1 text-right text-gray-700">{{ exp.premium | currency }}</td>
+                      <td class="px-2 py-1 text-right text-gray-700">{{ exp.drugRetailCost | currency }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- Contact Info -->
+        @if (rec.websiteLink || rec.phone) {
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            @if (rec.websiteLink) {
+              <a [href]="rec.websiteLink" target="_blank" rel="noopener" class="text-indigo-600 hover:underline flex items-center gap-1">
+                <mat-icon class="!text-sm !w-4 !h-4">language</mat-icon> Website
+              </a>
+            }
+            @if (rec.phone) {
+              <span class="flex items-center gap-1"><mat-icon class="!text-sm !w-4 !h-4">phone</mat-icon> {{ rec.phone }}</span>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <!-- Medigap Plan Detail -->
+  @if (isMedigap) {
+    <div class="px-6 py-4 space-y-4">
+      <div>
+        @if (medigapPlan.company_base) {
+          <h3 class="text-base font-semibold text-gray-800">{{ medigapPlan.company_base.name_full || medigapPlan.company_base.name }}</h3>
+        }
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Plan {{ medigapPlan.plan }}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{{ medigapPlan.rate_type }}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{{ medigapPlan.rating_class }}</span>
+          @if (medigapPlan.is_open_rate) {
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">Open Rate</span>
+          }
+        </div>
+      </div>
+
+      <!-- Rate Grid -->
+      @if (medigapPlan.rate) {
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-lg bg-indigo-50">
+            <span class="text-[10px] text-indigo-600 uppercase tracking-wide font-medium">Monthly</span>
+            <p class="text-base font-bold text-indigo-700">{{ medigapPlan.rate.month | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Annual</span>
+            <p class="text-sm font-semibold text-gray-800">{{ medigapPlan.rate.annual | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Quarterly</span>
+            <p class="text-sm font-semibold text-gray-800">{{ medigapPlan.rate.quarter | currency }}</p>
+          </div>
+          <div class="p-3 rounded-lg bg-gray-50">
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Semi-Annual</span>
+            <p class="text-sm font-semibold text-gray-800">{{ medigapPlan.rate.semi_annual | currency }}</p>
+          </div>
+        </div>
+      }
+
+      <!-- OOP / Service Costs -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3 rounded-lg bg-gray-50">
+          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Medigap OOP</span>
+          <p class="text-sm font-semibold">{{ medigapPlan.medigapOOP | currency }}</p>
+        </div>
+        <div class="p-3 rounded-lg bg-gray-50">
+          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part B Premium</span>
+          <p class="text-sm font-semibold">{{ medigapPlan.partBPremium | currency }}</p>
+        </div>
+        <div class="p-3 rounded-lg bg-gray-50">
+          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part A Service OOP</span>
+          <p class="text-sm font-semibold">{{ medigapPlan.partAServiceOOP | currency }}</p>
+        </div>
+        <div class="p-3 rounded-lg bg-gray-50">
+          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part B Service OOP</span>
+          <p class="text-sm font-semibold">{{ medigapPlan.partBServiceOOP | currency }}</p>
+        </div>
+      </div>
+
+      @if (medigapPlan.partBPremiumSurcharge > 0) {
+        <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <span class="text-[10px] text-amber-700 uppercase tracking-wide font-medium">Part B Surcharge</span>
+          <p class="text-sm font-bold text-amber-800">{{ medigapPlan.partBPremiumSurcharge | currency }}</p>
+        </div>
+      }
+
+      <!-- Company Info -->
+      @if (medigapPlan.company_base; as co) {
+        <div>
+          <h4 class="text-xs font-semibold text-gray-700 mb-2">Company Information</h4>
+          <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+            @if (co.ambest_rating) {
+              <div><span class="text-gray-400">AM Best:</span> {{ co.ambest_rating }} ({{ co.ambest_outlook }})</div>
+            }
+            @if (co.sp_rating) {
+              <div><span class="text-gray-400">S&P:</span> {{ co.sp_rating }}</div>
+            }
+            <div><span class="text-gray-400">Est:</span> {{ co.established_year }}</div>
+            <div><span class="text-gray-400">Type:</span> {{ co.type }}</div>
+            @if (co.customer_satisfaction_ratio) {
+              <div><span class="text-gray-400">Satisfaction:</span> {{ co.customer_satisfaction_ratio }}%</div>
+            }
+            @if (co.customer_complaint_ratio !== null) {
+              <div><span class="text-gray-400">Complaint Ratio:</span> {{ co.customer_complaint_ratio }}</div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Discounts -->
+      @if (medigapPlan.discounts.length > 0) {
+        <div>
+          <h4 class="text-xs font-semibold text-gray-700 mb-2">Discounts</h4>
+          @for (d of medigapPlan.discounts; track d.name) {
+            <div class="flex items-center justify-between text-xs px-2 py-1 bg-green-50 rounded mb-1">
+              <span class="text-green-700">{{ d.name }} ({{ d.type }})</span>
+              <span class="font-medium text-green-800">{{ d.value }}%</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Fees -->
+      @if (medigapPlan.fees.length > 0) {
+        <div>
+          <h4 class="text-xs font-semibold text-gray-700 mb-2">Fees</h4>
+          @for (f of medigapPlan.fees; track f.name) {
+            <div class="flex items-center justify-between text-xs px-2 py-1 bg-gray-50 rounded mb-1">
+              <span class="text-gray-700">{{ f.name }}</span>
+              <span class="font-medium">{{ f.value | currency }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Rate Increases -->
+      @if (medigapPlan.rate_increases.length > 0) {
+        <div>
+          <h4 class="text-xs font-semibold text-gray-700 mb-2">Rate Increase History</h4>
+          @for (ri of medigapPlan.rate_increases; track ri.date) {
+            <div class="flex items-center justify-between text-xs px-2 py-1 bg-amber-50 rounded mb-1">
+              <span class="text-amber-700">{{ ri.date }}</span>
+              <span class="font-medium text-amber-800">+{{ ri.rate_increase }}%</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Dates -->
+      <div class="flex items-center gap-4 text-xs text-gray-500">
+        <span>Effective: {{ medigapPlan.effective_date | date:'mediumDate' }}</span>
+        <span>Expires: {{ medigapPlan.expires_date | date:'mediumDate' }}</span>
+      </div>
+    </div>
+  }
+
+  <mat-divider></mat-divider>
+  <div class="flex justify-end px-6 py-3">
+    <button mat-flat-button class="!rounded-lg !bg-indigo-600 !text-white !text-xs" (click)="close()">Close</button>
+  </div>
+</div>

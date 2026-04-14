@@ -1,0 +1,21 @@
+@if (duplicateTherapies().length > 0) {
+<section class="border border-amber-200 rounded-2xl bg-amber-50/30 p-5">
+  <div class="flex items-center gap-2 mb-4">
+    <mat-icon class="text-amber-500 !text-xl">content_copy</mat-icon>
+    <h3 class="text-base font-semibold text-gray-700">Duplicate Therapy Warnings</h3>
+    <span class="ml-auto text-xs font-medium text-amber-500">{{ duplicateTherapies().length }} found</span>
+  </div>
+  <div class="space-y-3">
+    @for (dup of duplicateTherapies(); track dup.therapeuticClass) {
+      <div class="rounded-xl border p-4 bg-amber-50 border-amber-200">
+        <div class="flex items-start gap-2 mb-1.5">
+          <mat-icon class="text-amber-600 !text-lg shrink-0 mt-0.5">content_copy</mat-icon>
+          <span class="font-semibold text-sm text-amber-800 flex-1">{{ dup.drugs.join(' + ') }}</span>
+        </div>
+        <div class="text-xs text-amber-600 mb-1 ml-7">{{ dup.therapeuticClass }}</div>
+        <p class="text-sm text-amber-700 ml-7">{{ dup.message }}</p>
+      </div>
+    }
+  </div>
+</section>
+}

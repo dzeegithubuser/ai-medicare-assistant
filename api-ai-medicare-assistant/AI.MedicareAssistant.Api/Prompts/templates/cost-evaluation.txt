@@ -1,0 +1,25 @@
+The beneficiary has selected the following Medicare plan for cost projection:
+
+**Plan Name:** {{PLAN_NAME}}
+**Plan Bundle Code:** {{PLAN_BUNDLE_CODE}}
+**Coverage Year:** {{COVERAGE_YEAR}}
+**Life Expectancy:** {{LIFE_EXPECTANCY}} years
+**Tax Filing Status:** {{TAX_FILING_STATUS}}
+**State:** {{STATE_NAME}}
+
+**Lifetime Totals from Financial Planner:**
+- Lifetime A+B Medicare Advantage Expenses: ${{LIFETIME_AB_MA_EXPENSES}}
+- Lifetime A+B Medicare Advantage Premium: ${{LIFETIME_AB_MA_PREMIUM}}
+- Lifetime A+B Medicare Advantage OOP: ${{LIFETIME_AB_MA_OOP}}
+- Lifetime Part D Surcharge: ${{LIFETIME_D_SURCHARGE}}
+- Lifetime Part B Surcharge: ${{LIFETIME_B_SURCHARGE}}
+- Total IRMAA (B + D Surcharges): ${{TOTAL_IRMAA}}
+
+**Supplement (Medigap) Plan:**
+- Plan Type: {{SUPPLEMENT_PLAN_TYPE}}
+- Plan Premium: ${{SUPPLEMENT_PLAN_PREMIUM}}
+
+**Year-by-Year Medicare Cost Breakdown:**
+{{YEARLY_BREAKDOWN}}
+
+Please analyze this data and provide a comprehensive cost evaluation with lifetime summaries, trends, highlights, category breakdowns, and savings tips.

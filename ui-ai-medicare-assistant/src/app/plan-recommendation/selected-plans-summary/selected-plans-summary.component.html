@@ -1,0 +1,79 @@
+<div class="mt-6 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 p-5">
+  <div class="flex items-center gap-2 mb-3">
+    <mat-icon class="!text-indigo-600">check_circle</mat-icon>
+    <h3 class="text-sm font-bold text-indigo-800">Selected Plans</h3>
+  </div>
+
+  <div class="space-y-2 mb-4">
+    @if (state.activeSection() === 'partd') {
+      <!-- Part D selection -->
+      @if (state.selectedPartDPlan(); as partD) {
+        @if (getFirstRec(partD); as rec) {
+          <div class="flex items-center justify-between p-3 rounded-lg bg-white border border-blue-200">
+            <div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium mr-2">Part D</span>
+              <span class="text-xs font-semibold text-gray-800">{{ partD.planName }}</span>
+            </div>
+            <span class="text-xs font-bold text-indigo-700">{{ rec.totalPlanCost | currency }}/yr</span>
+          </div>
+        }
+      }
+      <!-- Medigap selection -->
+      @if (state.selectedMedigapPlan(); as medigap) {
+        <div class="flex items-center justify-between p-3 rounded-lg bg-white border border-teal-200">
+          <div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-700 font-medium mr-2">Medigap</span>
+            <span class="text-xs font-semibold text-gray-800">{{ medigap.company_base?.name }} — Plan {{ medigap.plan }}</span>
+          </div>
+          <span class="text-xs font-bold text-indigo-700">{{ medigap.rate?.month | currency }}/mo</span>
+        </div>
+      }
+    }
+
+    @if (state.activeSection() === 'ma') {
+      <!-- MA selection -->
+      @if (state.selectedMAPlan(); as ma) {
+        @if (getFirstRec(ma); as rec) {
+          <div class="flex items-center justify-between p-3 rounded-lg bg-white border border-purple-200">
+            <div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium mr-2">Medicare Advantage</span>
+              <span class="text-xs font-semibold text-gray-800">{{ ma.planName }}</span>
+              @if (rec.prescriptionDrugCovered) {
+                <span class="text-[10px] ml-2 text-green-600"><mat-icon class="!text-[10px] !w-3 !h-3 align-middle">check</mat-icon> Part D Included</span>
+              }
+            </div>
+            <span class="text-xs font-bold text-indigo-700">{{ rec.totalPlanCost | currency }}/yr</span>
+          </div>
+        }
+      }
+      <!-- Gap Part D selection -->
+      @if (state.selectedMAGapPartDPlan(); as gapPartD) {
+        @if (getFirstRec(gapPartD); as rec) {
+          <div class="flex items-center justify-between p-3 rounded-lg bg-white border border-orange-200">
+            <div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium mr-2">Part D (Gap)</span>
+              <span class="text-xs font-semibold text-gray-800">{{ gapPartD.planName }}</span>
+            </div>
+            <span class="text-xs font-bold text-indigo-700">{{ rec.totalPlanCost | currency }}/yr</span>
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <!-- Calculate Lifetime Cost Button -->
+  @if (costLoading()) {
+    <button mat-flat-button disabled
+            class="!w-full !rounded-lg !bg-indigo-600 !text-white !text-sm !font-semibold !py-2">
+      <mat-spinner diameter="18" class="!inline-block mr-2"></mat-spinner>
+      Calculating...
+    </button>
+  } @else {
+    <button mat-flat-button
+            class="!w-full !rounded-lg !bg-indigo-600 !text-white !text-sm !font-semibold !py-2 hover:!bg-indigo-700"
+            (click)="calculateCost.emit()">
+      <mat-icon class="!text-lg mr-1">analytics</mat-icon>
+      Calculate Lifetime Cost
+    </button>
+  }
+</div>

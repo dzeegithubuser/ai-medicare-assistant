@@ -1,0 +1,191 @@
+<!-- FP page direct drug search (same capability as chat) -->
+<div class="px-6 pt-5 pb-2">
+  <div class="bg-white border border-cyan-200 rounded-2xl shadow-sm p-4">
+    <div class="flex items-center gap-2 mb-2">
+      <mat-icon class="text-cyan-600 !text-lg">search</mat-icon>
+      <h3 class="text-sm font-semibold text-cyan-800">Add Drugs Here (or use Chat)</h3>
+    </div>
+    <p class="text-xs text-gray-500 mb-3">
+      Type drug names (e.g., "Eliquis 5mg, Metformin 500mg"), then verify and confirm.
+    </p>
+    <div class="flex gap-2 items-center">
+      <mat-form-field class="flex-1" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Enter drug names</mat-label>
+        <input matInput
+               [(ngModel)]="drugInput"
+               placeholder="e.g. Eliquis 5mg, Metformin 500mg"
+               (keydown.enter)="searchFromPage()"
+               [disabled]="state.isLoading() || state.isVerifyingNames()">
+      </mat-form-field>
+      <button mat-flat-button color="primary"
+              (click)="searchFromPage()"
+              [disabled]="!drugInput.trim() || state.isLoading() || state.isVerifyingNames()">
+        Search
+      </button>
+    </div>
+
+    @if (state.isVerifyingNames() && state.hasSuggestions()) {
+      <div class="border border-cyan-100 rounded-xl p-3 bg-cyan-50/30 mt-1">
+        <div class="space-y-3">
+          @for (suggestion of state.drugSuggestions(); track suggestion.inputName) {
+            <div class="border border-gray-100 rounded-lg p-3 bg-white">
+              <div class="flex items-center gap-2 mb-2">
+                <mat-icon class="!text-base !w-4 !h-4 text-gray-500">fact_check</mat-icon>
+                <span class="text-xs text-gray-500">You entered:</span>
+                <span class="text-sm font-medium text-gray-700">{{ suggestion.inputName }}</span>
+              </div>
+              @if (suggestion.candidates.length === 0) {
+                <p class="text-xs text-red-500 ml-6">No matching drug found.</p>
+              } @else {
+                <div class="flex flex-wrap gap-2 ml-6">
+                  @for (candidate of suggestion.candidates; track candidate.name) {
+                    <button
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer"
+                      [class]="isSelected(suggestion, candidate.name)
+                        ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-cyan-400 hover:text-cyan-700'"
+                      (click)="selectCandidate(suggestion, candidate.name)">
+                      <span>{{ candidate.name }}</span>
+                      <span class="opacity-70">({{ candidate.type }})</span>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="flex gap-2 mt-4 justify-end">
+          <button mat-stroked-button color="warn" class="!text-xs !h-8 !rounded-full"
+                  (click)="cancelSuggestions()">
+            Cancel
+          </button>
+          <button mat-flat-button color="primary" class="!text-xs !h-8 !rounded-full"
+                  [disabled]="!allCandidatesSelected()"
+                  (click)="confirmAndAnalyze()">
+            Confirm & Analyze
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Loading State -->
+@if (state.isDrugDetailsLoading()) {
+  <div class="flex flex-col items-center justify-center py-16 gap-4">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="text-gray-500">Fetching drug details from formulary…</p>
+  </div>
+}
+
+<!-- No Data State -->
+@if (!state.isDrugDetailsLoading() && !state.hasDrugDetails()) {
+  <div class="flex flex-col items-center justify-center py-16 gap-3 text-gray-400">
+    <mat-icon class="!text-5xl !w-12 !h-12">medication</mat-icon>
+    <p>No drug details available. Please confirm your drugs in the previous step.</p>
+  </div>
+}
+
+<!-- Drug Details Content -->
+@if (!state.isDrugDetailsLoading() && state.hasDrugDetails()) {
+<div class="px-6 py-4 space-y-6">
+
+  <!-- ══ Selected Drugs Summary ══ -->
+  <app-selected-drugs-summary
+    [confirmedDrugs]="confirmedDrugsList()"
+    (editDrug)="editDrug($event)"
+    (removeDrug)="removeDrug($event)" />
+
+  <!-- ══ Select Formulation for Each Drug ══ -->
+  <section>
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-indigo-500 !text-xl">checklist</mat-icon>
+        <h3 class="text-base font-semibold text-gray-700">Select Formulation for Each Drug</h3>
+      </div>
+      <span class="text-sm text-gray-500">
+        {{ confirmedCount() }} of {{ results().length }} selected
+      </span>
+    </div>
+
+    <mat-accordion multi>
+      @for (result of results(); track result.drugName) {
+        <mat-expansion-panel [expanded]="!isDrugConfirmed(result.drugName)"
+          class="!mb-3 !rounded-2xl !shadow-md"
+          [class.!ring-2]="isDrugConfirmed(result.drugName)"
+          [class.!ring-cyan-400]="isDrugConfirmed(result.drugName)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  [class]="isDrugConfirmed(result.drugName) ? 'bg-green-50' : 'bg-cyan-50'">
+                  <mat-icon class="!text-lg"
+                    [class]="isDrugConfirmed(result.drugName) ? 'text-green-600' : 'text-cyan-700'">
+                    {{ isDrugConfirmed(result.drugName) ? 'check_circle' : 'medication' }}
+                  </mat-icon>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <span class="text-base font-bold text-gray-900 leading-tight">
+                    {{ result.drugName }}
+                  </span>
+                  @if (getSelectedFormulation(result.drugName); as sel) {
+                    <span class="text-xs text-gray-500 ml-2">
+                      — {{ sel.rxnDoseForm }} · {{ sel.strength }} · {{ sel.drugType }}
+                      @if (getDrugQuantity(result.drugName)) {
+                        · {{ getDrugQuantity(result.drugName) }}/mo
+                      }
+                    </span>
+                  }
+                </div>
+              </div>
+            </mat-panel-title>
+            <mat-panel-description class="!flex items-center gap-2 shrink-0">
+              @if (!isDrugConfirmed(result.drugName)) {
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-medium"
+                    [class]="getCompletionCount(result.drugName) === 4 ? 'text-green-600' : 'text-gray-400'">
+                    {{ getCompletionCount(result.drugName) }}/4
+                  </span>
+                  <div class="flex gap-0.5">
+                    @for (i of [1,2,3,4]; track i) {
+                      <div class="w-2 h-2 rounded-full transition-colors"
+                        [class]="i <= getCompletionCount(result.drugName) ? 'bg-cyan-500' : 'bg-gray-200'"></div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <mat-icon class="text-cyan-600 !text-lg">check_circle</mat-icon>
+              }
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+
+          <app-drug-selection-panel
+            [result]="result"
+            [selection]="getDrugSelection(result.drugName)"
+            [selectedFormulation]="getSelectedFormulation(result.drugName)"
+            [quantity]="getDrugQuantity(result.drugName)"
+            [confirmed]="isDrugConfirmed(result.drugName)"
+            (typeSelected)="setDrugType(result.drugName, $event)"
+            (dosageFormSelected)="setDrugDosageForm(result.drugName, $event)"
+            (strengthSelected)="setDrugStrength(result.drugName, $event)"
+            (quantityChanged)="setDrugQuantity(result.drugName, $event)"
+            (quantityPresetSelected)="setDrugQuantityValue(result.drugName, $event)"
+            (drugConfirmed)="confirmDrug(result.drugName)"
+            (drugEditRequested)="editDrug(result.drugName)" />
+        </mat-expansion-panel>
+      }
+    </mat-accordion>
+  </section>
+
+  <!-- ══ Drug Interaction Alerts ══ -->
+  @if (interactions().length > 0) {
+    <app-interaction-alerts [interactions]="interactions()" />
+  }
+
+  <!-- ══ Duplicate Therapy Warnings ══ -->
+  @if (duplicateTherapies().length > 0) {
+    <app-duplicate-therapy-alerts [duplicateTherapies]="duplicateTherapies()" />
+  }
+
+</div>
+}

@@ -1,0 +1,80 @@
+<div class="flex flex-col h-screen">
+  <!-- Header -->
+  <header class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-cyan-700 to-cyan-600 text-white shadow-lg z-10">
+    <a class="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity" (click)="goToRecommendations()">
+      <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
+        <mat-icon class="!text-white">local_pharmacy</mat-icon>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight leading-tight">AI Medicare Assistant</h1>
+        <p class="text-[11px] opacity-70 -mt-0.5">Medicare prescription analysis</p>
+      </div>
+    </a>
+    <span class="flex-1"></span>
+
+    <!-- Recommendations / Dashboard -->
+    <button mat-button class="!text-white !rounded-lg hover:!bg-white/10 !text-sm !font-medium"
+            (click)="goToRecommendations()"
+            matTooltip="View saved recommendations">
+      <mat-icon class="!text-lg mr-1">folder_open</mat-icon>
+      Recommendations
+    </button>
+
+    <!-- User Menu -->
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="!text-white">
+      <mat-icon class="!text-white">account_circle</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu" class="user-dropdown-menu">
+      <div class="px-4 py-3 text-center border-b border-gray-200">
+        <p class="text-sm font-semibold text-gray-800">Welcome, {{ displayName() }}</p>
+      </div>
+      <!-- End of Selection -->
+      <button mat-menu-item (click)="changePassword()">
+        <mat-icon>lock</mat-icon>
+        <span>Change Password</span>
+      </button>
+      <button mat-menu-item (click)="signOut()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </header>
+
+  <!-- Main Split Layout -->
+  @if (bootstrapReady()) {
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Left Panel — Child Route (Profile or Medicare Analysis) -->
+    <div class="flex-1 overflow-hidden relative">
+      <router-outlet></router-outlet>
+      @if (httpLoader.isLoading()) {
+        <div class="absolute inset-0 bg-white/45 z-20 flex items-center justify-center pointer-events-auto">
+          <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-gray-200 shadow-md text-gray-700">
+            <mat-spinner diameter="20"></mat-spinner>
+            <span class="text-sm font-medium">Loading...</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Right Panel — Chat (only on /medicare-analysis/* routes) -->
+    @if (showChat()) {
+    <div class="w-[420px] min-w-[420px] border-l border-gray-200 bg-white shadow-[-4px_0_12px_rgba(0,0,0,0.05)]">
+      <app-chat></app-chat>
+    </div>
+    }
+  </div>
+  } @else {
+    <div class="flex flex-1 items-center justify-center bg-gray-50">
+      <div class="flex items-center gap-3 text-gray-600">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span class="text-sm font-medium">Loading your profile and latest selections...</span>
+      </div>
+    </div>
+  }
+
+  <!-- Footer -->
+  <footer class="flex items-center justify-center px-6 py-1.5 bg-gray-100 border-t border-gray-200 text-xs text-gray-400">
+    Powered by OpenAI
+  </footer>
+</div>

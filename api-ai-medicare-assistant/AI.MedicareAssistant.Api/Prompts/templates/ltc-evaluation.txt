@@ -1,0 +1,24 @@
+The individual has the following long-term care cost projection:
+
+**Age:** {{AGE}}
+**Gender:** {{GENDER}}
+**State:** {{STATE}}
+**Health Profile:** {{HEALTH_PROFILE}}
+**Life Expectancy:** {{LIFE_EXPECTANCY}} years
+
+**Care Type Configuration:**
+- Adult Day Health Care: {{ADULT_DAY_YEARS}} years (starting year {{ADULT_DAY_START_YEAR}})
+- Home Care: {{HOME_CARE_YEARS}} years (starting year {{HOME_CARE_START_YEAR}})
+- Assisted Care: {{ASSISTED_CARE_YEARS}} years (starting year {{ASSISTED_CARE_START_YEAR}})
+- Nursing Care: {{NURSING_CARE_YEARS}} years (starting year {{NURSING_CARE_START_YEAR}})
+
+**Lifetime Cost Totals from Financial Planner:**
+- Adult Day Health Care: ${{ADULT_DAY_TOTAL}} (Present Value: ${{ADULT_DAY_PV}})
+- Home Care: ${{HOME_CARE_TOTAL}} (Present Value: ${{HOME_CARE_PV}})
+- Assisted Care: ${{ASSISTED_CARE_TOTAL}} (Present Value: ${{ASSISTED_CARE_PV}})
+- Nursing Care: ${{NURSING_CARE_TOTAL}} (Present Value: ${{NURSING_CARE_PV}})
+
+**Year-by-Year Cost Breakdown:**
+{{YEARLY_BREAKDOWN}}
+
+Please analyze this data and provide a comprehensive long-term care cost evaluation with lifetime summaries, trends, highlights, category breakdowns, and savings tips.
