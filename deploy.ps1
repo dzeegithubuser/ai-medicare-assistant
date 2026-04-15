@@ -34,7 +34,7 @@ switch ($Action) {
 
 if ($Action -notin @("down", "logs")) {
     Write-Host ""
-    Write-Host "  UI:  http://localhost:9500" -ForegroundColor Green
+    Write-Host "  UI:  http://localhost:9600" -ForegroundColor Green
     Write-Host "  API: http://localhost:5024" -ForegroundColor Green
     Write-Host ""
 }

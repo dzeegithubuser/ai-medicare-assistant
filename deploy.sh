@@ -32,7 +32,7 @@ esac
 
 if [ "${1:-up}" != "--down" ] && [ "${1:-up}" != "down" ] && [ "${1:-up}" != "--logs" ] && [ "${1:-up}" != "logs" ]; then
   echo ""
-  echo "  UI:  http://localhost:9500"
+  echo "  UI:  http://localhost:9600"
   echo "  API: http://localhost:5024"
   echo ""
 fi

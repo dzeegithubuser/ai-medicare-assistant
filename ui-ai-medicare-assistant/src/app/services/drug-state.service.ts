@@ -194,6 +194,7 @@ export class DrugStateService {
       activeSection: this.activeSection(),
       confirmedDrugNames: Array.from(this.confirmedDrugNames()),
       pendingCostRunRecommendationName: this.pendingCostRunRecommendationName(),
+      costProjection: this.costProjection(),
     };
     try {
       sessionStorage.setItem(DrugStateService.STORAGE_KEY, JSON.stringify(snapshot));

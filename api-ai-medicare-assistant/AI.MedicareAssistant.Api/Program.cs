@@ -362,7 +362,7 @@ try
     {
         // AllowCredentials() is required for SignalR WebSocket upgrade handshake.
         var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                      ?? ["http://localhost:4200", "http://169.61.105.110:9500"];
+                      ?? ["http://localhost:4200", "http://169.61.105.110:9600"];
         options.WithOrigins(origins)
         .AllowAnyHeader()
         .AllowAnyMethod()

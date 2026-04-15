@@ -24,13 +24,13 @@
 | Start without rebuild         | `./deploy.sh`          |
 
 ## Endpoints
-- **UI:**  http://localhost:9500
+- **UI:**  http://localhost:9600
 - **API:** http://localhost:5024
 
 ## Architecture
 ```
 ┌─────────────┐       ┌─────────────────┐
-│  Browser     │──────▶│  ui (Nginx)     │ :9500
+│  Browser     │──────▶│  ui (Nginx)     │ :9600
 │              │       │  /api/* ────────┼──▶ api:5024
 │              │       │  /hubs/* ───────┼──▶ api:5024 (WebSocket)
 │              │       │  /* ── SPA ──── │

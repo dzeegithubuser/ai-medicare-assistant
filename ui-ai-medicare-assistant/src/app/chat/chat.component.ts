@@ -578,10 +578,11 @@ export class ChatComponent implements OnInit {
         break;
       }
       case 'ANALYSIS': {
-        // Only navigate to Cost Projections if the user is on the Plans page.
+        // Only announce readiness if the user is on the Plans page.
+        // Do NOT navigate to Cost Projections — the cost calculation has not run yet.
+        // PlanRecommendationComponent.calculateLifetimeCost() handles navigation after the API call.
         if (this.router.url.startsWith(AppRoutes.abs.PLANS)) {
           this.state.addAssistantMessage(ANALYSIS_MESSAGES.STEP_PROMPT);
-          this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]);
         }
         break;
       }

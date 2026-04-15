@@ -8,6 +8,7 @@ COPY AI.MedicareAssistant.Api/AI.MedicareAssistant.Api.csproj AI.MedicareAssista
 COPY AI.MedicareAssistant.Application/AI.MedicareAssistant.Application.csproj AI.MedicareAssistant.Application/
 COPY AI.MedicareAssistant.Domain/AI.MedicareAssistant.Domain.csproj AI.MedicareAssistant.Domain/
 COPY AI.MedicareAssistant.Infrastructure/AI.MedicareAssistant.Infrastructure.csproj AI.MedicareAssistant.Infrastructure/
+COPY AI.MedicareAssistant.Tests/AI.MedicareAssistant.Tests.csproj AI.MedicareAssistant.Tests/
 
 RUN dotnet restore AI.MedicareAssistant.slnx
 
@@ -21,14 +22,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview AS runtime
 WORKDIR /app
 
 # Non-root user for security
-RUN adduser --disabled-password --gecos "" appuser
+#RUN adduser --disabled-password --gecos "" appuser
 
 COPY --from=build /app/publish .
 
 # Logs directory (writable by appuser)
-RUN mkdir -p /app/Logs && chown -R appuser:appuser /app/Logs
+#RUN mkdir -p /app/Logs && chown -R appuser:appuser /app/Logs
+RUN mkdir -p /app/Logs
 
-USER appuser
+#USER appuser
 
 EXPOSE 5024
 

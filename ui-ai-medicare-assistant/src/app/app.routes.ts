@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
-import { profileCompleteGuard } from './guards/profile-complete.guard';
 import { dashboardRedirectGuard } from './guards/dashboard-redirect.guard';
 import { AppRoutes } from './app-routes.const';
 
@@ -27,7 +26,6 @@ export const routes: Routes = [
       { path: AppRoutes.SAVED, loadComponent: () => import('./recommendation/recommendation.component').then(m => m.RecommendationComponent) },
       {
         path: AppRoutes.MEDICARE_ANALYSIS,
-        canActivate: [profileCompleteGuard],
         loadComponent: () => import('./medicare-analysis/analysis-shell.component').then(m => m.AnalysisShellComponent),
         children: [
           { path: '', redirectTo: AppRoutes.PROFILE, pathMatch: 'full' },
@@ -40,7 +38,6 @@ export const routes: Routes = [
       },
       {
         path: AppRoutes.LTC,
-        canActivate: [profileCompleteGuard],
         loadComponent: () => import('./long-term-care/ltc-shell.component').then(m => m.LtcShellComponent),
         children: [
           { path: '', redirectTo: AppRoutes.PROFILE, pathMatch: 'full' },

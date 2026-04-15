@@ -1,4 +1,4 @@
 export const environment = {
-    apiUrl: '/api',
+    apiUrl: 'http://169.61.105.110:5024',
     appName: 'AI Medicare Assistant'
 };
