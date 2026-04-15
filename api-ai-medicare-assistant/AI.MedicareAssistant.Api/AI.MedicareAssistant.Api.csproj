@@ -26,5 +26,11 @@
     <ProjectReference Include="..\AI.MedicareAssistant.Infrastructure\AI.MedicareAssistant.Infrastructure.csproj" />
     <ProjectReference Include="..\AI.MedicareAssistant.Domain\AI.MedicareAssistant.Domain.csproj" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <Content Include="Prompts\**\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
