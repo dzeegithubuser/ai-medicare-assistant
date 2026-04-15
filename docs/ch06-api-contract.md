@@ -4,6 +4,109 @@
 
 ---
 
+## Authentication
+
+### `POST api/auth/signup`
+
+**Auth:** Public.
+
+**Request:**
+```json
+{ "email": "user@example.com", "phone": "5551234567", "password": "Secret123!", "confirmPassword": "Secret123!" }
+```
+
+**Response:**
+```json
+{ "success": true, "message": "Account created.", "token": "<jwt>" }
+```
+
+---
+
+### `POST api/auth/signin`
+
+**Auth:** Public.
+
+**Request:**
+```json
+{ "email": "user@example.com", "password": "Secret123!" }
+```
+
+**Response:**
+```json
+{ "success": true, "message": "Sign-in successful.", "token": "<jwt>" }
+```
+
+---
+
+### `POST api/auth/forgot-password`
+
+**Auth:** Public.
+
+**Purpose:** Generates a 30-minute reset token and sends a password-reset email. Returns `success: true` regardless of whether the email exists (prevents enumeration).
+
+**Request:**
+```json
+{ "email": "user@example.com" }
+```
+
+**Response:**
+```json
+{ "success": true, "message": "If that email exists you will receive a reset link shortly." }
+```
+
+---
+
+### `POST api/auth/reset-password`
+
+**Auth:** Public.
+
+**Purpose:** Validates the JWT reset token (must have `purpose: password-reset` claim, expires in 30 min) and updates the password hash.
+
+**Request:**
+```json
+{ "token": "<reset-jwt>", "newPassword": "NewSecret123!", "confirmPassword": "NewSecret123!" }
+```
+
+**Response (success):**
+```json
+{ "success": true, "message": "Password reset successfully." }
+```
+
+**Response (failure):**
+```json
+{ "success": false, "message": "Invalid or expired reset token." }
+```
+
+---
+
+### `POST api/auth/change-password`
+
+**Auth:** `[Authorize]` — Bearer JWT required.
+
+**Purpose:** Changes the password for the currently authenticated user. Old password is verified with BCrypt before writing the new hash.
+
+**Request:**
+```json
+{ "oldPassword": "CurrentSecret123!", "newPassword": "NewSecret456!", "confirmPassword": "NewSecret456!" }
+```
+
+**Response (success):**
+```json
+{ "success": true, "message": "Password changed successfully." }
+```
+
+**Response (failure — wrong old password):**
+```json
+{ "success": false, "message": "Current password is incorrect." }
+```
+
+> **Notes:**
+> - `newPassword` minimum length is 8 characters.
+> - `confirmPassword` must match `newPassword` (validated server-side via `[Compare]`).
+> - `userId` is extracted from the `NameIdentifier` claim in the Bearer JWT — no userId in the request body.
+
+---
+
 ## Drug Name Suggestion (Step 1)
 
 ### `POST api/drug/suggest-names`

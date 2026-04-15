@@ -86,15 +86,17 @@ dotnet ef database update --project AI.MedicareAssistant.Infrastructure --startu
 |--------|-------|------|------|-------------|
 | POST | `/api/auth/signup` | `{ email, phone, password, confirmPassword }` | Public | Create account, returns JWT |
 | POST | `/api/auth/signin` | `{ email, password }` | Public | Login, returns JWT |
-| POST | `/api/auth/forgot-password` | `{ email }` | Public | Generates reset token |
+| POST | `/api/auth/forgot-password` | `{ email }` | Public | Generates reset token, sends email |
 | POST | `/api/auth/reset-password` | `{ token, newPassword, confirmPassword }` | Public | Reset password with token |
+| POST | `/api/auth/change-password` | `{ oldPassword, newPassword, confirmPassword }` | `[Authorize]` JWT | Change password for authenticated user |
 
 ### Security
 
 - Passwords stored as **BCrypt** hashes (never plaintext).
 - JWT tokens signed with HMAC-SHA256, configurable expiry (default 24h).
 - Password reset tokens expire in 30 minutes with `purpose: password-reset` claim.
-- Forgot password returns success regardless of email existence (prevents enumeration).
+- Forgot password sends a reset link via email (SMTP: smtp.1and1.com:587, `support@aivante.com`). Returns success regardless of email existence (prevents enumeration).
+- **Change password** (`POST /api/auth/change-password`) requires a valid Bearer JWT (`[Authorize]`). `userId` is extracted from the `NameIdentifier` claim. BCrypt verifies the old password before writing the new hash.
 - JWT config in `appsettings.json` → `Jwt:Secret`, `Jwt:Issuer`, `Jwt:Audience`, `Jwt:ExpiryHours`.
 
 ---

@@ -32,6 +32,9 @@ services:
       # Financial Planner
       - FinancialPlanner__BaseUrl=${FP_BASE_URL}
       - FinancialPlanner__AuthToken=${FP_AUTH_TOKEN}
+      # Email
+      - Email__Password=${EMAIL_PASSWORD}
+      - Email__FrontendBaseUrl=${EMAIL_FRONTEND_BASE_URL}
       # CORS
       - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGINS_0}
       - Cors__AllowedOrigins__1=${CORS_ALLOWED_ORIGINS_1}

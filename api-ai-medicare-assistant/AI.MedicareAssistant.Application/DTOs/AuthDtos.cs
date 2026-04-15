@@ -44,6 +44,18 @@ public class ResetPasswordRequest
     public string ConfirmPassword { get; set; } = "";
 }
 
+public class ChangePasswordRequest
+{
+    [Required]
+    public string OldPassword { get; set; } = "";
+
+    [Required, MinLength(8), MaxLength(128)]
+    public string NewPassword { get; set; } = "";
+
+    [Required, Compare(nameof(NewPassword))]
+    public string ConfirmPassword { get; set; } = "";
+}
+
 public class AuthResponse
 {
     public bool Success { get; set; }

@@ -18,16 +18,21 @@ public class AuthService
     private readonly IUserRepository _userRepo;
     private readonly IConfiguration _config;
     private readonly ILogger<AuthService> _logger;
+    private readonly IMemoryCache _cache;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         IUserRepository userRepo,
         IConfiguration config,
         ILogger<AuthService> logger,
-        IMemoryCache cache)
+        IMemoryCache cache,
+        IEmailService emailService)
     {
         _userRepo = userRepo;
         _config = config;
         _logger = logger;
+        _cache = cache;
+        _emailService = emailService;
     }
 
     public async Task<AuthResponse> SignUpAsync(SignUpRequest request)
@@ -123,17 +128,27 @@ public class AuthService
         if (user is null)
         {
             _logger.LogInformation("Forgot-password — email not found (returning success to prevent enumeration)");
-            return new AuthResponse { Success = true, Message = "If that email is registered, a reset token has been generated." };
+            return new AuthResponse { Success = true, Message = "If that email is registered, you will receive a password reset email shortly." };
         }
 
         var resetToken = GeneratePasswordResetToken(user.Id);
+        var frontendBaseUrl = _config["Email:FrontendBaseUrl"] ?? "http://localhost:4200";
+        var resetLink = $"{frontendBaseUrl}/reset-password?token={Uri.EscapeDataString(resetToken)}";
 
-        // In production, send this token via email. For now, return it in the response.
+        try
+        {
+            await _emailService.SendPasswordResetAsync(user.Email, user.Email, resetLink);
+            _logger.LogInformation("Password reset email sent to {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email to {Email}", user.Email);
+        }
+
         return new AuthResponse
         {
             Success = true,
-            Message = "Password reset token generated. In production, this would be sent via email.",
-            Token = resetToken
+            Message = "If that email is registered, you will receive a password reset email shortly."
         };
     }
 
@@ -146,6 +161,18 @@ public class AuthService
         {
             _logger.LogWarning("Password reset failed — invalid or expired token");
             return new AuthResponse { Success = false, Message = "Invalid or expired reset token." };
+        }
+
+        var jti = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+        if (jti is null)
+            return new AuthResponse { Success = false, Message = "Invalid reset token." };
+
+        // Reject if this token has already been used
+        var cacheKey = $"used_reset:{jti}";
+        if (_cache.TryGetValue(cacheKey, out _))
+        {
+            _logger.LogWarning("Password reset failed — token already used (jti={Jti})", jti);
+            return new AuthResponse { Success = false, Message = "This reset link has already been used. Please request a new one." };
         }
 
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -162,9 +189,41 @@ public class AuthService
 
         await _userRepo.UpdateAsync(user);
 
+        // Blacklist the token so it cannot be reused within its remaining lifetime
+        var tokenExpiry = principal.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+        var ttl = tokenExpiry is not null && long.TryParse(tokenExpiry, out var exp)
+            ? DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime - DateTime.UtcNow
+            : TimeSpan.FromMinutes(30);
+        _cache.Set(cacheKey, true, ttl > TimeSpan.Zero ? ttl : TimeSpan.FromSeconds(1));
+
         _logger.LogInformation("Password reset successful for user {UserId}", userId);
 
         return new AuthResponse { Success = true, Message = "Password reset successfully." };
+    }
+
+    public async Task<AuthResponse> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
+    {
+        _logger.LogInformation("Change-password attempt for user {UserId}", userId);
+
+        var user = await _userRepo.GetByIdAsync(userId);
+        if (user is null)
+            return new AuthResponse { Success = false, Message = "User not found." };
+
+        if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
+        {
+            _logger.LogWarning("Change-password failed — incorrect old password for user {UserId}", userId);
+            return new AuthResponse { Success = false, Message = "Current password is incorrect." };
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.ModifiedBy = user.Email;
+        user.ModifiedDate = DateTime.UtcNow;
+
+        await _userRepo.UpdateAsync(user);
+
+        _logger.LogInformation("Password changed successfully for user {UserId}", userId);
+
+        return new AuthResponse { Success = true, Message = "Password changed successfully." };
     }
 
     private string GenerateJwtToken(User user)
@@ -197,6 +256,7 @@ public class AuthService
 
         var claims = new[]
         {
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim("purpose", "password-reset")
         };

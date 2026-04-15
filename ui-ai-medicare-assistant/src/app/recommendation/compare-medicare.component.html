@@ -11,32 +11,85 @@
     </ng-template>
     <div class="pt-4 space-y-5">
 
-      <!-- ── KPI Strip ── -->
-      <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
-        <div class="col-span-3 md:col-span-6 flex items-center gap-2 mb-1">
-          <mat-icon class="!text-base text-gray-400">insights</mat-icon>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost Deltas&nbsp;(Left &minus; Right)</p>
-        </div>
-        @for (kpi of [
-          { label: 'Lifetime Total', value: costDelta() },
-          { label: 'Premiums', value: premiumDelta() },
-          { label: 'Out-of-Pocket', value: oopDelta() },
-          { label: 'IRMAA Surcharge', value: irmaaDelta() },
-          { label: 'Present Value', value: pvDelta() },
-          { label: 'Current Year', value: currentYearDelta() }
-        ]; track kpi.label) {
-          <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
-            <p class="text-[10px] text-gray-500 uppercase leading-tight mb-1">{{ kpi.label }}</p>
-            <p class="text-base font-bold" [class]="kpi.value <= 0 ? 'text-green-700' : 'text-red-700'">
-              {{ kpi.value | currency:'USD':'symbol':'1.0-0' }}
-            </p>
-            <div class="flex items-center justify-center gap-0.5 mt-0.5">
-              <mat-icon class="!text-xs" [class]="kpi.value <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaIcon(kpi.value) }}</mat-icon>
-              <span class="text-[10px]" [class]="kpi.value <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaLabel(kpi.value) }}</span>
-            </div>
+      <!-- ── Cost Comparison Table ── -->
+      <mat-card class="!rounded-xl !shadow-sm">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+            <mat-icon class="!text-base text-gray-400">insights</mat-icon>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost Comparison</p>
           </div>
-        }
-      </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-xs">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/40">
+                  <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-36">Metric</th>
+                  <th class="text-right px-4 py-2.5 font-semibold text-indigo-600 uppercase tracking-wide">{{ l.name }}</th>
+                  <th class="text-right px-4 py-2.5 font-semibold text-cyan-600 uppercase tracking-wide">{{ r.name }}</th>
+                  <th class="text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Difference</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of [
+                  {
+                    label: 'Lifetime Total',
+                    left: l.lastCostSnapshot?.lifetimeTotal ?? 0,
+                    right: r.lastCostSnapshot?.lifetimeTotal ?? 0,
+                    delta: costDelta()
+                  },
+                  {
+                    label: 'Premiums',
+                    left: l.lastCostSnapshot?.lifetimePremiums ?? 0,
+                    right: r.lastCostSnapshot?.lifetimePremiums ?? 0,
+                    delta: premiumDelta()
+                  },
+                  {
+                    label: 'Out-of-Pocket',
+                    left: l.lastCostSnapshot?.lifetimeOop ?? 0,
+                    right: r.lastCostSnapshot?.lifetimeOop ?? 0,
+                    delta: oopDelta()
+                  },
+                  {
+                    label: 'IRMAA Surcharge',
+                    left: l.lastCostSnapshot?.lifetimeIrmaa ?? 0,
+                    right: r.lastCostSnapshot?.lifetimeIrmaa ?? 0,
+                    delta: irmaaDelta()
+                  },
+                  {
+                    label: 'Present Value',
+                    left: l.lastCostSnapshot?.presentValue ?? 0,
+                    right: r.lastCostSnapshot?.presentValue ?? 0,
+                    delta: pvDelta()
+                  },
+                  {
+                    label: 'Current Year',
+                    left: l.lastCostSnapshot?.currentYearTotal ?? 0,
+                    right: r.lastCostSnapshot?.currentYearTotal ?? 0,
+                    delta: currentYearDelta()
+                  }
+                ]; track row.label) {
+                  <tr class="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
+                    <td class="px-4 py-2.5 font-medium text-gray-700">{{ row.label }}</td>
+                    <td class="px-4 py-2.5 text-right font-semibold text-indigo-700">
+                      {{ row.left | currency:'USD':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="px-4 py-2.5 text-right font-semibold text-cyan-700">
+                      {{ row.right | currency:'USD':'symbol':'1.0-0' }}
+                    </td>
+                    <td class="px-4 py-2.5 text-right">
+                      <span class="inline-flex items-center justify-end gap-1 font-bold"
+                            [class]="row.delta <= 0 ? 'text-green-700' : 'text-red-700'">
+                        <mat-icon class="!text-xs">{{ deltaIcon(row.delta) }}</mat-icon>
+                        {{ row.delta | currency:'USD':'symbol':'1.0-0' }}
+                        <span class="text-[10px] font-normal">({{ deltaLabel(row.delta) }})</span>
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
       <!-- ── Winner Banner ── -->
       @if (winner() !== 'tie') {

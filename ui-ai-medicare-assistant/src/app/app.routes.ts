@@ -7,6 +7,7 @@ export const routes: Routes = [
   { path: AppRoutes.SIGNIN, loadComponent: () => import('./auth/signin/signin.component').then(m => m.SigninComponent) },
   { path: AppRoutes.SIGNUP, loadComponent: () => import('./auth/signup/signup.component').then(m => m.SignupComponent) },
   { path: AppRoutes.FORGOT_PASSWORD, loadComponent: () => import('./auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+  { path: AppRoutes.RESET_PASSWORD, loadComponent: () => import('./auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
   {
     path: '',
     loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
@@ -24,6 +25,7 @@ export const routes: Routes = [
           import('./recommendation/recommendation-detail.component').then(m => m.RecommendationDetailComponent),
       },
       { path: AppRoutes.SAVED, loadComponent: () => import('./recommendation/recommendation.component').then(m => m.RecommendationComponent) },
+      { path: AppRoutes.CHANGE_PASSWORD, loadComponent: () => import('./auth/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
       {
         path: AppRoutes.MEDICARE_ANALYSIS,
         loadComponent: () => import('./medicare-analysis/analysis-shell.component').then(m => m.AnalysisShellComponent),

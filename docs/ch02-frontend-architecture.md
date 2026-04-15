@@ -11,6 +11,7 @@ App (root) → <router-outlet />
  ├── SigninComponent (/signin)
  ├── SignupComponent (/signup)
  ├── ForgotPasswordComponent (/forgot-password)
+ ├── ResetPasswordComponent (/reset-password)
  └── DashboardComponent (/ — guarded by authGuard)
       ├── Header (gradient toolbar with app branding, user menu dropdown, footer)
       └── Main Split Layout
@@ -35,6 +36,7 @@ App (root) → <router-outlet />
            │    ├── /saved → RecommendationComponent (saved analyses with filter/sort/pagination + compare basket)
            │    │    ├── /saved/compare → RecommendationCompareComponent (side-by-side comparison)
            │    │    └── /saved/:id → RecommendationDetailComponent (full detail view with 5 tabs + Chart.js)
+           │    ├── /change-password → ChangePasswordComponent
            │    └── PharmacyListComponent (on-demand, triggered by user button click)
            └── ChatComponent (right panel, fixed 420px — visible on /medicare-analysis/* and /long-term-care/* routes)
 ```
@@ -61,7 +63,7 @@ App (root) → <router-outlet />
 - **`displayName` Computed Signal:** Shows `"FirstName L"` (first name + last initial) when profile is complete, falls back to email otherwise.
 - **Edit Profile:** `editProfile()` sets `profileService.editMode` to true and navigates to `/profile`.
 - **Edit Profile from Analysis:** If current route is `/medicare-analysis/*`, stores `returnRoute` so profile save/close returns to the same analysis step.
-- **Change Password:** `changePassword()` navigates to `/forgot-password`.
+- **Change Password:** `changePassword()` navigates to `/change-password`.
 
 ### `SigninComponent` (`auth/signin/signin.component.ts`, `.html`, `.scss`)
 - **Role:** Sign-in page with email/password form.
@@ -78,6 +80,18 @@ App (root) → <router-outlet />
 - **Role:** Password recovery page with email field.
 - **Features:** Shows success (green) or error (red) messages after submission.
 - **Styling:** Orange lock_reset icon, centered card layout.
+
+### `ResetPasswordComponent` (`auth/reset-password/reset-password.component.ts`, `.html`, `.scss`)
+- **Role:** Public page that email reset links land on (`/reset-password?token=...`). Allows users to choose a new password.
+- **Features:** Reads `?token=` from `ActivatedRoute.queryParamMap`; redirects to `/forgot-password` if token is missing. Cross-field password match validator. Success banner followed by auto-redirect to `/signin` after 2 s.
+- **Flow:** Calls `authService.resetPassword({ token, newPassword, confirmPassword })`. Signals: `loading`, `error`, `successMessage`, password visibility toggles.
+- **Styling:** Cyan gradient background, orange lock_reset icon (same palette as ForgotPasswordComponent).
+
+### `ChangePasswordComponent` (`auth/change-password/change-password.component.ts`, `.html`, `.scss`)
+- **Role:** Authenticated page at `/change-password` where logged-in users update their password from the dashboard menu.
+- **Features:** Three-field form: `oldPassword`, `newPassword` (min 8), `confirmPassword`. Cross-field password match validator. Success banner followed by auto-redirect to `/` (dashboard) after 2 s. Cancel button returns immediately to dashboard.
+- **Flow:** Calls `authService.changePassword({ oldPassword, newPassword, confirmPassword })`. Backend verifies old password via BCrypt before updating. Auth interceptor automatically attaches Bearer token — no manual header needed.
+- **Styling:** Cyan gradient background, indigo lock icon (visually distinct from the orange reset icon).
 
 ### `UserProfileComponent` (`user-profile/user-profile.component.ts`, `.html`, `.scss`)
 - **Role:** Consolidated single-form profile. Routed at **`/profile`** (dashboard, full-width profile) and **`/medicare-analysis/profile`** (same component embedded in `AnalysisShellComponent` as analysis step 1). When the URL contains `/medicare-analysis/profile`, `DrugStateService.currentStep` is set to `1`.

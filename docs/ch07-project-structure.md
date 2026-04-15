@@ -81,6 +81,10 @@ app/
       signup.component.ts/html/scss   → Registration form (email, phone, password, confirm)
     forgot-password/
       forgot-password.component.ts/html/scss → Forgot password form (email)
+    reset-password/
+      reset-password.component.ts/html/scss  → Reset password form (reads ?token= from URL, 2 password fields)
+    change-password/
+      change-password.component.ts/html/scss → Change password form (old + new + confirm, [Authorize])
   dashboard/
     dashboard.component.ts        → Authenticated shell (header + split layout + initial post-login route handling)
     dashboard.component.html      → Child router-outlet left panel + chat right panel

@@ -37,7 +37,8 @@ public class AuthServiceTests
             _userRepoMock.Object,
             _config,
             Mock.Of<ILogger<AuthService>>(),
-            _cache);
+            _cache,
+            Mock.Of<IEmailService>());
     }
 
     // ═══════ SignUp ═══════

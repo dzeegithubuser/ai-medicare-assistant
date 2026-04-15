@@ -10,6 +10,7 @@ using Infrastructure.Data;
 using Infrastructure.Fda;
 using Infrastructure.Medicare;
 using Infrastructure.Pharmacy;
+using Infrastructure.Email;
 using Infrastructure.Repositories;
 using Infrastructure.RxNorm;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -178,6 +179,10 @@ try
     builder.Services.AddScoped<Application.Services.ProfileService>();
     builder.Services.AddScoped<Application.Services.PrescriptionService>();
     builder.Services.AddScoped<Application.Services.RecommendationService>();
+
+    // ------- Email -------
+    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+    builder.Services.AddScoped<IEmailService, EmailService>();
 
     // ------- AI Provider (switch via "AiProvider" setting: "OpenAI" or "Anthropic") -------
     var aiProvider = builder.Configuration["AiProvider"] ?? "Anthropic";

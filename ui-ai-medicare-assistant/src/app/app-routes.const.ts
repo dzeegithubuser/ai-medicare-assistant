@@ -8,6 +8,8 @@ export const AppRoutes = {
   SIGNIN: 'signin',
   SIGNUP: 'signup',
   FORGOT_PASSWORD: 'forgot-password',
+  RESET_PASSWORD: 'reset-password',
+  CHANGE_PASSWORD: 'change-password',
 
   // Top-level dashboard children
   SAVED: 'saved',
@@ -40,6 +42,7 @@ export const AppRoutes = {
     PLANS: '/medicare-analysis/plans',
     COST_PROJECTIONS: '/medicare-analysis/cost-projections',
     SAVED: '/saved',
+    CHANGE_PASSWORD: '/change-password',
     LTC: '/long-term-care',
     LTC_PROFILE: '/long-term-care/profile',
     LTC_CARE_TYPE: '/long-term-care/care-type',

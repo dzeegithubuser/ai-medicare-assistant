@@ -76,7 +76,7 @@ export class DashboardComponent implements OnInit {
   }
 
   changePassword() {
-    this.router.navigate(['/forgot-password']);
+    this.router.navigate([AppRoutes.abs.CHANGE_PASSWORD]);
   }
 
   goToRecommendations() {

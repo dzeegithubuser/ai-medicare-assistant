@@ -49,20 +49,32 @@
 
 ---
 
-## ✅ JWT Authentication (Sign Up / Sign In / Forgot Password)
-- **What:** Complete auth flow with JWT token-based authentication.
+## ✅ JWT Authentication (Sign Up / Sign In / Forgot Password / Reset Password / Change Password)
+- **What:** Complete auth flow with JWT token-based authentication and full password lifecycle management.
 - **Sign Up:** Validates uniqueness of email + phone, hashes password with BCrypt, creates user, returns JWT.
 - **Sign In:** Validates email + BCrypt password verification, returns JWT on success.
-- **Forgot Password:** Generates a 30-minute reset token. Returns success regardless of email existence to prevent enumeration.
-- **Reset Password:** Validates reset token, updates password hash.
+- **Forgot Password:** Generates a 30-minute reset token. Sends an HTML reset-link email via SMTP (`EmailService`). Returns success regardless of email existence to prevent enumeration.
+- **Reset Password:** Validates reset token (`purpose: password-reset` claim), updates password hash. Token expires in 30 minutes.
+- **Change Password:** `[Authorize]` endpoint. Extracts `userId` from Bearer JWT `NameIdentifier` claim. BCrypt-verifies old password before writing new hash.
 - **Security:** HMAC-SHA256 signed tokens, configurable expiry, ClockSkew=Zero.
 
 ---
 
+## ✅ Email Service (SMTP)
+- **What:** Transactional email delivery for password reset links.
+- **Implementation:** `IEmailService` / `EmailService` in the Infrastructure layer. Registered as scoped in DI.
+- **Transport:** SMTP via `smtp.1and1.com:587` with STARTTLS, sender `support@aivante.com`. Credentials in `appsettings.json` → `Email:SmtpHost`, `Email:SmtpPort`, `Email:Username`, `Email:Password`, `Email:FromAddress`, `Email:FromName`.
+- **Usage:** `ForgotPasswordAsync` in `AuthService` calls `IEmailService.SendPasswordResetEmailAsync(to, resetLink)`. Sends an HTML email containing the `/reset-password?token=<jwt>` link.
+- **Security:** Token is never returned in the HTTP response — it travels exclusively through the email channel.
+
+---
+
 ## ✅ Frontend Auth Components & Routing
-- **Components:** SigninComponent, SignupComponent, ForgotPasswordComponent.
+- **Components:** SigninComponent, SignupComponent, ForgotPasswordComponent, ResetPasswordComponent, ChangePasswordComponent.
+- **ResetPasswordComponent:** Public route `/reset-password`. Reads `?token=` from URL; redirects to `/forgot-password` if missing. Two-field form (newPassword + confirmPassword with cross-field match validator). On success shows green banner then auto-navigates to `/signin` after 2 s.
+- **ChangePasswordComponent:** Authenticated route `/change-password` (inside `authGuard` dashboard children). Three-field form (oldPassword + newPassword + confirmPassword). On success shows green banner then auto-navigates to `/` (dashboard) after 2 s. Cancel button returns immediately.
 - **AuthService:** Signal-based state with `currentUser` and `isAuthenticated` signals, sessionStorage persistence (not localStorage — session ends on tab close). 1-hour token expiry with auto-refresh on activity.
-- **Auth Interceptor:** `HttpInterceptorFn` that attaches `Authorization: Bearer <token>` header.
+- **Auth Interceptor:** `HttpInterceptorFn` that attaches `Authorization: Bearer <token>` header — no manual header management needed in components or services.
 - **Auth Guard:** `CanActivateFn` protecting the Dashboard route.
 - **Routing:** Lazy-loaded via `loadComponent`. App component simplified to `<router-outlet />`.
 - **Styling:** Centered auth cards with cyan gradient background, pharmacy branding.
