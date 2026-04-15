@@ -45,34 +45,46 @@ public class AuthService
             return new AuthResponse { Success = false, Message = "Email already registered." };
         }
 
-        if (await _userRepo.PhoneExistsAsync(request.Phone))
+        var normalizedPhone = NormalizeUsPhone(request.Phone);
+
+        if (await _userRepo.PhoneExistsAsync(normalizedPhone))
         {
-            _logger.LogWarning("Sign-up failed — phone already registered: {Phone}", request.Phone);
+            _logger.LogWarning("Sign-up failed — phone already registered: {Phone}", normalizedPhone);
             return new AuthResponse { Success = false, Message = "Phone number already registered." };
         }
 
         var user = new User
         {
             Email = request.Email.ToLowerInvariant(),
-            Phone = request.Phone,
+            Phone = normalizedPhone,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            IsEmailVerified = false,
             CreatedBy = request.Email.ToLowerInvariant(),
             ModifiedBy = request.Email.ToLowerInvariant()
         };
 
         await _userRepo.CreateAsync(user);
 
-        var token = GenerateJwtToken(user);
+        var verificationToken = GenerateEmailVerificationToken(user);
+        var frontendBaseUrl = _config["Email:FrontendBaseUrl"] ?? "http://localhost:4200";
+        var verificationLink = $"{frontendBaseUrl}/verify-email?token={Uri.EscapeDataString(verificationToken)}";
 
-        _logger.LogInformation("User registered successfully: {UserId} ({Email})", user.Id, user.Email);
+        try
+        {
+            await _emailService.SendEmailVerificationAsync(user.Email, user.Email, verificationLink);
+            _logger.LogInformation("Verification email sent to {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send verification email to {Email}", user.Email);
+        }
+
+        _logger.LogInformation("User registered (pending verification): {UserId} ({Email})", user.Id, user.Email);
 
         return new AuthResponse
         {
             Success = true,
-            Message = "Account created successfully.",
-            Token = token,
-            ExpiresAt = DateTime.UtcNow.AddHours(GetTokenExpiryHours()),
-            User = MapToDto(user)
+            Message = "Registration successful. Please check your email to verify your account."
         };
     }
 
@@ -98,6 +110,13 @@ public class AuthService
                 lookupSw.ElapsedMilliseconds, verifySw.ElapsedMilliseconds, totalSw.ElapsedMilliseconds);
             _logger.LogWarning("Sign-in failed — invalid credentials for {Email}", request.Email);
             return new AuthResponse { Success = false, Message = "Invalid email or password." };
+        }
+
+        if (!user!.IsEmailVerified)
+        {
+            totalSw.Stop();
+            _logger.LogWarning("Sign-in blocked — email not verified for {Email}", request.Email);
+            return new AuthResponse { Success = false, Message = "Please verify your email address before signing in. Check your inbox for the verification link." };
         }
 
         var token = GenerateJwtToken(user);
@@ -249,6 +268,88 @@ public class AuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    public async Task<AuthResponse> VerifyEmailAsync(string token)
+    {
+        _logger.LogInformation("Email verification attempt");
+
+        var principal = ValidateEmailVerificationToken(token);
+        if (principal is null)
+        {
+            _logger.LogWarning("Email verification failed — invalid or expired token");
+            return new AuthResponse { Success = false, Message = "Invalid or expired verification link." };
+        }
+
+        var jti = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+        if (jti is null)
+            return new AuthResponse { Success = false, Message = "Invalid verification token." };
+
+        var cacheKey = $"used_verify:{jti}";
+        if (_cache.TryGetValue(cacheKey, out _))
+        {
+            _logger.LogWarning("Email verification failed — token already used (jti={Jti})", jti);
+            return new AuthResponse { Success = false, Message = "This verification link has already been used. Please request a new one." };
+        }
+
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userId))
+            return new AuthResponse { Success = false, Message = "Invalid verification token." };
+
+        var user = await _userRepo.GetByIdAsync(userId);
+        if (user is null)
+            return new AuthResponse { Success = false, Message = "User not found." };
+
+        if (user.IsEmailVerified)
+        {
+            _logger.LogInformation("Email already verified for user {UserId}", userId);
+            return new AuthResponse { Success = true, Message = "Email verified successfully. You can now sign in." };
+        }
+
+        user.IsEmailVerified = true;
+        user.ModifiedBy = user.Email;
+        user.ModifiedDate = DateTime.UtcNow;
+        await _userRepo.UpdateAsync(user);
+
+        var tokenExpiry = principal.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
+        var ttl = tokenExpiry is not null && long.TryParse(tokenExpiry, out var exp)
+            ? DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime - DateTime.UtcNow
+            : TimeSpan.FromHours(24);
+        _cache.Set(cacheKey, true, ttl > TimeSpan.Zero ? ttl : TimeSpan.FromSeconds(1));
+
+        _logger.LogInformation("Email verified successfully for user {UserId}", userId);
+
+        return new AuthResponse { Success = true, Message = "Email verified successfully. You can now sign in." };
+    }
+
+    public async Task<AuthResponse> ResendVerificationAsync(string email)
+    {
+        _logger.LogInformation("Resend verification email request for {Email}", email);
+
+        var user = await _userRepo.GetByEmailAsync(email.ToLowerInvariant());
+
+        // Anti-enumeration: always return success regardless of whether email exists
+        if (user is null || user.IsEmailVerified)
+        {
+            _logger.LogInformation("Resend verification — user not found or already verified (returning success to prevent enumeration)");
+            return new AuthResponse { Success = true, Message = "If your email is registered and unverified, a new verification email has been sent." };
+        }
+
+        var verificationToken = GenerateEmailVerificationToken(user);
+        var frontendBaseUrl = _config["Email:FrontendBaseUrl"] ?? "http://localhost:4200";
+        var verificationLink = $"{frontendBaseUrl}/verify-email?token={Uri.EscapeDataString(verificationToken)}";
+
+        try
+        {
+            await _emailService.SendEmailVerificationAsync(user.Email, user.Email, verificationLink);
+            _logger.LogInformation("Resent verification email to {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resend verification email to {Email}", user.Email);
+        }
+
+        return new AuthResponse { Success = true, Message = "If your email is registered and unverified, a new verification email has been sent." };
+    }
+
     private string GeneratePasswordResetToken(Guid userId)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
@@ -297,6 +398,69 @@ public class AuthService
             _logger.LogWarning(ex, "Password-reset token validation failed");
             return null;
         }
+    }
+
+    private string GenerateEmailVerificationToken(User user)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim("purpose", "email-verification")
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(24),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private ClaimsPrincipal? ValidateEmailVerificationToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        try
+        {
+            var principal = handler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!)),
+                ValidateIssuer = true,
+                ValidIssuer = _config["Jwt:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = _config["Jwt:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            }, out _);
+
+            var purposeClaim = principal.FindFirst("purpose")?.Value;
+            return purposeClaim == "email-verification" ? principal : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Email-verification token validation failed");
+            return null;
+        }
+    }
+
+    private static string NormalizeUsPhone(string phone)
+    {
+        // Strip all non-digit characters
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+
+        // If 11 digits starting with 1 (country code), drop the leading 1
+        if (digits.Length == 11 && digits.StartsWith('1'))
+            digits = digits[1..];
+
+        // Store as plain 10-digit string for consistent uniqueness checks
+        return digits.Length == 10 ? digits : phone.Trim();
     }
 
     private int GetTokenExpiryHours() =>

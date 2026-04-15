@@ -8,6 +8,7 @@ export const routes: Routes = [
   { path: AppRoutes.SIGNUP, loadComponent: () => import('./auth/signup/signup.component').then(m => m.SignupComponent) },
   { path: AppRoutes.FORGOT_PASSWORD, loadComponent: () => import('./auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
   { path: AppRoutes.RESET_PASSWORD, loadComponent: () => import('./auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
+  { path: AppRoutes.VERIFY_EMAIL, loadComponent: () => import('./auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent) },
   {
     path: '',
     loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),

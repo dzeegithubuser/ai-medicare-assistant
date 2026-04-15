@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import {
   AuthResponse, AuthUser, SignUpRequest, SignInRequest,
-  ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest
+  ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest,
+  VerifyEmailRequest, ResendVerificationRequest
 } from '../models/auth.model';
 import { DrugStateService } from './drug-state.service';
 import { ProfileService } from './profile.service';
@@ -47,6 +48,14 @@ export class AuthService {
 
   changePassword(req: ChangePasswordRequest) {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/change-password`, req);
+  }
+
+  verifyEmail(token: string) {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/verify-email`, { token } satisfies VerifyEmailRequest);
+  }
+
+  resendVerification(email: string) {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/resend-verification`, { email } satisfies ResendVerificationRequest);
   }
 
   handleAuthSuccess(res: AuthResponse) {

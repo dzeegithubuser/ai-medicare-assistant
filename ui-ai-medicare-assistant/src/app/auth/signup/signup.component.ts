@@ -9,6 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
 
+const US_PHONE_PATTERN = /^(\+1[\s.\-]?)?(\(?\d{3}\)?[\s.\-]?)(\d{3}[\s.\-]?\d{4})$/;
+
 @Component({
   selector: 'app-signup',
   standalone: true,
@@ -26,7 +28,7 @@ export class SignupComponent {
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+?[\d\s-]{7,20}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(US_PHONE_PATTERN)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: ['', [Validators.required]]
   });
@@ -35,6 +37,15 @@ export class SignupComponent {
   error = signal('');
   hidePassword = signal(true);
   hideConfirm = signal(true);
+
+  // Set after successful signup to show verification panel
+  pendingEmail = signal('');
+
+  // Resend cooldown state
+  resendLoading = signal(false);
+  resendSuccess = signal('');
+  resendCooldown = signal(0);
+  private cooldownInterval: ReturnType<typeof setInterval> | null = null;
 
   submit() {
     if (this.form.invalid || this.loading()) return;
@@ -54,8 +65,7 @@ export class SignupComponent {
       next: res => {
         this.loading.set(false);
         if (res.success) {
-          this.auth.handleAuthSuccess(res);
-          this.router.navigate(['/']);
+          this.pendingEmail.set(this.form.value.email!);
         } else {
           this.error.set(res.message);
         }
@@ -65,5 +75,39 @@ export class SignupComponent {
         this.error.set(err.error?.message || 'Sign up failed. Please try again.');
       }
     });
+  }
+
+  resendEmail() {
+    if (this.resendLoading() || this.resendCooldown() > 0) return;
+    this.resendLoading.set(true);
+    this.resendSuccess.set('');
+
+    this.auth.resendVerification(this.pendingEmail()).subscribe({
+      next: () => {
+        this.resendLoading.set(false);
+        this.resendSuccess.set('Verification email resent. Please check your inbox.');
+        this.startCooldown();
+      },
+      error: () => {
+        this.resendLoading.set(false);
+        this.resendSuccess.set('Verification email resent. Please check your inbox.');
+        this.startCooldown();
+      }
+    });
+  }
+
+  private startCooldown() {
+    this.resendCooldown.set(60);
+    if (this.cooldownInterval) clearInterval(this.cooldownInterval);
+    this.cooldownInterval = setInterval(() => {
+      const current = this.resendCooldown();
+      if (current <= 1) {
+        this.resendCooldown.set(0);
+        clearInterval(this.cooldownInterval!);
+        this.cooldownInterval = null;
+      } else {
+        this.resendCooldown.set(current - 1);
+      }
+    }, 1000);
   }
 }

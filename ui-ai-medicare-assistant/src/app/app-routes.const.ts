@@ -9,6 +9,7 @@ export const AppRoutes = {
   SIGNUP: 'signup',
   FORGOT_PASSWORD: 'forgot-password',
   RESET_PASSWORD: 'reset-password',
+  VERIFY_EMAIL: 'verify-email',
   CHANGE_PASSWORD: 'change-password',
 
   // Top-level dashboard children

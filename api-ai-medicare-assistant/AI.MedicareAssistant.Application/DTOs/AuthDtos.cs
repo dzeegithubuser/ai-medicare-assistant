@@ -7,7 +7,9 @@ public class SignUpRequest
     [Required, EmailAddress, MaxLength(256)]
     public string Email { get; set; } = "";
 
-    [Required, Phone, MaxLength(20)]
+    [Required, MaxLength(20)]
+    [RegularExpression(@"^(\+1[\s.\-]?)?(\(?\d{3}\)?[\s.\-]?)(\d{3}[\s.\-]?\d{4})$",
+        ErrorMessage = "Enter a valid US phone number (e.g. (555) 123-4567).")]
     public string Phone { get; set; } = "";
 
     [Required, MinLength(8), MaxLength(128)]
@@ -70,4 +72,16 @@ public class UserDto
     public Guid Id { get; set; }
     public string Email { get; set; } = "";
     public string Phone { get; set; } = "";
+}
+
+public class VerifyEmailRequest
+{
+    [Required]
+    public string Token { get; set; } = "";
+}
+
+public class ResendVerificationRequest
+{
+    [Required, EmailAddress]
+    public string Email { get; set; } = "";
 }

@@ -26,6 +26,14 @@ export interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;

@@ -13,6 +13,8 @@ public class User : BaseEntity
     [Required, MaxLength(512)]
     public string PasswordHash { get; set; } = "";
 
+    public bool IsEmailVerified { get; set; } = false;
+
     // Navigation properties
     public Profile? Profile { get; set; }
 }
