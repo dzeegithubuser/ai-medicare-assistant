@@ -11,30 +11,30 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5024
       # Override connection strings via env vars
-      - ConnectionStrings__DefaultConnection=${MYSQL_CONNECTION:-Server=169.61.105.110;Port=3306;Database=ai_medicare_assistant;User=root1;Password=Dzee2015$$;}
-      - ConnectionStrings__MongoDb=${MONGO_CONNECTION:-mongodb://mongo_super_user:mongo123@169.61.105.110:27017}
-      - MongoDb__DatabaseName=${MONGO_DB_NAME:-ai_medicare_assistant}
+      - ConnectionStrings__DefaultConnection=${MYSQL_CONNECTION}
+      - ConnectionStrings__MongoDb=${MONGO_CONNECTION}
+      - MongoDb__DatabaseName=${MONGO_DB_NAME}
       # JWT
-      - Jwt__Secret=${JWT_SECRET:-YourSuperSecretKeyAtLeast32CharactersLong!@#2026}
+      - Jwt__Secret=${JWT_SECRET}
       - Jwt__Issuer=AI.MedicareAssistant
       - Jwt__Audience=AI.MedicareAssistant.Client
       - Jwt__ExpiryHours=24
       # AI Providers
       - AiProvider=${AI_PROVIDER:-OpenAI}
       - OpenAI__ApiKey=${OPENAI_API_KEY}
-      - OpenAI__Model=${OPENAI_MODEL:-gpt-4.1}
+      - OpenAI__Model=${OPENAI_MODEL}
       - Anthropic__ApiKey=${ANTHROPIC_API_KEY}
-      - Anthropic__Model=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      - Anthropic__Model=${ANTHROPIC_MODEL}
       - Anthropic__BaseUrl=https://api.anthropic.com/v1/
       - Anthropic__MaxTokens=4000
       # Google
-      - Google__PlacesApiKey=${GOOGLE_PLACES_API_KEY}
+      - Google__PlacesApiKey=${GOOGLE_PLACES_API_KEY:-none}
       # Financial Planner
-      - FinancialPlanner__BaseUrl=${FP_BASE_URL:-http://169.61.105.110:8080/NewFinancialPlanner/api/v1}
-      - FinancialPlanner__AuthToken=${FP_AUTH_TOKEN:-Basic RmluYW5jaWFsUGxhbm5lclNlcnZpY2VVc2VyOkZpbmFuY2lhbFBsYW5uZXJQQHNzdzByZA==}
+      - FinancialPlanner__BaseUrl=${FP_BASE_URL}
+      - FinancialPlanner__AuthToken=${FP_AUTH_TOKEN}
       # CORS
-      - Cors__AllowedOrigins__0=http://localhost:9500
-      - Cors__AllowedOrigins__1=http://169.61.105.110:9500
+      - Cors__AllowedOrigins__0=http://localhost:9600
+      - Cors__AllowedOrigins__1=http://169.61.105.110:9600
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5024/api/ReferenceData"]
@@ -50,7 +50,7 @@ services:
       dockerfile: Dockerfile
     container_name: medicare-assistant-ui
     ports:
-      - "9500:80"
+      - "9600:80"
     depends_on:
       api:
         condition: service_started

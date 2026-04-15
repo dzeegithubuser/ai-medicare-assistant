@@ -72,6 +72,8 @@ Desktop.ini
 *.env.*.local
 secrets.json
 appsettings.local.json
+appsettings.Development.json
+*.env.example
 
 # ============================================================
 # Test / Coverage
