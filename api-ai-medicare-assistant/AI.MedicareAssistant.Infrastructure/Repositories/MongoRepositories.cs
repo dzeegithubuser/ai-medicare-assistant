@@ -6,66 +6,6 @@ using MongoDB.Driver;
 
 namespace Infrastructure.Repositories;
 
-public class PrescriptionDocRepository : IPrescriptionDocRepository
-{
-    private readonly MongoDbContext _context;
-
-    public PrescriptionDocRepository(MongoDbContext context)
-    {
-        _context = context;
-    }
-
-    public const string CurrentPrescriptionName = "__current_prescriptions__";
-
-    public async Task<PrescriptionDocument> SaveAsync(PrescriptionDocument document)
-    {
-        await _context.Prescriptions.InsertOneAsync(document);
-        return document;
-    }
-
-    public async Task<PrescriptionDocument> ReplaceCurrentForUserAsync(PrescriptionDocument document)
-    {
-        document.Name = CurrentPrescriptionName;
-        document.UpdatedAt = DateTime.UtcNow;
-        if (document.CreatedAt == default)
-            document.CreatedAt = DateTime.UtcNow;
-
-        var filter = Builders<PrescriptionDocument>.Filter.And(
-            Builders<PrescriptionDocument>.Filter.Eq(d => d.UserId, document.UserId),
-            Builders<PrescriptionDocument>.Filter.Eq(d => d.Name, CurrentPrescriptionName));
-
-        await _context.Prescriptions.ReplaceOneAsync(filter, document,
-            new ReplaceOptions { IsUpsert = true });
-        return document;
-    }
-
-    public async Task DeleteCurrentPrescriptionForUserAsync(Guid userId)
-    {
-        await _context.Prescriptions.DeleteManyAsync(d =>
-            d.UserId == userId && d.Name == CurrentPrescriptionName);
-    }
-
-    public async Task<PrescriptionDocument?> GetByIdAsync(string id)
-    {
-        return await _context.Prescriptions
-            .Find(d => d.Id == id)
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<List<PrescriptionDocument>> GetByUserIdAsync(Guid userId)
-    {
-        return await _context.Prescriptions
-            .Find(d => d.UserId == userId)
-            .SortByDescending(d => d.CreatedAt)
-            .ToListAsync();
-    }
-
-    public async Task DeleteAsync(string id)
-    {
-        await _context.Prescriptions.DeleteOneAsync(d => d.Id == id);
-    }
-}
-
 public class UserAnalysisSelectionsRepository : IUserAnalysisSelectionsRepository
 {
     private readonly MongoDbContext _context;

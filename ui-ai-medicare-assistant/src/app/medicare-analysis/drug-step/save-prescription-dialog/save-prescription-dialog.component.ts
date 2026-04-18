@@ -10,6 +10,7 @@ export interface SavePrescriptionDialogData {
   title?: string;
   subtitle?: string;
   icon?: string;
+  defaultName?: string;
 }
 
 @Component({
@@ -30,7 +31,7 @@ export class SavePrescriptionDialogComponent {
   subtitle = this.data.subtitle ?? 'Enter a name for this prescription to save it';
   icon = this.data.icon ?? 'save';
 
-  prescriptionName = signal('');
+  prescriptionName = signal(this.data.defaultName ?? '');
 
   submit() {
     const name = this.prescriptionName().trim();

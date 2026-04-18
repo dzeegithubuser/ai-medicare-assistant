@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   ElementRef,
   computed,
   inject,
@@ -21,10 +20,7 @@ import {
   Tooltip, Legend, Filler,
 } from 'chart.js';
 import { LtcStateService } from '../ltc-state.service';
-import { LtcService } from '../ltc.service';
 import { LtcExpenseEntry, LtcCostEvaluation, LtcCostCategory, LtcProjectionResponse } from '../../models/ltc.model';
-import { catchError, of } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AppRoutes } from '../../app-routes.const';
 
@@ -45,9 +41,7 @@ Chart.register(
 })
 export class LtcProjectionStepComponent implements OnDestroy {
   private state = inject(LtcStateService);
-  private ltcService = inject(LtcService);
   private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
 
   readonly lineChart = viewChild<ElementRef<HTMLCanvasElement>>('lineChart');
   readonly stackedChart = viewChild<ElementRef<HTMLCanvasElement>>('stackedChart');
@@ -61,17 +55,8 @@ export class LtcProjectionStepComponent implements OnDestroy {
 
   constructor() {
     if (!this.state.ltcResult()) {
-      this.ltcService.getCurrent().pipe(
-        catchError(() => of(null)),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe(current => {
-        if (!current?.ltcResultJson) return;
-        try {
-          this.state.ltcResult.set(JSON.parse(current.ltcResultJson));
-        } catch {
-          // Ignore malformed saved JSON and keep UI empty state.
-        }
-      });
+      // No in-memory result (e.g. hard refresh) — send user back to re-run projection
+      this.router.navigate([AppRoutes.abs.LTC_CARE_TYPE]);
     }
 
     afterNextRender(() => this.buildCharts());

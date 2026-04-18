@@ -147,6 +147,16 @@ export class ChatComponent implements OnInit {
       const trigger = this.state.wizardResetTrigger();
       if (trigger > 0) {
         this.wizard.reset();
+        // Clear session-storage gate keys so the next analysis run can re-hydrate
+        // drugs, pharmacy and plans from the saved selection document.
+        sessionStorage.removeItem(this.storedDrugsChoiceKey);
+        sessionStorage.removeItem(this.storedPharmacyChoiceKey);
+        // Reset in-flight / "already-asked" flags so the auto-hydrate helpers
+        // are not blocked by a previous analysis run's state.
+        this.requestedActiveRecommendationForStoredDrugs = false;
+        this.storedDrugsAutoHydrateInFlight = false;
+        this.storedPharmacyAutoHydrateInFlight = false;
+        this.requestedActiveRecommendationForStoredPharmacy = false;
         if (this.router.url.startsWith(AppRoutes.abs.MEDICARE_ANALYSIS)) {
           this.removeAnalysisRefreshNoiseIfNeeded(this.router.url);
         }

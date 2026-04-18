@@ -21,14 +21,6 @@ public class PrescriptionController : ControllerBase
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    [HttpPost]
-    public async Task<IActionResult> Save([FromBody] SavePrescriptionRequest request)
-    {
-        var userId = GetUserId();
-        var result = await _service.SaveAsync(userId, request);
-        return Ok(result);
-    }
-
     /// <summary>Upserts confirmed FP drugs as the user's current prescriptions (MongoDB + MySQL profile link).</summary>
     [HttpPost("current")]
     public async Task<IActionResult> SaveCurrent([FromBody] SaveCurrentPrescriptionsRequest request)
@@ -60,14 +52,6 @@ public class PrescriptionController : ControllerBase
     {
         await _service.SaveCurrentPlansAsync(GetUserId(), request);
         return NoContent();
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var userId = GetUserId();
-        var result = await _service.GetByUserIdAsync(userId);
-        return Ok(result);
     }
 
     [HttpGet("{id}")]

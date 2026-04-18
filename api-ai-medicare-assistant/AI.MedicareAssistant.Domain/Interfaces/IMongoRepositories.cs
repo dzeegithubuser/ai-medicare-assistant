@@ -2,18 +2,6 @@ using Domain.Documents;
 
 namespace Domain.Interfaces;
 
-public interface IPrescriptionDocRepository
-{
-    Task<PrescriptionDocument> SaveAsync(PrescriptionDocument document);
-    /// <summary>Replaces the per-user "current" prescription document (fixed name, MongoDB).</summary>
-    Task<PrescriptionDocument> ReplaceCurrentForUserAsync(PrescriptionDocument document);
-    /// <summary>Removes legacy <c>__current_prescriptions__</c> after migrating current state to <c>userAnalysisSelections</c>.</summary>
-    Task DeleteCurrentPrescriptionForUserAsync(Guid userId);
-    Task<PrescriptionDocument?> GetByIdAsync(string id);
-    Task<List<PrescriptionDocument>> GetByUserIdAsync(Guid userId);
-    Task DeleteAsync(string id);
-}
-
 /// <summary>Per-user current FP pharmacy + plan selections (collection <c>userAnalysisSelections</c>).</summary>
 public interface IUserAnalysisSelectionsRepository
 {

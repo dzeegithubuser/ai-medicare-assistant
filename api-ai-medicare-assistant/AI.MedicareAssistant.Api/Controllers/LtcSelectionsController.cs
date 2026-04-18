@@ -30,7 +30,6 @@ public class LtcSelectionsController : ControllerBase
             NumberOfAdultDayHealthCareYears = request.NumberOfAdultDayHealthCareYears,
             NumberOfHomeCareYears = request.NumberOfHomeCareYears,
             NumberOfNursingCareYears = request.NumberOfNursingCareYears,
-            LtcResultJson = request.LtcResultJson
         };
         await _repo.UpsertCurrentAsync(doc);
         return NoContent();
@@ -49,7 +48,6 @@ public class LtcSelectionsController : ControllerBase
             NumberOfAdultDayHealthCareYears = doc.NumberOfAdultDayHealthCareYears,
             NumberOfHomeCareYears = doc.NumberOfHomeCareYears,
             NumberOfNursingCareYears = doc.NumberOfNursingCareYears,
-            LtcResultJson = doc.LtcResultJson,
             UpdatedAt = doc.UpdatedAt
         });
     }

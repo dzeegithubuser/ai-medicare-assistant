@@ -387,6 +387,7 @@ export class ChatRouterService {
         title: 'Name this recommendation',
         subtitle: 'We will save your profile, drugs, pharmacies, and plans under this name after cost evaluation.',
         icon: 'bookmark',
+        defaultName: `Medicare Analysis – ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
       },
     });
     dialogRef.afterClosed().subscribe((name: string | null) => {
@@ -801,6 +802,7 @@ export class ChatRouterService {
             title: 'Name this analysis',
             subtitle: 'Enter a name to save your long-term care projection.',
             icon: 'elderly',
+            defaultName: `LTC Analysis – ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
           },
         });
         nameDialogRef.afterClosed().subscribe((name: string | null) => {
@@ -867,6 +869,7 @@ export class ChatRouterService {
         title: 'Save Analysis',
         subtitle: 'Enter a name for this analysis snapshot',
         icon: 'assessment',
+        defaultName: `Analysis – ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
       },
     });
 

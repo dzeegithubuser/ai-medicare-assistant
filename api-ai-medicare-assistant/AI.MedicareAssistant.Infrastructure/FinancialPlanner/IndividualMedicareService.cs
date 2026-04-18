@@ -40,7 +40,7 @@ public class IndividualMedicareService : IIndividualMedicareService
         _logger.LogInformation(
             "Calling individualMedicareR5 for email={Email}, coverageYear={Year}, planBundle={Bundle}",
             request.UserEmail, request.CoverageYear, request.PlanBundleCode);
-        request.RetirementYear = "03-2026";
+        request.RetirementYear = DateTime.UtcNow.ToString("MM-yyyy");
 
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/individualMedicareR5");

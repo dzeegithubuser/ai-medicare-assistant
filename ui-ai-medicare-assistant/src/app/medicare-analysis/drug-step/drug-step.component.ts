@@ -153,9 +153,11 @@ export class DrugsStepComponent implements OnInit {
     }
     this.loadSavedDrugsAndHydrate();
 
-    // Re-try auto-fill once async drug details arrive.
+    // Re-try auto-fill once async drug details OR saved drugs arrive.
+    // Tracking both ensures hydration runs regardless of which resolves first.
     effect(() => {
       this.results();
+      this.savedDrugs();
       this.hydrateSelectionsFromSavedDrugs();
     }, { injector: this.injector });
 
@@ -190,9 +192,21 @@ export class DrugsStepComponent implements OnInit {
     for (const result of this.results()) {
       const name = result.drugName;
       if (!confirmed.has(name)) continue;
-      if (nextFormulations.has(name)) continue; // Do not overwrite existing manual picks
 
       const savedDrug = this.findSavedDrug(saved, name);
+
+      // Always restore quantity from the saved drug when not already set locally.
+      // This must run before the formulation guard so it is never skipped.
+      if (savedDrug && !nextQuantities.has(name)) {
+        const qty = savedDrug.quantityPerMonth ?? 0;
+        if (qty > 0) {
+          nextQuantities.set(name, qty);
+          changed = true;
+        }
+      }
+
+      if (nextFormulations.has(name)) continue; // Do not overwrite existing manual formulation picks
+
       const options = result.detail?.drugDetailAdvanceList ?? [];
       if (!savedDrug || options.length === 0) continue;
 
@@ -203,10 +217,6 @@ export class DrugsStepComponent implements OnInit {
         strength: (picked.strength || '').trim() || null,
       });
       nextFormulations.set(name, picked);
-      const qty = savedDrug.quantityPerMonth ?? 0;
-      if (qty > 0) {
-        nextQuantities.set(name, qty);
-      }
       changed = true;
     }
 
@@ -219,8 +229,12 @@ export class DrugsStepComponent implements OnInit {
 
   private findSavedDrug(saved: PrescriptionDrugDto[], drugName: string): PrescriptionDrugDto | null {
     const lower = drugName.toLowerCase();
+    // Check all name fields independently: normalizedDrugName (always the API drug name),
+    // drugInput (what the user typed), and selectedName (which may be a brand name).
     return saved.find((d) =>
-      (d.selectedName ?? d.normalizedDrugName ?? '').trim().toLowerCase() === lower
+      (d.normalizedDrugName ?? '').trim().toLowerCase() === lower ||
+      (d.drugInput ?? '').trim().toLowerCase() === lower ||
+      (d.selectedName ?? '').trim().toLowerCase() === lower
     ) ?? null;
   }
 
@@ -358,7 +372,7 @@ export class DrugsStepComponent implements OnInit {
   // ── Confirm / Edit / Remove ──
 
   isDrugConfirmed(drugName: string): boolean {
-    return this.confirmedDrugNames().has(drugName);
+    return this.confirmedDrugNames().has(drugName) && this.formulationSelections().has(drugName);
   }
 
   confirmDrug(drugName: string) {
@@ -436,15 +450,32 @@ export class DrugsStepComponent implements OnInit {
   private restoreSelections() {
     try {
       const raw = sessionStorage.getItem('formulation-selections');
+      const nextFormulations = new Map<string, DrugDetailAdvanceItem>();
       if (raw) {
         const entries: [string, DrugDetailAdvanceItem][] = JSON.parse(raw);
-        this.formulationSelections.set(new Map(entries));
+        for (const [k, v] of entries) nextFormulations.set(k, v);
       }
+      this.formulationSelections.set(nextFormulations);
+
+      const nextSelections = new Map<string, DrugSelectionState>();
       const selRaw = sessionStorage.getItem('fp-drug-selections');
       if (selRaw) {
         const selEntries: [string, DrugSelectionState][] = JSON.parse(selRaw);
-        this.drugSelections.set(new Map(selEntries));
+        for (const [k, v] of selEntries) nextSelections.set(k, v);
       }
+      // Rebuild missing drugSelections entries from their stored formulation data.
+      // This handles the case where formulationSelections was saved but drugSelections was not.
+      for (const [name, formulation] of nextFormulations) {
+        if (!nextSelections.has(name)) {
+          nextSelections.set(name, {
+            type: formulation.drugType || null,
+            dosageForm: (formulation.rxnDoseForm || formulation.newDoseForm || '').trim() || null,
+            strength: (formulation.strength || '').trim() || null,
+          });
+        }
+      }
+      this.drugSelections.set(nextSelections);
+
       const qtyRaw = sessionStorage.getItem('drug-quantities');
       if (qtyRaw) {
         const qtyEntries: [string, number][] = JSON.parse(qtyRaw);

@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, of, switchMap, EMPTY } from 'rxjs';
+import { catchError, finalize, of, switchMap, EMPTY, debounceTime } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LtcStateService } from '../ltc-state.service';
 import { ProfileService } from '../../services/profile.service';
@@ -99,6 +99,36 @@ export class LtcCareTypeStepComponent {
         ...(pending.nursingCareYears != null ? { nursingCareYears: pending.nursingCareYears } : {}),
       });
     });
+
+    // Hydrate form from persisted care-type selections (mirrors Medicare drug/pharmacy step hydration)
+    this.ltcService.getCurrent().pipe(
+      catchError(() => of(null)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(current => {
+      if (!current) return;
+      this.state.healthProfile.set(current.healthProfile);
+      this.state.adultDayYears.set(current.numberOfAdultDayHealthCareYears);
+      this.state.homeCareYears.set(current.numberOfHomeCareYears);
+      this.state.nursingCareYears.set(current.numberOfNursingCareYears);
+      this.form.patchValue({
+        healthProfile: current.healthProfile,
+        adultDayYears: current.numberOfAdultDayHealthCareYears,
+        homeCareYears: current.numberOfHomeCareYears,
+        nursingCareYears: current.numberOfNursingCareYears,
+      }, { emitEvent: false });
+    });
+
+    // Auto-save care-type selections on value change (mirrors Medicare step-save behaviour)
+    this.form.valueChanges.pipe(
+      debounceTime(1000),
+      switchMap(() => this.ltcService.saveCurrent({
+        healthProfile: this.state.healthProfile(),
+        numberOfAdultDayHealthCareYears: this.state.adultDayYears(),
+        numberOfHomeCareYears: this.state.homeCareYears(),
+        numberOfNursingCareYears: this.state.nursingCareYears(),
+      }).pipe(catchError(() => of(void 0)))),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
   }
 
   runProjection(): void {
@@ -108,6 +138,7 @@ export class LtcCareTypeStepComponent {
         title: 'Name this analysis',
         subtitle: 'Enter a name to save your long-term care projection.',
         icon: 'elderly',
+        defaultName: `LTC Analysis – ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
       },
     });
 
@@ -157,7 +188,6 @@ export class LtcCareTypeStepComponent {
           numberOfAdultDayHealthCareYears: this.state.adultDayYears(),
           numberOfHomeCareYears: this.state.homeCareYears(),
           numberOfNursingCareYears: this.state.nursingCareYears(),
-          ltcResultJson: JSON.stringify(result),
         };
 
         this.ltcService.saveCurrent(saveBody).pipe(

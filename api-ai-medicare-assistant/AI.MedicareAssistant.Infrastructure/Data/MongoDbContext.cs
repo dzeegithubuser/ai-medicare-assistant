@@ -17,9 +17,6 @@ public class MongoDbContext
         _database = database;
     }
 
-    public IMongoCollection<PrescriptionDocument> Prescriptions
-        => _database.GetCollection<PrescriptionDocument>("prescriptions");
-
     /// <summary>Current FP pharmacy + plan selections per user (not drug rows).</summary>
     public IMongoCollection<UserAnalysisSelectionsDocument> UserAnalysisSelections
         => _database.GetCollection<UserAnalysisSelectionsDocument>("userAnalysisSelections");
@@ -56,13 +53,6 @@ public class MongoIndexInitializer : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _context.Prescriptions.Indexes.CreateOneAsync(
-            new CreateIndexModel<PrescriptionDocument>(
-                Builders<PrescriptionDocument>.IndexKeys
-                    .Ascending(d => d.UserId)
-                    .Descending(d => d.CreatedAt)),
-            cancellationToken: cancellationToken);
-
         await _context.UserAnalysisSelections.Indexes.CreateOneAsync(
             new CreateIndexModel<UserAnalysisSelectionsDocument>(
                 Builders<UserAnalysisSelectionsDocument>.IndexKeys

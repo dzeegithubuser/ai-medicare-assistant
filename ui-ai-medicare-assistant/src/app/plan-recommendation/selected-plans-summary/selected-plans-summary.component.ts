@@ -19,6 +19,7 @@ export class SelectedPlansSummaryComponent {
 
   costLoading = input(false);
   maIncludesPartD = input(false);
+  canCalculate = input(true);
 
   calculateCost = output<void>();
 

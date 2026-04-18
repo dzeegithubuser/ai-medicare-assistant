@@ -61,6 +61,18 @@
     }
   </div>
 
+  <!-- Incomplete selection hint -->
+  @if (!canCalculate()) {
+    <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 leading-snug">
+      <mat-icon class="!text-[11px] !w-3.5 !h-3.5 align-middle mr-1">info</mat-icon>
+      @if (state.activeSection() === 'ma' && !maIncludesPartD()) {
+        Select a Part D gap plan below to calculate your total cost.
+      } @else {
+        Complete your plan selection above to calculate total cost.
+      }
+    </p>
+  }
+
   <!-- Calculate Lifetime Cost Button -->
   @if (costLoading()) {
     <button mat-flat-button disabled
@@ -70,7 +82,8 @@
     </button>
   } @else {
     <button mat-flat-button
-            class="!w-full !rounded-lg !bg-indigo-600 !text-white !text-sm !font-semibold !py-2 hover:!bg-indigo-700"
+            [disabled]="!canCalculate()"
+            class="!w-full !rounded-lg !bg-indigo-600 !text-white !text-sm !font-semibold !py-2 hover:!bg-indigo-700 disabled:!opacity-50 disabled:!cursor-not-allowed"
             (click)="calculateCost.emit()">
       <mat-icon class="!text-lg mr-1">analytics</mat-icon>
       Calculate Lifetime Cost

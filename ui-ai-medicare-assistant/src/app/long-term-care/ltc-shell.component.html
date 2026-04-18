@@ -1,7 +1,16 @@
 <div class="h-full flex flex-col overflow-hidden">
   <div class="shrink-0 bg-white border-b border-gray-200 px-6 py-3">
     <div class="flex items-center justify-between">
-      <div class="w-[120px]"></div>
+      <div class="w-[120px]">
+        @if (isProjectionRoute()) {
+          <button mat-stroked-button
+                  class="!rounded-xl !px-4 !text-xs !border-red-300 !text-red-600 hover:!bg-red-50"
+                  (click)="startNewAnalysis()">
+            <mat-icon class="!text-sm mr-1">restart_alt</mat-icon>
+            New Analysis
+          </button>
+        }
+      </div>
 
       <div class="flex items-center gap-0">
         @for (step of steps; track step.number; let last = $last) {

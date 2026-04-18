@@ -23,6 +23,7 @@ import { MedicareAdvantagePlanRequest } from '../models/medicare-advantage-plan.
 import { finalize } from 'rxjs/operators';
 import { CalculateCostsRequest } from '../models/cost-projection.model';
 import { PrescriptionService } from '../services/prescription.service';
+import { AnalysisSnapshotService } from '../services/analysis-snapshot.service';
 import { buildSelectedPlansSnapshotFromState } from '../medicare-analysis/current-prescription.mapper';
 import { COST_PROJECTION_IMMUTABILITY_WARNING } from '../medicare-analysis/cost-projection-messages';
 import { PLAN_MESSAGES } from '../constants/chat-messages';
@@ -57,6 +58,7 @@ export class PlanRecommendationComponent implements OnInit {
   private planService = inject(PlanRecommendationService);
   private profileService = inject(ProfileService);
   private prescriptionService = inject(PrescriptionService);
+  private analysisSnapshot = inject(AnalysisSnapshotService);
   private refData = inject(ReferenceDataService);
   private enrichmentService = inject(PlanCardEnrichmentService);
   private dialog = inject(MatDialog);
@@ -86,6 +88,14 @@ export class PlanRecommendationComponent implements OnInit {
 
   // Has user made a complete selection? (delegated to state service)
   readonly hasCompleteSelection = this.state.hasCompletePlanSelection;
+
+  // True when any plan is selected in the active section (used to show the summary panel early)
+  readonly hasAnyPlanSelected = computed(() => {
+    const section = this.state.activeSection();
+    if (section === 'ma') return this.state.selectedMAPlan() !== null;
+    if (section === 'partd') return this.state.selectedPartDPlan() !== null;
+    return false;
+  });
 
   // ─── Enrichment Maps ────────────────────────────────────────────
 
@@ -690,21 +700,21 @@ export class PlanRecommendationComponent implements OnInit {
           title: 'Name this recommendation',
           subtitle: 'We will save your profile, drugs, pharmacies, and plans under this name after cost evaluation.',
           icon: 'bookmark',
+          defaultName: this.buildDefaultRecommendationName(),
         },
       });
       ref.afterClosed().subscribe((name: string | null) => {
         const trimmed = name?.trim() ?? '';
         if (!trimmed) return;
-        this.state.setPendingCostRunRecommendationName(trimmed);
         this.state.addAssistantMessage(COST_PROJECTION_IMMUTABILITY_WARNING);
-        this.runLifetimeCostEvaluation();
+        this.runLifetimeCostEvaluation(trimmed);
       });
       return;
     }
     this.runLifetimeCostEvaluation();
   }
 
-  private runLifetimeCostEvaluation() {
+  private runLifetimeCostEvaluation(recommendationName?: string) {
     this.state.addSystemMessage('Calculating lifetime cost projection');
     this.costLoading.set(true);
 
@@ -783,13 +793,42 @@ export class PlanRecommendationComponent implements OnInit {
       next: (result) => {
         this.state.setCostProjection(result);
         this.costLoading.set(false);
-        // Save only plans after cost evaluation — drugs and pharmacies are already saved.
+        // Save plans then optionally save full recommendation, then navigate.
         const plans = buildSelectedPlansSnapshotFromState(this.state);
         this.prescriptionService
           .saveCurrentPlans(plans, this.state.activeSection())
-          .pipe(finalize(() => this.router.navigate([AppRoutes.abs.COST_PROJECTIONS])))
           .subscribe({
-            next: () => this.profileService.loadProfile().subscribe({ error: () => {} }),
+            next: () => {
+              this.profileService.loadProfile().subscribe({ error: () => {} });
+              if (recommendationName) {
+                this.analysisSnapshot.save(recommendationName).subscribe({
+                  next: () => {
+                    this.state.addAssistantMessage(`Plan recommendation "${recommendationName}" was saved to your account.`);
+                    this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]);
+                  },
+                  error: (err: { status?: number }) => {
+                    if (err?.status === 409) {
+                      this.analysisSnapshot.save(recommendationName, true).subscribe({
+                        next: () => {
+                          this.state.addAssistantMessage(`Plan recommendation "${recommendationName}" was saved (updated existing).`);
+                          this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]);
+                        },
+                        error: () => {
+                          this.state.addAssistantMessage('Could not save your plan recommendation. Please try again from the chat.');
+                          this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]);
+                        },
+                      });
+                    } else {
+                      this.state.addAssistantMessage('Could not save your plan recommendation. Please try again from the chat.');
+                      this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]);
+                    }
+                  },
+                });
+              } else {
+                this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]);
+              }
+            },
+            error: () => this.router.navigate([AppRoutes.abs.COST_PROJECTIONS]),
           });
       },
       error: () => this.costLoading.set(false),
@@ -800,6 +839,16 @@ export class PlanRecommendationComponent implements OnInit {
 
   getFirstRec(plan: RecommendationListItem): PharmacyWiseRecommendation | null {
     return plan.pharmacyWiseRecommendations?.[0] ?? null;
+  }
+
+  private buildDefaultRecommendationName(): string {
+    const section = this.state.activeSection();
+    const firstName = this.profileService.profile()?.profile?.firstName?.trim();
+    const dateStr = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    const prefix = firstName ? `${firstName} ` : '';
+    if (section === 'ma') return `${prefix}Medicare Advantage – ${dateStr}`;
+    if (section === 'partd') return `${prefix}Part D + Medigap – ${dateStr}`;
+    return `${prefix}Medicare Analysis – ${dateStr}`;
   }
 
   private persistCurrentSelectionSnapshot(): void {

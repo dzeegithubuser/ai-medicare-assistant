@@ -24,8 +24,13 @@
               <span class="text-gray-700 font-medium ml-1">{{ item.formulation.drugName }}</span>
             </div>
             <div>
-              <span class="text-gray-400">Generic:</span>
-              <span class="text-gray-700 font-medium ml-1">{{ item.formulation.genericDrugName || '—' }}</span>
+              <span class="text-gray-400">Form Type:</span>
+              <span class="text-gray-700 font-medium ml-1">
+                {{ item.formulation.drugType }}
+                @if (item.formulation.drugType !== 'Generic' && item.formulation.brandName) {
+                  · {{ item.formulation.brandName }}
+                }
+              </span>
             </div>
             <div>
               <span class="text-gray-400">Dose Form:</span>
@@ -34,10 +39,6 @@
             <div>
               <span class="text-gray-400">Strength:</span>
               <span class="text-gray-700 font-medium ml-1">{{ item.formulation.strength || '—' }}</span>
-            </div>
-            <div>
-              <span class="text-gray-400">Brand:</span>
-              <span class="text-gray-700 font-medium ml-1">{{ item.formulation.brandName || '—' }}</span>
             </div>
             <div>
               <span class="text-gray-400">RxCUI:</span>

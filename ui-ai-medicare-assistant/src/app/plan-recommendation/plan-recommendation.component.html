@@ -1,10 +1,11 @@
 <!-- ═══════════════════════════════════════════════════════════════
      Selected Plans Summary + Calculate Lifetime Cost
      ═══════════════════════════════════════════════════════════════ -->
-@if (hasCompleteSelection()) {
+@if (hasAnyPlanSelected()) {
   <app-selected-plans-summary
     [costLoading]="costLoading()"
     [maIncludesPartD]="maIncludesPartD()"
+    [canCalculate]="hasCompleteSelection()"
     (calculateCost)="calculateLifetimeCost()" />
 }
 

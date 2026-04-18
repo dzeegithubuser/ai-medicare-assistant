@@ -76,4 +76,9 @@ export class LtcShellComponent {
     this.state.currentStep.set(stepNumber);
     this.router.navigate([AppRoutes.abs.LTC, target.route]);
   }
+
+  startNewAnalysis(): void {
+    this.state.resetAll();
+    this.router.navigateByUrl(AppRoutes.abs.LTC_PROFILE);
+  }
 }

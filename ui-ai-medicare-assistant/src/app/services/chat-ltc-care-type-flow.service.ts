@@ -144,7 +144,6 @@ export class ChatLtcCareTypeFlowService {
         numberOfAdultDayHealthCareYears: this.ltcState.adultDayYears(),
         numberOfHomeCareYears: this.ltcState.homeCareYears(),
         numberOfNursingCareYears: this.ltcState.nursingCareYears(),
-        ltcResultJson: JSON.stringify(result),
       };
 
       this.ltcService.saveCurrent(saveBody).pipe(

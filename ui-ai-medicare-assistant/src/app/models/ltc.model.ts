@@ -121,7 +121,6 @@ export interface SaveLtcCurrentRequest {
   numberOfAdultDayHealthCareYears: number;
   numberOfHomeCareYears: number;
   numberOfNursingCareYears: number;
-  ltcResultJson?: string;
 }
 
 export interface LtcCurrentResponse {
@@ -129,6 +128,5 @@ export interface LtcCurrentResponse {
   numberOfAdultDayHealthCareYears: number;
   numberOfHomeCareYears: number;
   numberOfNursingCareYears: number;
-  ltcResultJson?: string;
   updatedAt: string;
 }

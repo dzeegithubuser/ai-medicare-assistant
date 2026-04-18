@@ -2,15 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs;
 
-public class SavePrescriptionRequest
-{
-    [Required, MaxLength(200)]
-    public string Name { get; set; } = "";
-
-    [Required, MinLength(1)]
-    public List<PrescriptionDrugDto> Drugs { get; set; } = [];
-}
-
 /// <summary>Upserts MongoDB "current" prescriptions and links the document id on the MySQL profile.</summary>
 public class SaveCurrentPrescriptionsRequest
 {

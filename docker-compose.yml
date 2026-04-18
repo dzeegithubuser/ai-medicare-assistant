@@ -33,8 +33,16 @@ services:
       - FinancialPlanner__BaseUrl=${FP_BASE_URL}
       - FinancialPlanner__AuthToken=${FP_AUTH_TOKEN}
       # Email
+      - Email__Host=${EMAIL_HOST}
+      - Email__Port=${EMAIL_PORT}
+      - Email__EnableSsl=${EMAIL_ENABLE_SSL}
+      - Email__FromAddress=${EMAIL_FROM_ADDRESS}
+      - Email__FromDisplayName=${EMAIL_FROM_DISPLAY_NAME}
       - Email__Password=${EMAIL_PASSWORD}
+      - Email__TimeoutMs=${EMAIL_TIMEOUT_MS}
       - Email__FrontendBaseUrl=${EMAIL_FRONTEND_BASE_URL}
+      # CMS
+      - CMS__MedicarePartDSpendingUrl=${CMS_MEDICARE_PART_D_SPENDING_URL}
       # CORS
       - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGINS_0}
       - Cors__AllowedOrigins__1=${CORS_ALLOWED_ORIGINS_1}

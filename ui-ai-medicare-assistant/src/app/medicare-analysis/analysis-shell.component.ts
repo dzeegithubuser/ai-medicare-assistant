@@ -9,7 +9,6 @@ import { finalize } from 'rxjs/operators';
 import { DrugStateService } from '../services/drug-state.service';
 import { PrescriptionService } from '../services/prescription.service';
 import { ProfileService } from '../services/profile.service';
-import { RecommendationStateService } from '../services/recommendation-state.service';
 import { buildCurrentPrescriptionDrugsFromState } from './current-prescription.mapper';
 import { AppRoutes } from '../app-routes.const';
 
@@ -24,7 +23,6 @@ import { AppRoutes } from '../app-routes.const';
 export class AnalysisShellComponent {
   protected state = inject(DrugStateService);
   private router = inject(Router);
-  private recState = inject(RecommendationStateService);
 
   /** Cost projections are terminal for editing prior inputs — hide shell Back/Continue; disable stepper navigation. */
   private readonly routerUrl = toSignal(
@@ -110,8 +108,6 @@ export class AnalysisShellComponent {
     if (step === 2 && next.route === 'pharmacies') {
       const drugs = buildCurrentPrescriptionDrugsFromState(this.state);
       this.state.setSavingCurrentPrescription(true);
-      // Save only drugs. Pharmacies and plans are untouched.
-      this.recState.syncDrugsToRecommendation().subscribe({ error: () => {} });
       this.prescriptionService
         .saveCurrentDrugs(drugs)
         .pipe(finalize(() => this.state.setSavingCurrentPrescription(false)))
@@ -134,21 +130,16 @@ export class AnalysisShellComponent {
         zipcode: String(p.zipcode ?? ''),
       }));
       this.state.setSavingCurrentPrescription(true);
-      // Save only pharmacies. Drugs and plans are untouched.
-      this.recState.savePharmacySelection().pipe(
-        finalize(() => {
-          this.prescriptionService
-            .saveCurrentPharmacy(pharmacies)
-            .pipe(finalize(() => this.state.setSavingCurrentPrescription(false)))
-            .subscribe({
-              next: () => {
-                this.profileService.loadProfile().subscribe({ error: () => {} });
-                this.router.navigate([AppRoutes.abs.MEDICARE_ANALYSIS, next.route]);
-              },
-              error: () => this.router.navigate([AppRoutes.abs.MEDICARE_ANALYSIS, next.route]),
-            });
-        })
-      ).subscribe({ error: () => {} });
+      this.prescriptionService
+        .saveCurrentPharmacy(pharmacies)
+        .pipe(finalize(() => this.state.setSavingCurrentPrescription(false)))
+        .subscribe({
+          next: () => {
+            this.profileService.loadProfile().subscribe({ error: () => {} });
+            this.router.navigate([AppRoutes.abs.MEDICARE_ANALYSIS, next.route]);
+          },
+          error: () => this.router.navigate([AppRoutes.abs.MEDICARE_ANALYSIS, next.route]),
+        });
       return;
     }
 

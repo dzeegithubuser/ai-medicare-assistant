@@ -32,10 +32,6 @@ public class LtcCurrentSelectionsDocument
     [BsonElement("numberOfNursingCareYears")]
     public int NumberOfNursingCareYears { get; set; }
 
-    /// <summary>Serialised JSON of the last LTC API projection response.</summary>
-    [BsonElement("ltcResult")]
-    public string? LtcResultJson { get; set; }
-
     [BsonElement("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

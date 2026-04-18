@@ -5,7 +5,6 @@ import { catchError, of } from 'rxjs';
 import { DrugStateService } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { PrescriptionService } from './prescription.service';
-import { RecommendationStateService } from './recommendation-state.service';
 import { LtcStateService } from '../long-term-care/ltc-state.service';
 import { LtcService } from '../long-term-care/ltc.service';
 import { ChatIntentResponse } from './chat-intent.service';
@@ -65,7 +64,6 @@ export class ChatNavigationFlowService {
   private state = inject(DrugStateService);
   private profileService = inject(ProfileService);
   private prescriptionService = inject(PrescriptionService);
-  private recState = inject(RecommendationStateService);
   private ltcState = inject(LtcStateService);
   private ltcService = inject(LtcService);
   private router = inject(Router);
@@ -404,7 +402,6 @@ export class ChatNavigationFlowService {
     if (currentStep === 2 && this.state.hasConfirmedDrugs()) {
       const drugs = buildCurrentPrescriptionDrugsFromState(this.state);
       this.state.setSavingCurrentPrescription(true);
-      this.recState.syncDrugsToRecommendation().subscribe({ error: () => {} });
       this.prescriptionService
         .saveCurrentDrugs(drugs)
         .pipe(finalize(() => this.state.setSavingCurrentPrescription(false)))
@@ -423,20 +420,16 @@ export class ChatNavigationFlowService {
       this.state.pharmacySelectionConfirmed.set(true);
       this.state.setSavingCurrentPrescription(true);
       const pharmacies = buildSelectedPharmaciesSnapshotFromState(this.state);
-      this.recState.savePharmacySelection().pipe(
-        finalize(() => {
-          this.prescriptionService
-            .saveCurrentPharmacy(pharmacies)
-            .pipe(finalize(() => this.state.setSavingCurrentPrescription(false)))
-            .subscribe({
-              next: () => {
-                this.profileService.loadProfile().subscribe({ error: () => {} });
-                doNavigate();
-              },
-              error: () => doNavigate(),
-            });
-        })
-      ).subscribe({ error: () => {} });
+      this.prescriptionService
+        .saveCurrentPharmacy(pharmacies)
+        .pipe(finalize(() => this.state.setSavingCurrentPrescription(false)))
+        .subscribe({
+          next: () => {
+            this.profileService.loadProfile().subscribe({ error: () => {} });
+            doNavigate();
+          },
+          error: () => doNavigate(),
+        });
       return;
     }
 

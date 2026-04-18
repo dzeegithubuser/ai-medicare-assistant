@@ -63,6 +63,19 @@ export class PharmacyStepComponent implements OnInit {
       next: (result) => {
         this.state.setPharmacyLookup(result);
         this.state.setPharmacyLookupLoading(false);
+        // When all results fit on one page, trim any selected pharmacies
+        // that are not present in the returned list — they are unavailable
+        // under the current search radius/filters.
+        if (result.totalPages <= 1) {
+          const resultNumbers = new Set(result.pharmacies.map(p => String(p.pharmacyNumber)));
+          const trimmed = this.state.selectedLookupPharmacies().filter(
+            p => resultNumbers.has(String(p.pharmacyNumber))
+          );
+          if (trimmed.length !== this.state.selectedLookupPharmacies().length) {
+            this.state.selectedLookupPharmacies.set(trimmed);
+            this.state.persistSelections();
+          }
+        }
       },
       error: () => {
         this.state.setPharmacyLookupLoading(false);
