@@ -138,6 +138,10 @@
 | 5b.6 | Drug not covered | Specialty drug | Red "Not Covered" chip. Plan ranked lower. |
 | 5b.7 | Prior auth | Drug like Eliquis | Amber "PA" tag. |
 | 5b.8 | Select plan | Click "Select This Plan" on a Part D plan | Plan stored in `selectedPartDPlan` state. System message: "Selected Part D plan: {name}". |
+| 5b.8a | Summary panel appears | Select any MA or Part D plan | `SelectedPlansSummaryComponent` appears immediately below the plan list showing the selected plan's name and cost. |
+| 5b.8b | Calculate button disabled — MA no gap | Select an MA plan that has no Part D coverage and no gap Part D selected | Summary panel visible. Calculate button is disabled (opacity-50, cursor-not-allowed). Amber hint: "Select a Part D gap plan below to calculate your total cost." |
+| 5b.8c | Calculate button enabled — MA with Part D | Select MA plan that includes Part D coverage | Calculate button enabled. No amber hint. |
+| 5b.8d | Calculate button enabled — MA + gap Part D | Select MA plan + gap Part D plan | Calculate button enabled. No amber hint. |
 | 5b.9 | Profile incomplete | Access plans step with missing income/address | `profileCompleteGuard` redirects to `/profile` before reaching plans. |
 | 5b.10 | AI failure | Timeout | Fallback message with Medicare.gov link. |
 | 5b.11 | Quick LIS check | `GET /api/plan-recommendation/lis-check` | Returns `{ lisEligible, lisTier }`. |
@@ -147,7 +151,14 @@
 | 5b.15 | No pharmacy selected | Step 2 not completed (no pharmacies) | Continue button disabled. Cannot reach plans step. |
 | 5b.16 | Cost breakdown preferred | Select CVS (chain) | CVS entry shows `isPreferredPharmacy: true`, ~20% lower copays, preferred badge. |
 | 5b.17 | Multiple pharmacy costs | 3 pharmacies selected in step 2 | Each plan card shows 3 costBreakdown entries sorted cheapest-first. |
-| 5b.18 | Calculate Lifetime Cost | Click "Calculate Lifetime Cost" on a plan card | Calls `POST /api/plan-recommendation/evaluate-costs`. Navigated to `/medicare-analysis/cost-projections`. |
+| 5b.18 | Calculate Lifetime Cost — dialog opens | Click "Calculate Lifetime Cost" in the Selected Plans summary panel (button enabled) | `SavePrescriptionDialogComponent` opens with title "Name this recommendation", pre-populated name `"{FirstName} Medicare Advantage – MM/DD/YYYY"` (e.g. `"John Medicare Advantage – 04/18/2026"`) or `"{FirstName} Part D + Medigap – MM/DD/YYYY"` for PDP section. |
+| 5b.18a | Dialog — pre-populated name | Dialog opens when logged-in user has first name "John" and section is MA | Name field shows `"John Medicare Advantage – 04/18/2026"`. Field is editable. |
+| 5b.18b | Dialog — name fallback | Profile not loaded / no first name | Name field shows `"Medicare Advantage – 04/18/2026"` (no prefix). |
+| 5b.18c | Dialog — cancel | Click Cancel in name dialog | Dialog closes. No API calls. No navigation. |
+| 5b.18d | Dialog — empty name | Clear name field in dialog | Save button is disabled. |
+| 5b.18e | Save flow — full sequence | Enter name → click Save | 1) `POST /api/plan-recommendation/evaluate-costs` called. 2) `saveCurrentPlans` saves selections to `userAnalysisSelections`. 3) `AnalysisSnapshotService.save(name)` saves full recommendation to `recommendations` collection. 4) Chat: `"Plan recommendation \"[name]\" was saved to your account."`. 5) Navigate to `/medicare-analysis/cost-projections`. |
+| 5b.18f | Save flow — 409 conflict | Name already exists in recommendations | Auto-retries with `force: true`. Saves successfully. Chat confirms "saved (updated existing)". Navigates to cost-projections. |
+| 5b.18g | Save flow — API error | Recommendation save returns 500 | Chat message: "Could not save your plan recommendation. Please try again from the chat." Navigates to cost-projections. |
 | 5b.19 | Section switcher | Click "Switch to Medicare Advantage" while viewing PDP | Section switches. Warning dialog if plan already selected. |
 
 ### Backend: Plan Recommendation API Endpoints
@@ -602,9 +613,19 @@
 
 ---
 
-## 14. Save Analysis (Chat + UI Button)
+## 14. Save Analysis (Chat + UI Button + Plan Page)
 
-### Save Analysis via UI Button
+### Save Analysis via Plan Page (Primary Path — Calculate Lifetime Cost)
+
+| # | Scenario | Steps | Expected Result |
+|---|----------|-------|-----------------|
+| SA.0 | Summary panel shows early | Select one MA plan (no gap Part D) | `SelectedPlansSummaryComponent` appears. Calculate button disabled. Amber hint visible. |
+| SA.0a | Button enables | Select MA plan with Part D coverage OR add gap Part D | Calculate button enabled. Amber hint disappears. |
+| SA.0b | Pre-populated name | Click Calculate (enabled) with profile first name "Jane" on MA section | Dialog opens with `"Jane Medicare Advantage – [today MM/DD/YYYY]"` pre-filled. |
+| SA.0c | Full save flow | Complete name dialog → click Save | Eval → plans saved → recommendation saved → chat confirms → navigate to cost-projections. No `resetAll()` called. |
+| SA.0d | State preserved after plan-page save | After navigation to cost-projections | Analysis state still intact (drugs, pharmacies, plans, cost projection). No wizard reset. |
+
+### Save Analysis via UI Button (cost-projections page)
 
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
