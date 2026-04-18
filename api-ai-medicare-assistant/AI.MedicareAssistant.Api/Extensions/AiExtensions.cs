@@ -2,6 +2,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.AI;
 using Infrastructure.Anthropic;
+using Infrastructure.Gemini;
 using Microsoft.Extensions.AI;
 using OpenAI;
 using Serilog;
@@ -28,6 +29,21 @@ internal static class AiExtensions
 
             Log.Information("AI provider: Anthropic ({Model})",
                 configuration["Anthropic:Model"] ?? "claude-sonnet-4-20250514");
+        }
+        else if (aiProvider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+        {
+            services.Configure<GeminiOptions>(configuration.GetSection("Gemini"));
+
+            services.AddHttpClient<IChatClient, GeminiChatClient>((sp, client) =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>()
+                               .GetSection("Gemini")
+                               .Get<GeminiOptions>();
+                client.BaseAddress = new Uri(config?.BaseUrl ?? "https://generativelanguage.googleapis.com/v1beta/");
+            });
+
+            Log.Information("AI provider: Gemini ({Model})",
+                configuration["Gemini:Model"] ?? "gemini-2.0-flash");
         }
         else
         {
