@@ -126,6 +126,12 @@ public class SelectedDrugDoc
     [BsonElement("drugName")]
     public string DrugName { get; set; } = "";
 
+    [BsonElement("fullName")]
+    public string? FullName { get; set; }
+
+    [BsonElement("drugType")]
+    public string? DrugType { get; set; }
+
     [BsonElement("dosage")]
     public string Dosage { get; set; } = "";
 
@@ -468,8 +474,41 @@ public class LtcSnapshotDoc
     [BsonElement("totalPresentValue")]
     public decimal TotalPresentValue { get; set; }
 
+    [BsonElement("projection")]
+    public LtcProjectionDoc? Projection { get; set; }
+
     [BsonElement("evaluation")]
     public LtcEvaluationDoc? Evaluation { get; set; }
+}
+
+public class LtcProjectionDoc
+{
+    [BsonElement("pvHomeCare")]
+    public decimal PvHomeCare { get; set; }
+
+    [BsonElement("pvNursingCare")]
+    public decimal PvNursingCare { get; set; }
+
+    [BsonElement("adultDayExpenses")]
+    public List<LtcExpenseEntryDoc> AdultDayExpenses { get; set; } = [];
+
+    [BsonElement("homeCareExpenses")]
+    public List<LtcExpenseEntryDoc> HomeCareExpenses { get; set; } = [];
+
+    [BsonElement("assistedCareExpenses")]
+    public List<LtcExpenseEntryDoc> AssistedCareExpenses { get; set; } = [];
+
+    [BsonElement("nursingCareExpenses")]
+    public List<LtcExpenseEntryDoc> NursingCareExpenses { get; set; } = [];
+}
+
+public class LtcExpenseEntryDoc
+{
+    [BsonElement("year")]
+    public int Year { get; set; }
+
+    [BsonElement("expense")]
+    public decimal Expense { get; set; }
 }
 
 public class LtcEvaluationDoc

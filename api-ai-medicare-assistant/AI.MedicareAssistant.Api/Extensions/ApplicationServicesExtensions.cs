@@ -26,16 +26,12 @@ internal static class ApplicationServicesExtensions
         // ------- Cost & LTC application services -------
         services.AddScoped<Application.Services.CostProjectionService>();
 
-        // ------- Chat & orchestration services -------
+        // ------- Chat services -------
         services.AddScoped<Application.Services.ChatIntentService>();
         services.AddScoped<Application.Services.ProfileExtractService>();
         services.AddScoped<Application.Services.DrugSelectionExtractService>();
         services.AddScoped<Application.Services.PharmacySelectionExtractService>();
         services.AddScoped<Application.Services.PlanSelectionExtractService>();
-        services.AddScoped<Application.Services.ConvStateService>();
-        services.AddScoped<Application.Services.OrchestratorIntentService>();
-        services.AddScoped<Application.Services.ChatOrchestratorService>();
-        services.AddScoped<Application.Services.DeltaCalculationService>();
         services.AddScoped<Application.Services.ChatSessionService>();
 
         return services;

@@ -10,6 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { RecommendationService } from '../services/recommendation.service';
 import { RecommendationResponse } from '../models/recommendation.model';
 import { IndividualMedicareDetail, CostCategory, ExpenseTableRow } from '../models/cost-projection.model';
@@ -28,8 +29,8 @@ Chart.register(
   Tooltip, Legend, Filler
 );
 
-/** Cost tab is the 5th tab (0-based index 4). */
-const COST_TAB_INDEX = 4;
+/** Cost tab is the 3rd tab (0-based index 2): Profile | Details | Cost & Charts */
+const COST_TAB_INDEX = 2;
 
 @Component({
   selector: 'app-recommendation-detail',
@@ -39,7 +40,7 @@ const COST_TAB_INDEX = 4;
     CommonModule, CurrencyPipe, DatePipe, DecimalPipe,
     MatIconModule, MatButtonModule, MatCardModule,
     MatTooltipModule, MatProgressSpinnerModule,
-    MatTabsModule,
+    MatTabsModule, MatExpansionModule,
   ],
   templateUrl: './recommendation-detail.component.html',
   styleUrls: ['./recommendation-detail.component.scss'],
@@ -60,9 +61,13 @@ export class RecommendationDetailComponent implements OnInit, OnDestroy {
   readonly doughnutChart = viewChild<ElementRef<HTMLCanvasElement>>('doughnutChart');
   readonly barChart = viewChild<ElementRef<HTMLCanvasElement>>('barChart');
   readonly medicareProjectionChart = viewChild<ElementRef<HTMLCanvasElement>>('medicareProjectionChart');
+  readonly ltcLineChart = viewChild<ElementRef<HTMLCanvasElement>>('ltcLineChart');
+  readonly ltcStackedChart = viewChild<ElementRef<HTMLCanvasElement>>('ltcStackedChart');
+  readonly ltcDoughnutChart = viewChild<ElementRef<HTMLCanvasElement>>('ltcDoughnutChart');
 
   private charts: Chart[] = [];
   private chartsBuiltForId: string | null = null;
+  private ltcChartsBuiltForId: string | null = null;
 
   ngOnInit() {
     if (!this.recommendationId) {
@@ -92,6 +97,16 @@ export class RecommendationDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/saved']);
   }
 
+  getSpotOnMapUrl(pharmacy: { name: string; address: string; zipCode: string }): string {
+    const query = `${pharmacy.name},${pharmacy.address},${pharmacy.zipCode}`;
+    return `https://www.google.com/maps?q=${encodeURIComponent(query)}`;
+  }
+
+  getDirectionsUrl(pharmacy: { name: string; address: string; zipCode: string }): string {
+    const query = `${pharmacy.name},${pharmacy.address},${pharmacy.zipCode}`;
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`;
+  }
+
   onCostTabMaybeActivate(index: number) {
     if (index !== COST_TAB_INDEX) return;
     const rec = this.recommendation();
@@ -104,6 +119,22 @@ export class RecommendationDetailComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         this.buildCharts();
         this.chartsBuiltForId = rec.id;
+        this.cdr.markForCheck();
+      }, 0);
+    });
+  }
+
+  onLtcCostTabActivate(index: number) {
+    // index 1 = Cost Analysis tab in the LTC tab group
+    if (index !== 1) return;
+    const rec = this.recommendation();
+    if (!rec || rec.type !== 'longterm') return;
+    if (this.ltcChartsBuiltForId === rec.id) return;
+    queueMicrotask(() => {
+      this.destroyLtcCharts();
+      setTimeout(() => {
+        this.buildLtcCharts();
+        this.ltcChartsBuiltForId = rec.id;
         this.cdr.markForCheck();
       }, 0);
     });
@@ -158,11 +189,36 @@ export class RecommendationDetailComponent implements OnInit, OnDestroy {
 
   fmtTaxFiling(v: string): string {
     const map: Record<string, string> = {
-      'MARRIED_FILING_JOINTLY': 'Married Filing Jointly',
+      'MARRIED_FILING_JOINTLY':    'Married Filing Jointly',
       'MARRIED_FILING_SEPARATELY': 'Married Filing Separately',
-      'INDIVIDUAL': 'Individually',
+      'INDIVIDUAL':                'Filing Individually',
+      'FILING_INDIVIDUALLY':       'Filing Individually',
+      'Single':                    'Single / Individual',
     };
     return map[v] ?? v;
+  }
+
+  fmtMagiTier(v: string): string {
+    // Stored as "Tier 1" or legacy raw number like "3"
+    if (/^\d+$/.test(v)) return `Tier ${v}`;
+    return v;
+  }
+
+  fmtState(code: string): string {
+    const states: Record<string, string> = {
+      AL:'Alabama', AK:'Alaska', AZ:'Arizona', AR:'Arkansas', CA:'California',
+      CO:'Colorado', CT:'Connecticut', DE:'Delaware', FL:'Florida', GA:'Georgia',
+      HI:'Hawaii', ID:'Idaho', IL:'Illinois', IN:'Indiana', IA:'Iowa',
+      KS:'Kansas', KY:'Kentucky', LA:'Louisiana', ME:'Maine', MD:'Maryland',
+      MA:'Massachusetts', MI:'Michigan', MN:'Minnesota', MS:'Mississippi', MO:'Missouri',
+      MT:'Montana', NE:'Nebraska', NV:'Nevada', NH:'New Hampshire', NJ:'New Jersey',
+      NM:'New Mexico', NY:'New York', NC:'North Carolina', ND:'North Dakota', OH:'Ohio',
+      OK:'Oklahoma', OR:'Oregon', PA:'Pennsylvania', RI:'Rhode Island', SC:'South Carolina',
+      SD:'South Dakota', TN:'Tennessee', TX:'Texas', UT:'Utah', VT:'Vermont',
+      VA:'Virginia', WA:'Washington', WV:'West Virginia', WI:'Wisconsin', WY:'Wyoming',
+      DC:'District of Columbia',
+    };
+    return states[code?.toUpperCase()] ?? code;
   }
 
   starArray(rating: number): ('full' | 'half' | 'empty')[] {
@@ -270,6 +326,139 @@ export class RecommendationDetailComponent implements OnInit, OnDestroy {
   private destroyCharts() {
     this.charts.forEach(c => c.destroy());
     this.charts = [];
+  }
+
+  private destroyLtcCharts() {
+    // LTC charts are stored in the same array but tagged separately
+    this.charts.forEach(c => c.destroy());
+    this.charts = [];
+    this.ltcChartsBuiltForId = null;
+  }
+
+  private getLtcProjection() {
+    return this.recommendation()?.ltcSnapshot?.projection ?? null;
+  }
+
+  private getLtcCategories() {
+    return this.recommendation()?.ltcSnapshot?.evaluation?.categories ?? [];
+  }
+
+  private buildLtcCharts() {
+    const p = this.getLtcProjection();
+    if (!p) return;
+
+    const allYears = new Set<number>();
+    [...p.adultDayExpenses, ...p.homeCareExpenses, ...p.assistedCareExpenses, ...p.nursingCareExpenses]
+      .forEach(e => allYears.add(e.year));
+    const sortedYears = Array.from(allYears).sort((a, b) => a - b);
+    const labels = sortedYears.map(String);
+
+    const mapByYear = (list: { year: number; expense: number }[]) => {
+      const m = new Map(list.map(e => [e.year, e.expense]));
+      return sortedYears.map(y => m.get(y) ?? 0);
+    };
+
+    const adultDay  = mapByYear(p.adultDayExpenses);
+    const homeCare  = mapByYear(p.homeCareExpenses);
+    const assisted  = mapByYear(p.assistedCareExpenses);
+    const nursing   = mapByYear(p.nursingCareExpenses);
+    const total     = adultDay.map((v, i) => v + homeCare[i] + assisted[i] + nursing[i]);
+
+    this.buildLtcLineChart(labels, adultDay, homeCare, assisted, nursing, total);
+    this.buildLtcStackedBarChart(labels, adultDay, homeCare, assisted, nursing);
+    this.buildLtcDoughnutChart();
+  }
+
+  private buildLtcLineChart(labels: string[], adultDay: number[], homeCare: number[], assisted: number[], nursing: number[], total: number[]) {
+    const el = this.ltcLineChart()?.nativeElement;
+    if (!el) return;
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Total Cost',    data: total,    borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)', fill: true,  tension: 0.3, pointRadius: 3 },
+          { label: 'Adult Day Care',data: adultDay, borderColor: '#0ea5e9', fill: false, tension: 0.3, pointRadius: 2 },
+          { label: 'Home Care',     data: homeCare, borderColor: '#10b981', fill: false, tension: 0.3, pointRadius: 2 },
+          { label: 'Assisted Care', data: assisted, borderColor: '#f59e0b', fill: false, tension: 0.3, pointRadius: 2 },
+          { label: 'Nursing Care',  data: nursing,  borderColor: '#ef4444', fill: false, tension: 0.3, pointRadius: 2 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true, ticks: { callback: v => `$${Number(v).toLocaleString()}` } } },
+      },
+    };
+    this.charts.push(new Chart(el, config));
+  }
+
+  private buildLtcStackedBarChart(labels: string[], adultDay: number[], homeCare: number[], assisted: number[], nursing: number[]) {
+    const el = this.ltcStackedChart()?.nativeElement;
+    if (!el) return;
+    const config: ChartConfiguration<'bar'> = {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Adult Day Care', data: adultDay, backgroundColor: '#0ea5e9' },
+          { label: 'Home Care',      data: homeCare, backgroundColor: '#10b981' },
+          { label: 'Assisted Care',  data: assisted, backgroundColor: '#f59e0b' },
+          { label: 'Nursing Care',   data: nursing,  backgroundColor: '#ef4444' },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top' } },
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true, ticks: { callback: v => `$${Number(v).toLocaleString()}` } },
+        },
+      },
+    };
+    this.charts.push(new Chart(el, config));
+  }
+
+  private buildLtcDoughnutChart() {
+    const el = this.ltcDoughnutChart()?.nativeElement;
+    const cats = this.getLtcCategories();
+    if (!el || !cats.length) return;
+    const config: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut',
+      data: {
+        labels: cats.map(c => c.name),
+        datasets: [{
+          data: cats.map(c => c.lifetimeTotal),
+          backgroundColor: ['#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'],
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { label: ctx => `${ctx.label}: $${ctx.parsed.toLocaleString()}` } },
+        },
+      },
+    };
+    this.charts.push(new Chart(el, config));
+  }
+
+  getTrendIcon(trend: string): string {
+    switch (trend) {
+      case 'Rising':   return 'trending_up';
+      case 'Declining':return 'trending_down';
+      default:         return 'trending_flat';
+    }
+  }
+
+  getTrendColor(trend: string): string {
+    switch (trend) {
+      case 'Rising':   return 'text-red-600';
+      case 'Declining':return 'text-green-600';
+      default:         return 'text-blue-600';
+    }
   }
 
   private getYears(): IndividualMedicareDetail[] {

@@ -7,6 +7,7 @@ namespace Domain.Documents;
 /// MongoDB collection <c>ltcCurrentSelections</c>: one document per user holding their
 /// current LTC care-type inputs and the last projection result.
 /// </summary>
+[BsonIgnoreExtraElements]
 public class LtcCurrentSelectionsDocument
 {
     [BsonId]

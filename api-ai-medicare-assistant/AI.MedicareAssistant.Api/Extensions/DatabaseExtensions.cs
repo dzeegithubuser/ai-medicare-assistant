@@ -32,7 +32,6 @@ internal static class DatabaseExtensions
         // ------- MongoDB repositories -------
         services.AddScoped<IUserAnalysisSelectionsRepository, UserAnalysisSelectionsRepository>();
         services.AddScoped<IRecommendationRepository, RecommendationRepository>();
-        services.AddScoped<IConvStateRepository, ConvStateRepository>();
         services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
         services.AddScoped<ILtcSelectionsRepository, LtcSelectionsRepository>();
 

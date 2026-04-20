@@ -1,5 +1,10 @@
 export type RecommendationCategory = 'medicare' | 'longterm';
 
+export interface PlanSummaryItem {
+  planType: string;
+  planName: string;
+}
+
 export interface RecommendationSummaryResponse {
   id: string;
   name: string;
@@ -9,6 +14,12 @@ export interface RecommendationSummaryResponse {
   planCount: number;
   hasCostSnapshot: boolean;
   lifetimeTotal: number;
+  plans: PlanSummaryItem[];
+  // LTC-specific summary fields
+  healthProfile?: number;
+  adultDayYears?: number;
+  homeCareYears?: number;
+  nursingCareYears?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -57,6 +68,8 @@ export interface ProfileSnapshotDto {
 
 export interface SelectedDrugDto {
   drugName: string;
+  fullName: string | null;
+  drugType: string | null;
   dosage: string;
   quantity: number;
   refillFrequency: string;
@@ -225,7 +238,22 @@ export interface LtcSnapshotDto {
   nursingCareYears: number;
   totalCost: number;
   totalPresentValue: number;
+  projection: LtcProjectionSnapDto | null;
   evaluation: LtcEvaluationSnapDto | null;
+}
+
+export interface LtcProjectionSnapDto {
+  pvHomeCare: number;
+  pvNursingCare: number;
+  adultDayExpenses: LtcExpenseEntrySnapDto[];
+  homeCareExpenses: LtcExpenseEntrySnapDto[];
+  assistedCareExpenses: LtcExpenseEntrySnapDto[];
+  nursingCareExpenses: LtcExpenseEntrySnapDto[];
+}
+
+export interface LtcExpenseEntrySnapDto {
+  year: number;
+  expense: number;
 }
 
 export interface LtcEvaluationSnapDto {

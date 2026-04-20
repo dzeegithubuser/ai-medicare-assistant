@@ -24,9 +24,6 @@ public class MongoDbContext
     public IMongoCollection<RecommendationDocument> Recommendations
         => _database.GetCollection<RecommendationDocument>("recommendations");
 
-    public IMongoCollection<ConvStateDocument> ConvStates
-        => _database.GetCollection<ConvStateDocument>("convStates");
-
     public IMongoCollection<ChatSessionDocument> ChatSessions
         => _database.GetCollection<ChatSessionDocument>("chatSessions");
 
@@ -71,18 +68,6 @@ public class MongoIndexInitializer : IHostedService
         await _context.Recommendations.Indexes.CreateOneAsync(
             new CreateIndexModel<RecommendationDocument>(
                 Builders<RecommendationDocument>.IndexKeys.Descending(d => d.CreatedAt)),
-            cancellationToken: cancellationToken);
-
-        await _context.ConvStates.Indexes.CreateOneAsync(
-            new CreateIndexModel<ConvStateDocument>(
-                Builders<ConvStateDocument>.IndexKeys.Ascending(d => d.UserId),
-                new CreateIndexOptions { Unique = true }),
-            cancellationToken: cancellationToken);
-
-        await _context.ConvStates.Indexes.CreateOneAsync(
-            new CreateIndexModel<ConvStateDocument>(
-                Builders<ConvStateDocument>.IndexKeys.Ascending(d => d.ExpiresAt),
-                new CreateIndexOptions { ExpireAfter = TimeSpan.Zero }),
             cancellationToken: cancellationToken);
 
         await _context.ChatSessions.Indexes.CreateOneAsync(

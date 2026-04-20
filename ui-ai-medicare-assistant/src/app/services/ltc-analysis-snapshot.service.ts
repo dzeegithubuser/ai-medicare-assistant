@@ -3,11 +3,13 @@ import { Observable } from 'rxjs';
 import { ProfileService } from './profile.service';
 import { RecommendationService } from './recommendation.service';
 import { LtcStateService } from '../long-term-care/ltc-state.service';
+import { LtcProjectionResponse } from '../models/ltc.model';
 import {
   CreateRecommendationRequest,
   ProfileSnapshotDto,
   LtcSnapshotDto,
   LtcEvaluationSnapDto,
+  LtcProjectionSnapDto,
   RecommendationResponse,
 } from '../models/recommendation.model';
 
@@ -118,7 +120,19 @@ export class LtcAnalysisSnapshotService {
       nursingCareYears: this.ltcState.nursingCareYears(),
       totalCost,
       totalPresentValue: totalPV,
+      projection: this.buildProjectionSnap(projection),
       evaluation: evalSnap,
+    };
+  }
+
+  private buildProjectionSnap(p: LtcProjectionResponse): LtcProjectionSnapDto {
+    return {
+      pvHomeCare: p.presentValueExpectedHomeCare,
+      pvNursingCare: p.presentValueExpectedNursingCare,
+      adultDayExpenses: p.futureAdultDayHealthCareExpenseList.map(e => ({ year: e.year, expense: e.expense })),
+      homeCareExpenses: p.futureHomeCareExpenseList.map(e => ({ year: e.year, expense: e.expense })),
+      assistedCareExpenses: p.futureAssistedCareExpensesList.map(e => ({ year: e.year, expense: e.expense })),
+      nursingCareExpenses: p.futureNursingCareExpensesList.map(e => ({ year: e.year, expense: e.expense })),
     };
   }
 }

@@ -10,3 +10,11 @@
     font-size: 0.875rem;
   }
 }
+
+::ng-deep .settings-dropdown-menu {
+  min-width: 200px;
+
+  .mat-mdc-menu-item {
+    font-size: 0.875rem;
+  }
+}

@@ -9,13 +9,11 @@ import { PendingDrugChatCards } from './chat-drug-selection.service';
 import { AnalysisSnapshotService } from './analysis-snapshot.service';
 import { LtcAnalysisSnapshotService } from './ltc-analysis-snapshot.service';
 import { RecommendationStateService } from './recommendation-state.service';
-import { OrchestratorResponse } from '../models/orchestrator.model';
 import { SavePrescriptionDialogComponent } from '../medicare-analysis/drug-step/save-prescription-dialog/save-prescription-dialog.component';
 import { PrescriptionService } from './prescription.service';
 import { buildCurrentPrescriptionDrugsFromState, buildSelectedPharmaciesSnapshotFromState } from '../medicare-analysis/current-prescription.mapper';
 import { ChatAnalysisSelectionHydrationService } from './chat-analysis-selection-hydration.service';
 import { ChatProfileEditFlowService } from './chat-profile-edit-flow.service';
-import { ChatOrchestratorFlowService } from './chat-orchestrator-flow.service';
 import { ChatRouterSummaryService } from './chat-router-summary.service';
 import { ChatDrugSelectionFlowService } from './chat-drug-selection-flow.service';
 import { ChatPharmacySelectionFlowService } from './chat-pharmacy-selection-flow.service';
@@ -64,7 +62,6 @@ export class ChatRouterService {
   private prescriptionService = inject(PrescriptionService);
   private selectionHydrator = inject(ChatAnalysisSelectionHydrationService);
   private profileEditFlow = inject(ChatProfileEditFlowService);
-  private orchestratorFlow = inject(ChatOrchestratorFlowService);
   private summaryBuilder = inject(ChatRouterSummaryService);
   private drugSelectionFlow = inject(ChatDrugSelectionFlowService);
   private pharmacySelectionFlow = inject(ChatPharmacySelectionFlowService);
@@ -75,10 +72,6 @@ export class ChatRouterService {
 
   // ── Confirmation signals ──────────────────────────────────────────────────
 
-  readonly pendingDelta = this.orchestratorFlow.pendingDelta;
-  readonly awaitingConfirmation = this.orchestratorFlow.awaitingConfirmation;
-  readonly activeDisplayData = this.orchestratorFlow.activeDisplayData;
-  readonly deleteConfirmMode = this.orchestratorFlow.deleteConfirmMode;
   readonly pendingDrugAction       = signal<ChatDrugSelectionCommand | null>(null);
   readonly pendingProfileUpdate = this.profileEditFlow.pendingProfileUpdate;
   readonly pendingPharmacyAction   = signal<ChatPharmacySelectionCommand | null>(null);
@@ -138,7 +131,6 @@ export class ChatRouterService {
     if (this.handlePendingConfirmations(text)) return;
     if (this.routeProfilePageMessage(text, onDrugFlow)) return;
     if (this.profileEditFlow.routeToProfileExtraction(text)) return;
-    if (this.orchestratorFlow.routeToOrchestrator(text)) return;
     if (this.routeToPlanSelection(text, onDrugFlow)) return;
     if (this.routeToDrugSelection(text, onDrugFlow)) return;
     if (this.routePharmaciesStep(text)) return;
@@ -408,14 +400,6 @@ export class ChatRouterService {
 
   // ── Orchestrator ──────────────────────────────────────────────────────────
 
-  handleOrchestratorResponse(res: OrchestratorResponse): void {
-    this.orchestratorFlow.handleOrchestratorResponse(res);
-  }
-
-  confirmOrCancel(answer: 'yes' | 'no'): void {
-    this.orchestratorFlow.confirmOrCancel(answer);
-  }
-
   applyTaxFilingChoice(choice: 'MARRIED_FILING_JOINTLY' | 'FILING_INDIVIDUALLY'): void {
     this.profileEditFlow.applyTaxFilingChoice(choice);
   }
@@ -616,8 +600,18 @@ export class ChatRouterService {
           this.router.navigate([AppRoutes.abs.PROFILE]);
           break;
         }
+        // Already on the drugs page — fire the drug search directly instead of
+        // navigating (same-URL navigation is a no-op; NavigationEnd never fires).
+        if (this.router.url.startsWith(AppRoutes.abs.DRUGS) && onDrugFlow) {
+          const searchText = result.params?.prescriptionName || originalText;
+          this.state.addAssistantMessage(result.confirmationMessage || DRUG_MESSAGES.STEP_PROMPT);
+          this.state.setLoading(false);
+          onDrugFlow(searchText);
+          break;
+        }
         this.state.addAssistantMessage(result.confirmationMessage || DRUG_MESSAGES.STEP_PROMPT);
         this.state.setLoading(false);
+        this.state.pendingCrossPageDrugSearch.set(result.params?.prescriptionName || originalText);
         this.router.navigate([AppRoutes.abs.DRUGS]);
         break;
       }

@@ -233,53 +233,6 @@
       </div>
     }
 
-    <!-- Help menu (orchestrator displayData) -->
-    @if (chatRouter.activeDisplayData()?.type === 'help_menu') {
-      <div class="flex justify-start">
-        <div class="max-w-[88%] w-full">
-          <app-help-menu (actionClicked)="onHelpAction($event)" />
-        </div>
-      </div>
-    }
-
-    <!-- Delete confirmation banner -->
-    @if (chatRouter.deleteConfirmMode()) {
-      <div class="flex justify-start">
-        <div class="max-w-[88%] w-full bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <div class="flex items-center gap-2 mb-1">
-            <mat-icon class="!text-base !w-4 !h-4 text-red-600">warning</mat-icon>
-            <span class="text-sm font-semibold text-red-700">Confirm Deletion</span>
-          </div>
-          <p class="text-xs text-red-600">Type <strong>DELETE MY RECOMMENDATION</strong> exactly in the input below to permanently delete your recommendation.</p>
-        </div>
-      </div>
-    }
-
-    <!-- Delta display card (orchestrator mode) -->
-    @if (chatRouter.pendingDelta()) {
-      <div class="flex justify-start">
-        <div class="max-w-[88%] w-full">
-          <app-delta-display [delta]="chatRouter.pendingDelta()!" />
-        </div>
-      </div>
-    }
-
-    <!-- Confirmation buttons (orchestrator mode) -->
-    @if (chatRouter.awaitingConfirmation()) {
-      <div class="flex justify-start">
-        <div class="flex gap-2 px-1">
-          <button mat-flat-button color="primary" class="!text-xs !h-8 !rounded-full"
-                  (click)="confirmOrCancel('yes')">
-            <mat-icon class="!text-sm !w-4 !h-4 mr-1">check_circle</mat-icon>Yes, confirm
-          </button>
-          <button mat-stroked-button color="warn" class="!text-xs !h-8 !rounded-full"
-                  (click)="confirmOrCancel('no')">
-            <mat-icon class="!text-sm !w-4 !h-4 mr-1">cancel</mat-icon>No, cancel
-          </button>
-        </div>
-      </div>
-    }
-
     @if (chatSendBlocked()) {
       <div class="flex justify-start">
         <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm flex items-center gap-2.5">

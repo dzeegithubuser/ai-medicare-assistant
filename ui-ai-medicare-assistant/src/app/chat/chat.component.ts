@@ -33,8 +33,6 @@ import {
   shouldTriggerProfileSaveOnNext,
 } from './chat-send-guards';
 
-import { DeltaDisplayComponent } from './delta-display/delta-display.component';
-import { HelpMenuComponent } from './help-menu/help-menu.component';
 import { AppRoutes } from '../app-routes.const';
 
 @Component({
@@ -45,7 +43,7 @@ import { AppRoutes } from '../app-routes.const';
   imports: [
     CommonModule, FormsModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatChipsModule,
-    DeltaDisplayComponent, HelpMenuComponent, MarkdownPipe,
+    MarkdownPipe,
   ],
   standalone: true,
 })
@@ -799,16 +797,6 @@ export class ChatComponent implements OnInit {
 
   private hasStoredSelectionsDocument(): boolean {
     return !!this.profileService.profile()?.currentPrescriptionDocumentId;
-  }
-
-  confirmOrCancel(answer: 'yes' | 'no'): void {
-    this.chatRouter.confirmOrCancel(answer);
-  }
-
-  onHelpAction(action: string): void {
-    this.chatRouter.activeDisplayData.set(null);
-    this.input = action;
-    this.send();
   }
 
   // ── Drug suggestion helpers (delegated) ───────────────────────────────────

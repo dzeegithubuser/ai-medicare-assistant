@@ -78,6 +78,8 @@ public class ProfileSnapshotDto
 public class SelectedDrugDto
 {
     public string DrugName { get; set; } = "";
+    public string? FullName { get; set; }
+    public string? DrugType { get; set; }
     public string Dosage { get; set; } = "";
     public int Quantity { get; set; }
     public string RefillFrequency { get; set; } = "";
@@ -141,6 +143,12 @@ public class RecommendationResponse
     public DateTime UpdatedAt { get; set; }
 }
 
+public class PlanSummaryItem
+{
+    public string PlanType { get; set; } = "";
+    public string PlanName { get; set; } = "";
+}
+
 public class RecommendationSummaryResponse
 {
     public string Id { get; set; } = "";
@@ -151,6 +159,12 @@ public class RecommendationSummaryResponse
     public int PlanCount { get; set; }
     public bool HasCostSnapshot { get; set; }
     public decimal LifetimeTotal { get; set; }
+    public List<PlanSummaryItem> Plans { get; set; } = [];
+    // LTC-specific summary fields
+    public int? HealthProfile { get; set; }
+    public int? AdultDayYears { get; set; }
+    public int? HomeCareYears { get; set; }
+    public int? NursingCareYears { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -263,7 +277,24 @@ public class LtcSnapshotDto
     public int NursingCareYears { get; set; }
     public decimal TotalCost { get; set; }
     public decimal TotalPresentValue { get; set; }
+    public LtcProjectionDto? Projection { get; set; }
     public LtcEvaluationDto? Evaluation { get; set; }
+}
+
+public class LtcProjectionDto
+{
+    public decimal PvHomeCare { get; set; }
+    public decimal PvNursingCare { get; set; }
+    public List<LtcExpenseEntryDto> AdultDayExpenses { get; set; } = [];
+    public List<LtcExpenseEntryDto> HomeCareExpenses { get; set; } = [];
+    public List<LtcExpenseEntryDto> AssistedCareExpenses { get; set; } = [];
+    public List<LtcExpenseEntryDto> NursingCareExpenses { get; set; } = [];
+}
+
+public class LtcExpenseEntryDto
+{
+    public int Year { get; set; }
+    public decimal Expense { get; set; }
 }
 
 public class LtcEvaluationDto

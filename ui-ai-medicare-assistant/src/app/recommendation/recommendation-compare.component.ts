@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RecommendationService } from '../services/recommendation.service';
 import { RecommendationResponse, RecommendationCategory } from '../models/recommendation.model';
 import { CompareMedicareComponent } from './compare-medicare.component';
@@ -22,7 +23,7 @@ type ComparisonMode = 'medicare' | 'longterm' | 'cross';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, CurrencyPipe, DatePipe,
-    MatIconModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule,
+    MatIconModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatTooltipModule,
     CompareMedicareComponent, CompareLtcComponent, CompareCrossComponent,
   ],
   templateUrl: './recommendation-compare.component.html',
@@ -132,5 +133,23 @@ export class RecommendationCompareComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/saved']);
+  }
+
+  planTypeLabel(planType: string): string {
+    switch (planType.toLowerCase()) {
+      case 'partd':   return 'Part D';
+      case 'ma':      return 'MA';
+      case 'medigap': return 'Medigap';
+      default:        return planType;
+    }
+  }
+
+  planTypeBadgeClass(planType: string): string {
+    switch (planType.toLowerCase()) {
+      case 'partd':   return 'bg-blue-100 text-blue-700';
+      case 'ma':      return 'bg-teal-100 text-teal-700';
+      case 'medigap': return 'bg-indigo-100 text-indigo-700';
+      default:        return 'bg-gray-100 text-gray-600';
+    }
   }
 }

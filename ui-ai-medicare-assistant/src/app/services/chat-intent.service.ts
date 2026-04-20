@@ -7,6 +7,7 @@ export interface ChatIntentParams {
   firstName?: string | null;
   lastName?: string | null;
   analysisName?: string | null;
+  prescriptionName?: string | null;
   gender?: string | null;
   dateOfBirth?: string | null;
   tobaccoStatus?: number | null;

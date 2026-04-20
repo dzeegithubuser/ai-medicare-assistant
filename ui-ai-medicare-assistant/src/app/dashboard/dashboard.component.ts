@@ -1,4 +1,6 @@
 import { Component, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
+import { FontSizeService } from '../services/font-size.service';
+import { ThemeService } from '../services/theme.service';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 import { ChatComponent } from '../chat/chat.component';
 import { AuthService } from '../services/auth.service';
 import { ProfileService } from '../services/profile.service';
@@ -25,13 +28,15 @@ import { AppRoutes } from '../app-routes.const';
   standalone: true,
   imports: [
     RouterOutlet,
-    MatIconModule, MatButtonModule, MatTooltipModule, MatMenuModule, MatProgressSpinnerModule,
+    MatIconModule, MatButtonModule, MatTooltipModule, MatMenuModule, MatProgressSpinnerModule, MatDividerModule,
     ChatComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
+  protected fontSizeService = inject(FontSizeService);
+  protected themeService = inject(ThemeService);
   protected auth = inject(AuthService);
   protected profileService = inject(ProfileService);
   private router = inject(Router);

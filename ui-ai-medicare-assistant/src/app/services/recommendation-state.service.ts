@@ -95,6 +95,8 @@ export class RecommendationStateService {
     const request: UpdateDrugsRequest = {
       drugs: prescriptionDrugs.map(p => ({
         drugName: p.drugInput,
+        fullName: null,
+        drugType: null,
         dosage: [p.dosageForm, p.strength].filter(Boolean).join(' '),
         quantity: p.quantityPerMonth ?? 30,
         refillFrequency: 'monthly',

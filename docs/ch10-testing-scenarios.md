@@ -587,7 +587,9 @@
 | 12l.32 | "previous step" blocked | On `/medicare-analysis/plans` → type `"previous step"` | `BACK_PATTERN` matches. Same guidance message. Stays on plans. |
 | 12l.33 | "go back to profile" NOT blocked | On `/medicare-analysis/drugs` → type `"go back to profile"` | `BACK_PATTERN` does not match (pattern requires "back" at start or end of input, compound phrase has more text). Falls through to intent classifier → `NAVIGATE_PROFILE`. Navigation proceeds. |
 
-### 12j. Orchestrator URL Guard
+### 12j. Orchestrator URL Guard (Dead — UI Never Reaches Orchestrator)
+
+> **Note:** These scenarios are no longer reachable. The chat panel is hidden on `/medicare-analysis/cost-projections` (see `DashboardComponent.isChatRoute()`) — the only page where the orchestrator guard would have passed. On all active wizard pages (`/drugs`, `/pharmacies`, `/plans`, `/profile`), `routeToOrchestrator()` already returns false by design. The `POST /api/chat/orchestrate` endpoint is never called by the frontend under any normal navigation path. Retained for backend API testing only.
 
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
@@ -778,7 +780,9 @@
 
 ---
 
-## 18. Chatbot Orchestrator
+## 18. Chatbot Orchestrator (Backend-Only — Not Reachable from UI)
+
+> **Note:** The `POST /api/chat/orchestrate` endpoint and `ChatOrchestratorService` FSM exist on the backend but are never called by the frontend. The chat panel is hidden on `/cost-projections` and `/` (dashboard), which are the only pages where `routeToOrchestrator()` would pass. All wizard pages (`/drugs`, `/pharmacies`, `/plans`, `/profile`) are explicitly blocked by the orchestrator guard. As a result, the `convStates` MongoDB collection is always empty in normal usage. These scenarios are retained for direct backend API testing only.
 
 ### 18a. Conversation State & Session
 

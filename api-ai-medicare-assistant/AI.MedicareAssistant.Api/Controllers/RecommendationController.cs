@@ -54,6 +54,15 @@ public class RecommendationController : ControllerBase
             LifetimeTotal = d.Type == "longterm"
                 ? d.LtcSnapshot?.TotalCost ?? 0
                 : d.LastCostSnapshot?.LifetimeTotal ?? 0,
+            Plans = d.PlanSelections.Select(p => new PlanSummaryItem
+            {
+                PlanType = p.PlanType,
+                PlanName = p.PlanName
+            }).ToList(),
+            HealthProfile = d.LtcSnapshot?.HealthProfile,
+            AdultDayYears = d.LtcSnapshot?.AdultDayYears,
+            HomeCareYears = d.LtcSnapshot?.HomeCareYears,
+            NursingCareYears = d.LtcSnapshot?.NursingCareYears,
             CreatedAt = d.CreatedAt,
             UpdatedAt = d.UpdatedAt
         });
@@ -200,6 +209,8 @@ public class RecommendationController : ControllerBase
     private static SelectedDrugDoc MapToDrugDoc(SelectedDrugDto dto) => new()
     {
         DrugName = dto.DrugName,
+        FullName = dto.FullName,
+        DrugType = dto.DrugType,
         Dosage = dto.Dosage,
         Quantity = dto.Quantity,
         RefillFrequency = dto.RefillFrequency,
@@ -210,6 +221,8 @@ public class RecommendationController : ControllerBase
     private static SelectedDrugDto MapToDrugDto(SelectedDrugDoc d) => new()
     {
         DrugName = d.DrugName,
+        FullName = d.FullName,
+        DrugType = d.DrugType,
         Dosage = d.Dosage,
         Quantity = d.Quantity,
         RefillFrequency = d.RefillFrequency,
@@ -429,6 +442,7 @@ public class RecommendationController : ControllerBase
         NursingCareYears = d.NursingCareYears,
         TotalCost = d.TotalCost,
         TotalPresentValue = d.TotalPresentValue,
+        Projection = d.Projection is not null ? MapToLtcProjectionDto(d.Projection) : null,
         Evaluation = d.Evaluation is not null ? MapToLtcEvaluationDto(d.Evaluation) : null
     };
 
@@ -440,7 +454,28 @@ public class RecommendationController : ControllerBase
         NursingCareYears = dto.NursingCareYears,
         TotalCost = dto.TotalCost,
         TotalPresentValue = dto.TotalPresentValue,
+        Projection = dto.Projection is not null ? MapToLtcProjectionDoc(dto.Projection) : null,
         Evaluation = dto.Evaluation is not null ? MapToLtcEvaluationDoc(dto.Evaluation) : null
+    };
+
+    private static LtcProjectionDto MapToLtcProjectionDto(LtcProjectionDoc d) => new()
+    {
+        PvHomeCare = d.PvHomeCare,
+        PvNursingCare = d.PvNursingCare,
+        AdultDayExpenses = d.AdultDayExpenses.Select(e => new LtcExpenseEntryDto { Year = e.Year, Expense = e.Expense }).ToList(),
+        HomeCareExpenses = d.HomeCareExpenses.Select(e => new LtcExpenseEntryDto { Year = e.Year, Expense = e.Expense }).ToList(),
+        AssistedCareExpenses = d.AssistedCareExpenses.Select(e => new LtcExpenseEntryDto { Year = e.Year, Expense = e.Expense }).ToList(),
+        NursingCareExpenses = d.NursingCareExpenses.Select(e => new LtcExpenseEntryDto { Year = e.Year, Expense = e.Expense }).ToList(),
+    };
+
+    private static LtcProjectionDoc MapToLtcProjectionDoc(LtcProjectionDto dto) => new()
+    {
+        PvHomeCare = dto.PvHomeCare,
+        PvNursingCare = dto.PvNursingCare,
+        AdultDayExpenses = dto.AdultDayExpenses.Select(e => new LtcExpenseEntryDoc { Year = e.Year, Expense = e.Expense }).ToList(),
+        HomeCareExpenses = dto.HomeCareExpenses.Select(e => new LtcExpenseEntryDoc { Year = e.Year, Expense = e.Expense }).ToList(),
+        AssistedCareExpenses = dto.AssistedCareExpenses.Select(e => new LtcExpenseEntryDoc { Year = e.Year, Expense = e.Expense }).ToList(),
+        NursingCareExpenses = dto.NursingCareExpenses.Select(e => new LtcExpenseEntryDoc { Year = e.Year, Expense = e.Expense }).ToList(),
     };
 
     private static LtcEvaluationDto MapToLtcEvaluationDto(LtcEvaluationDoc d) => new()

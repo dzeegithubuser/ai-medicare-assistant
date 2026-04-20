@@ -2,6 +2,50 @@
 
 @use "tailwindcss";
 
+/* ─── Theme tokens ───────────────────────────────────────────────────────────
+   --app-bg / --app-text override body colours (used in material-theme.scss).
+   --color-cyan-* overrides Tailwind v4's CSS-variable-backed palette so every
+   *-cyan-* utility class automatically adopts the active theme's hue —
+   no HTML changes needed in existing components.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Blue (default — also covers the time before Angular sets data-theme) */
+html,
+html[data-theme="blue"] {
+  --app-bg: #ffffff;
+  --app-text: #1a1a1a;
+  --color-cyan-50: #ebf2ff;
+  --color-cyan-100: #d6e6ff;
+  --color-cyan-200: #bfdbfe;
+  --color-cyan-600: #0b5fff;
+  --color-cyan-700: #0950d9;
+  --color-cyan-900: #0040a8;
+}
+
+/* Warm & Soft */
+html[data-theme="warm"] {
+  --app-bg: #faf3e0;
+  --app-text: #333333;
+  --color-cyan-50: #fdf5ef;
+  --color-cyan-100: #f5e6d3;
+  --color-cyan-200: #edd3b8;
+  --color-cyan-600: #8b5e3c;
+  --color-cyan-700: #7a5234;
+  --color-cyan-900: #4a2e18;
+}
+
+/* Green */
+html[data-theme="green"] {
+  --app-bg: #f0f7f4;
+  --app-text: #1f2d2a;
+  --color-cyan-50: #e8f5e9;
+  --color-cyan-100: #c8e6c9;
+  --color-cyan-200: #a5d6a7;
+  --color-cyan-600: #2e7d32;
+  --color-cyan-700: #256829;
+  --color-cyan-900: #1b4d1e;
+}
+
 /* Custom scrollbar for a polished look */
 ::-webkit-scrollbar {
   width: 6px;

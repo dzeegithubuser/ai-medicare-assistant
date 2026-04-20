@@ -171,6 +171,32 @@ export class RecommendationComponent implements OnInit {
     return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
   }
 
+  planTypeLabel(planType: string): string {
+    switch (planType.toLowerCase()) {
+      case 'partd':   return 'Part D';
+      case 'ma':      return 'MA';
+      case 'medigap': return 'Medigap';
+      default:        return planType;
+    }
+  }
+
+  planTypeBadgeClass(planType: string): string {
+    switch (planType.toLowerCase()) {
+      case 'partd':   return 'bg-blue-100 text-blue-700';
+      case 'ma':      return 'bg-teal-100 text-teal-700';
+      case 'medigap': return 'bg-indigo-100 text-indigo-700';
+      default:        return 'bg-gray-100 text-gray-600';
+    }
+  }
+
+  fmtHealthProfile(v?: number): string {
+    const labels: Record<number, string> = {
+      1: 'Best Health', 2: 'Good Health', 3: 'Average Health',
+      4: 'Below Average', 5: 'Poor Health',
+    };
+    return v != null ? (labels[v] ?? `Health ${v}`) : '—';
+  }
+
   // ── Filter / Sort / Pagination methods ───────────────────────────────────
   setSearch(q: string)    { this.searchQuery.set(q);  this.currentPage.set(1); }
   setFilterType(t: 'all' | RecommendationCategory) { this.filterType.set(t); this.currentPage.set(1); }

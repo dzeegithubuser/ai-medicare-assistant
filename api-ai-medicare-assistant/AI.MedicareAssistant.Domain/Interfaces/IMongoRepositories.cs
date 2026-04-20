@@ -31,13 +31,6 @@ public interface IRecommendationRepository
     Task DeleteByUserIdAsync(Guid userId);
 }
 
-public interface IConvStateRepository
-{
-    Task<ConvStateDocument?> GetByUserIdAsync(Guid userId);
-    Task UpsertAsync(ConvStateDocument document);
-    Task DeleteByUserIdAsync(Guid userId);
-}
-
 public interface IChatSessionRepository
 {
     Task<ChatSessionDocument?> GetByUserIdAsync(Guid userId);

@@ -101,6 +101,8 @@ export class AnalysisSnapshotService {
         const sel = selMap.get(r.drugName);
         return {
           drugName: r.drugName,
+          fullName: sel?.['drugName'] ?? null,
+          drugType: sel?.['drugType'] ?? null,
           dosage: sel?.['strength'] ?? '',
           quantity: parseInt(sel?.['quantity'] ?? '30', 10),
           refillFrequency: '30',
