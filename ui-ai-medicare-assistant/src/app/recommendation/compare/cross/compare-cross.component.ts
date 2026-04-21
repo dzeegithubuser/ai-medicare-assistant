@@ -4,12 +4,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RecommendationResponse, RecommendationCategory } from '../models/recommendation.model';
+import { RecommendationResponse, RecommendationCategory } from '../../../models/recommendation.model';
 import {
   deltaIcon, deltaLabel,
   getTrajectoryIcon, getTrajectoryColor,
   typeBadgeClass, typeLabel, buildProfileRows,
-} from './compare-helpers';
+} from '../compare-helpers';
 
 @Component({
   selector: 'app-compare-cross',

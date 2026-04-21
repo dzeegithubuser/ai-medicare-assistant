@@ -27,8 +27,6 @@ services:
       - Anthropic__Model=${ANTHROPIC_MODEL}
       - Anthropic__BaseUrl=${ANTHROPIC_BASE_URL}
       - Anthropic__MaxTokens=${ANTHROPIC_MAX_TOKENS}
-      # Google
-      - Google__PlacesApiKey=${GOOGLE_PLACES_API_KEY}
       # Financial Planner
       - FinancialPlanner__BaseUrl=${FP_BASE_URL}
       - FinancialPlanner__AuthToken=${FP_AUTH_TOKEN}

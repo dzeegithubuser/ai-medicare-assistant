@@ -31,10 +31,10 @@
 - ✅ **Compare-LTC Redesign** — 4-tab comparison matching compare-medicare design: Overview (KPI strip + winner + profile diffs + care config), Profile, Care Config, Cost Analysis
 - ✅ **Compare-Cross Redesign** — 3-tab cross-type comparison: Overview (disclaimer + KPI strip + winner + profile diffs), Profile, Cost Summary with side-by-side evaluation cards
 - ✅ **Uppercase Recommendation Names** — All `rec.name` displays on saved data page rendered in uppercase CSS class
-- ✅ **Chatbot Orchestrator & FSM** — 19-intent NLU classifier driving a 10-state finite state machine; MongoDB-backed conversation state with 30-minute TTL
+- ✅ **Chat-Based Recommendation Management** — Intent-classified NLU routing through `ChatIntentService` with 20 intents; recommendation lifecycle via `RecommendationService`
 - ✅ **Recommendation Lifecycle** — Create / view / update / delete recommendation via conversational commands; profile, drugs, pharmacy, and plan snapshots stored in MongoDB `RecommendationDocument`
-- ✅ **What-If Delta Engine** — `DeltaCalculationService` computes before/after cost impact (lifetime, this-year, present-value) for any proposed change; inline `DeltaDisplayComponent` in chat
-- ✅ **Interactive Help Menu** — 5-category chip menu (`HelpMenuComponent`) surfaces available orchestrator actions when user types "help"
+- ✅ **Cost Projection Snapshots** — Plan-specific lifetime cost data with present value computation for comparison
+- ✅ **Chat Help System** — Intent-based help responses surfaced when user types "help"
 - ✅ **Markdown Rendering** — `MarkdownPipe` (via `marked` + DomSanitizer) renders rich-text assistant messages with tables, lists, and headings
 - ✅ **Financial Disclaimers** — Mandatory disclaimer appended to projection, funding, and summary outputs
 - ✅ **Orchestrator Test Suite** — 18 unit tests covering all handler paths, FSM transitions, and edge cases (122 total tests passing)

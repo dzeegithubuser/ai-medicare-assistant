@@ -1,4 +1,4 @@
-﻿@let l = left();
+@let l = left();
 @let r = right();
 
 <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="200ms">
@@ -27,7 +27,7 @@
       <mat-card class="!rounded-xl !shadow-sm">
         <mat-card-content class="!p-0">
           <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
-            <mat-icon class="!text-base text-gray-400">insights</mat-icon>
+            <mat-icon class="!text-base text-gray-600">insights</mat-icon>
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Lifetime Cost Summary</p>
           </div>
           <div class="overflow-x-auto">
@@ -37,11 +37,11 @@
                   <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-36">Metric</th>
                   <th class="text-right px-4 py-2.5 font-semibold text-indigo-600 uppercase tracking-wide">
                     {{ l.name }}
-                    <span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium align-middle" [class]="typeBadgeClass(leftType())">{{ typeLabel(leftType()) }}</span>
+                    <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium align-middle" [class]="typeBadgeClass(leftType())">{{ typeLabel(leftType()) }}</span>
                   </th>
                   <th class="text-right px-4 py-2.5 font-semibold text-cyan-600 uppercase tracking-wide">
                     {{ r.name }}
-                    <span class="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full font-medium align-middle" [class]="typeBadgeClass(rightType())">{{ typeLabel(rightType()) }}</span>
+                    <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-medium align-middle" [class]="typeBadgeClass(rightType())">{{ typeLabel(rightType()) }}</span>
                   </th>
                   <th class="text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Difference</th>
                 </tr>
@@ -60,7 +60,7 @@
                           [class]="costDelta() <= 0 ? 'text-green-700' : 'text-red-700'">
                       <mat-icon class="!text-xs">{{ deltaIcon(costDelta()) }}</mat-icon>
                       {{ costDelta() | currency:'USD':'symbol':'1.0-0' }}
-                      <span class="text-[10px] font-normal">({{ deltaLabel(costDelta()) }})</span>
+                      <span class="text-xs font-normal">({{ deltaLabel(costDelta()) }})</span>
                     </span>
                   </td>
                 </tr>
@@ -95,7 +95,7 @@
               <mat-icon class="!text-base text-violet-600">person</mat-icon>
             </div>
             <p class="text-sm font-semibold text-gray-800">Profile Differences</p>
-            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full font-medium"
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
                   [class]="profileDiffs().length ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
               {{ profileDiffs().length ? profileDiffs().length + ' differ' : 'Identical' }}
             </span>
@@ -114,7 +114,7 @@
                 <tbody>
                   @for (row of profileDiffs(); track row.label) {
                     <tr class="border-b border-gray-100 bg-amber-50/40">
-                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-400">{{ row.icon }}</mat-icon></td>
+                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
                       <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
                       <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
                       <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
@@ -124,7 +124,7 @@
               </table>
             </div>
           } @else {
-            <p class="text-xs text-gray-400 italic">Both analyses use identical profile settings.</p>
+            <p class="text-xs text-gray-600 italic">Both analyses use identical profile settings.</p>
           }
         </div>
       </div>
@@ -167,7 +167,7 @@
                 <tbody>
                   @for (row of rows; track row.label) {
                     <tr class="border-b border-gray-100" [class.bg-amber-50/40]="row.left !== row.right">
-                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-400">{{ row.icon }}</mat-icon></td>
+                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
                       <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
                       <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
                       <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
@@ -200,11 +200,11 @@
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div class="px-4 py-2.5 border-b border-indigo-100 bg-indigo-50/40 flex items-center justify-between">
             <p class="text-xs text-indigo-700 uppercase font-semibold">{{ l.name }}</p>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" [class]="typeBadgeClass(leftType())">{{ typeLabel(leftType()) }}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" [class]="typeBadgeClass(leftType())">{{ typeLabel(leftType()) }}</span>
           </div>
           <div class="p-4 space-y-3">
             <div class="text-center pb-3 border-b border-gray-100">
-              <p class="text-[10px] text-gray-400 uppercase font-semibold">Lifetime Cost</p>
+              <p class="text-xs text-gray-600 uppercase font-semibold">Lifetime Cost</p>
               <p class="text-2xl font-bold text-gray-900 mt-1">{{ leftLifetime() | currency:'USD':'symbol':'1.0-0' }}</p>
             </div>
             @if (l.lastCostSnapshot?.evaluation; as lcp) {
@@ -215,12 +215,12 @@
                 </div>
                 <div>
                   <span class="text-xs font-semibold" [class]="getTrajectoryColor(lcp.costTrajectory)">{{ lcp.costTrajectory }}</span>
-                  <p class="text-[10px] text-gray-500">{{ lcp.trajectoryExplanation }}</p>
+                  <p class="text-xs text-gray-500">{{ lcp.trajectoryExplanation }}</p>
                 </div>
               </div>
               @if (lcp.overallAssessment) {
                 <div class="p-3 rounded-lg bg-indigo-50/60 border-l-4 border-l-indigo-400">
-                  <p class="text-[10px] text-gray-600 leading-relaxed">{{ lcp.overallAssessment }}</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">{{ lcp.overallAssessment }}</p>
                 </div>
               }
             }
@@ -232,12 +232,12 @@
                 </div>
                 <div>
                   <span class="text-xs font-semibold" [class]="getTrajectoryColor(lev.costTrajectory)">{{ lev.costTrajectory }}</span>
-                  <p class="text-[10px] text-gray-500">{{ lev.trajectoryExplanation }}</p>
+                  <p class="text-xs text-gray-500">{{ lev.trajectoryExplanation }}</p>
                 </div>
               </div>
               @if (lev.overallAssessment) {
                 <div class="p-3 rounded-lg bg-indigo-50/60 border-l-4 border-l-indigo-400">
-                  <p class="text-[10px] text-gray-600 leading-relaxed">{{ lev.overallAssessment }}</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">{{ lev.overallAssessment }}</p>
                 </div>
               }
             }
@@ -249,11 +249,11 @@
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div class="px-4 py-2.5 border-b border-cyan-100 bg-cyan-50/40 flex items-center justify-between">
             <p class="text-xs text-cyan-700 uppercase font-semibold">{{ r.name }}</p>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" [class]="typeBadgeClass(rightType())">{{ typeLabel(rightType()) }}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium" [class]="typeBadgeClass(rightType())">{{ typeLabel(rightType()) }}</span>
           </div>
           <div class="p-4 space-y-3">
             <div class="text-center pb-3 border-b border-gray-100">
-              <p class="text-[10px] text-gray-400 uppercase font-semibold">Lifetime Cost</p>
+              <p class="text-xs text-gray-600 uppercase font-semibold">Lifetime Cost</p>
               <p class="text-2xl font-bold text-gray-900 mt-1">{{ rightLifetime() | currency:'USD':'symbol':'1.0-0' }}</p>
             </div>
             @if (r.lastCostSnapshot?.evaluation; as rcp) {
@@ -264,12 +264,12 @@
                 </div>
                 <div>
                   <span class="text-xs font-semibold" [class]="getTrajectoryColor(rcp.costTrajectory)">{{ rcp.costTrajectory }}</span>
-                  <p class="text-[10px] text-gray-500">{{ rcp.trajectoryExplanation }}</p>
+                  <p class="text-xs text-gray-500">{{ rcp.trajectoryExplanation }}</p>
                 </div>
               </div>
               @if (rcp.overallAssessment) {
                 <div class="p-3 rounded-lg bg-cyan-50/60 border-l-4 border-l-cyan-400">
-                  <p class="text-[10px] text-gray-600 leading-relaxed">{{ rcp.overallAssessment }}</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">{{ rcp.overallAssessment }}</p>
                 </div>
               }
             }
@@ -281,12 +281,12 @@
                 </div>
                 <div>
                   <span class="text-xs font-semibold" [class]="getTrajectoryColor(rev.costTrajectory)">{{ rev.costTrajectory }}</span>
-                  <p class="text-[10px] text-gray-500">{{ rev.trajectoryExplanation }}</p>
+                  <p class="text-xs text-gray-500">{{ rev.trajectoryExplanation }}</p>
                 </div>
               </div>
               @if (rev.overallAssessment) {
                 <div class="p-3 rounded-lg bg-cyan-50/60 border-l-4 border-l-cyan-400">
-                  <p class="text-[10px] text-gray-600 leading-relaxed">{{ rev.overallAssessment }}</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">{{ rev.overallAssessment }}</p>
                 </div>
               }
             }

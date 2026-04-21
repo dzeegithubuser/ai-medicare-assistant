@@ -53,12 +53,12 @@
       <!-- OR Divider -->
       <div class="hidden sm:flex flex-col items-center gap-2">
         <div class="w-px h-10 bg-gray-300"></div>
-        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">or</span>
+        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">or</span>
         <div class="w-px h-10 bg-gray-300"></div>
       </div>
       <div class="sm:hidden flex items-center gap-3 justify-center">
         <div class="h-px flex-1 bg-gray-300"></div>
-        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">or</span>
+        <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">or</span>
         <div class="h-px flex-1 bg-gray-300"></div>
       </div>
 
@@ -97,11 +97,11 @@
         </div>
         <div>
           <h2 class="text-sm font-bold text-blue-800">Part D Plans</h2>
-          <p class="text-[10px] text-gray-500">Standalone prescription drug coverage + Medigap supplement</p>
+          <p class="text-xs text-gray-500">Standalone prescription drug coverage + Medigap supplement</p>
         </div>
       </div>
       @if (state.hasPartDPlans()) {
-        <span class="text-[10px] text-gray-400">{{ state.partDPlans()!.recommendationList.length }} plans</span>
+        <span class="text-xs text-gray-600">{{ state.partDPlans()!.recommendationList.length }} plans</span>
       }
     </div>
 
@@ -124,7 +124,7 @@
             (seeDetails)="openPlanDetail({ type: 'partd', plan: $event })" />
         }
       } @else {
-        <div class="text-center py-6 text-gray-400">
+        <div class="text-center py-6 text-gray-600">
           <mat-icon class="!text-4xl !w-10 !h-10 opacity-40 mb-2">medication</mat-icon>
           <p class="text-xs">No Part D plans loaded yet</p>
         </div>
@@ -166,11 +166,11 @@
         </div>
         <div>
           <h2 class="text-sm font-bold text-purple-800">Medicare Advantage Plans</h2>
-          <p class="text-[10px] text-gray-500">All-in-one coverage that may include Part D</p>
+          <p class="text-xs text-gray-500">All-in-one coverage that may include Part D</p>
         </div>
       </div>
       @if (state.hasMAPlans()) {
-        <span class="text-[10px] text-gray-400">{{ state.maPlans()!.recommendationList.length }} plans</span>
+        <span class="text-xs text-gray-600">{{ state.maPlans()!.recommendationList.length }} plans</span>
       }
     </div>
 
@@ -194,12 +194,12 @@
             <ng-container badges>
               @if (getFirstRec(plan); as rec) {
                 @if (rec.prescriptionDrugCovered) {
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                    <mat-icon class="!text-[10px] !w-3 !h-3 align-middle">check_circle</mat-icon> Part D Included
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                    <mat-icon class="!text-xs !w-3 !h-3 align-middle">check_circle</mat-icon> Part D Included
                   </span>
                 } @else {
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                    <mat-icon class="!text-[10px] !w-3 !h-3 align-middle">info</mat-icon> No Part D
+                  <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                    <mat-icon class="!text-xs !w-3 !h-3 align-middle">info</mat-icon> No Part D
                   </span>
                 }
               }
@@ -207,7 +207,7 @@
           </app-recommendation-card>
         }
       } @else {
-        <div class="text-center py-6 text-gray-400">
+        <div class="text-center py-6 text-gray-600">
           <mat-icon class="!text-4xl !w-10 !h-10 opacity-40 mb-2">health_and_safety</mat-icon>
           <p class="text-xs">No Medicare Advantage plans loaded yet</p>
         </div>

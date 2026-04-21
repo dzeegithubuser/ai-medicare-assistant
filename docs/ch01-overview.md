@@ -27,7 +27,8 @@ ChatGPT-style Medicare healthcare assistant where users paste prescription lists
 - **Microsoft.Extensions.AI** (IChatClient abstraction)
 - **OpenAI GPT-4.1** integration (primary AI model)
 - **Anthropic Claude Sonnet 4** integration (secondary AI model via `IAiChatClient`)
-- **Entity Framework Core 9** (Code First with MySQL via Pomelo)
+- **Google Gemini** integration (tertiary AI model via `IChatClient`)
+- **Entity Framework Core** (Code First with MySQL via Pomelo)
 - **JWT Authentication** (sign up, sign in, forgot/reset password; hub auth via `access_token` query param)
 - **BCrypt** password hashing
 - **Serilog** structured logging (MongoDB primary sink via Serilog.Sinks.MongoDB v6 + console + daily rolling file fallback)
@@ -74,8 +75,7 @@ Angular Router (lazy-loaded routes)
       ├── RecommendationController [Authorize] (MongoDB recommendation CRUD)
       ├── ChatSessionController [Authorize] (MongoDB chat sessions — HTTP fallback for ui-state)
       ├── ChatHub [Authorize] (SignalR /hubs/chat — real-time message sync + session push)
-      ├── ChatOrchestratorController [Authorize] (POST /api/chat/orchestrate — AI FSM chatbot)
-      ├── CountyLookupController (ZIP-based county lookup + MAGI tiers + Google Places key)
+      ├── CountyLookupController (ZIP-based county lookup + MAGI tiers)
       ├── AuthController
       ├── ReferenceDataController (public — master data for forms)
       ├── ProfileController [Authorize] (consolidated GET/POST)
@@ -87,17 +87,17 @@ Angular Router (lazy-loaded routes)
       └── MigrationController [AllowAnonymous]
            ↓
      Application Layer
-      ├── DrugAnalysisService
       ├── AuthService
       ├── ProfileService (consolidated profile CRUD)
       ├── PrescriptionService
-      ├── MedicarePlanService
-      ├── PlanPharmacyService
       ├── CostProjectionService
       ├── RecommendationService
-      ├── ConvStateService (FSM state persistence)
       ├── ChatSessionService (MongoDB chat session CRUD)
-      ├── OrchestratorIntentService (19-intent classifier)
+      ├── ChatIntentService (intent classifier)
+      ├── ProfileExtractService
+      ├── DrugSelectionExtractService
+      ├── PharmacySelectionExtractService
+      └── PlanSelectionExtractService
       ├── ChatOrchestratorService (FSM router)
       └── DeltaCalculationService
            ↓  uses interfaces from
@@ -105,33 +105,32 @@ Angular Router (lazy-loaded routes)
       ├── IRepository<T> (generic)
       ├── IProfileRepository
       ├── IDrugAiService, IChatClient, IMedicareCostService
-      ├── IRxNormService, IPharmacyPricingService
       ├── IFdaNdcService
-      ├── IMedicarePlanService, IPlanScoringAiService
       ├── ICmsPlanDataService, ICountyLookupService, IConstantsService
-      ├── IPlanPharmacyService
-      ├── IIndividualMedicareService, ICostEvaluationAiService
+      ├── IIndividualMedicareService, ICostEvaluationAiService, ILtcEvaluationAiService
       ├── ILongTermCareService, IMedicareAdvantagePlanService, IMedigapPlanQuotesService, IPartDPlanRecommendationService
-      ├── IMongoRepositories (Prescription, UserAnalysisSelections, Recommendation, ConvState, LtcSelections)
+      ├── IEmailService, IPresentValueService
+      ├── IMongoRepositories (Prescription, ChatSession, UserAnalysisSelections, Recommendation, LtcSelections)
            ↑  implements interfaces
      Infrastructure Layer
       ├── Repository<T> (generic base)
       ├── ProfileRepository
       ├── UserRepository
-      ├── DrugAiService, AnthropicMeaiChatClient
-      ├── CmsMedicareCostService, CmsPharmacyPricingService
-      ├── FdaNdcService, RxNormService
+      ├── DrugAiService, AnthropicMeaiChatClient, GeminiChatClient
+      ├── CmsMedicareCostService
+      ├── FdaNdcService
       ├── PlanScoringAiService, CmsPlanDataService
-      ├── CostEvaluationAiService, IndividualMedicareService
-      ├── PlanPharmacyService
+      ├── CostEvaluationAiService, LtcEvaluationAiService, IndividualMedicareService
       ├── CountyLookupService, FinancialPlannerConstantsService
       ├── LongTermCareService, MedicareAdvantagePlanService, MedigapPlanQuotesService, PartDPlanRecommendationService
-      ├── MongoRepositories (prescriptions, chatSessions, userAnalysisSelections, recommendations, convStates, ltcCurrentSelections)
+      ├── EmailService
+      ├── MongoRepositories (prescriptions, chatSessions, userAnalysisSelections, recommendations, ltcCurrentSelections)
+      ├── ChatSessionRepository, RecommendationRepository
       └── PromptBuilder
            ↓
      PromptBuilder (file-based prompt assembly)
            ↓
-     OpenAI GPT-4.1 / Anthropic Claude Sonnet 4 / CMS Medicare API / NPI Registry / RxNav NDC / FDA NDC Directory / Financial Planner API
+     OpenAI GPT-4.1 / Anthropic Claude Sonnet 4 / Google Gemini / CMS Medicare API / FDA NDC Directory / Financial Planner API
 ```
 
 ---

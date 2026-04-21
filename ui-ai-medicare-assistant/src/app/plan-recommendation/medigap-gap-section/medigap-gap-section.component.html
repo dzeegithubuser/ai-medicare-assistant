@@ -1,33 +1,29 @@
 <div class="border-t-2 border-blue-200">
-  <div class="px-4 py-3 bg-teal-50">
+  <div class="px-4 py-3 bg-cyan-50">
     <div class="flex items-center gap-2 mb-2">
-      <mat-icon class="!text-teal-600 !text-lg">shield</mat-icon>
-      <h3 class="text-xs font-bold text-teal-800">Fill the Gap — Select a Medigap Plan</h3>
+      <mat-icon class="!text-cyan-600 !text-lg">shield</mat-icon>
+      <h3 class="text-xs font-bold text-cyan-900">Fill the Gap — Select a Medigap Plan</h3>
     </div>
-    <p class="text-[10px] text-teal-700 mb-3">Medigap supplements fill coverage gaps in Original Medicare (Part A &amp; B) that Part D doesn't cover.</p>
+    <p class="text-xs text-cyan-700 mb-3">Medigap supplements fill coverage gaps in Original Medicare (Part A &amp; B) that Part D doesn't cover.</p>
 
     <!-- Medigap Filters -->
     <div class="flex items-end gap-3 mb-3">
-      <div class="flex-1">
-        <label class="text-[10px] text-gray-600 font-medium block mb-0.5">Data Source</label>
-        <select class="w-full border border-gray-300 rounded-md text-xs px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400"
-                [ngModel]="selectedDataSource()"
-                (ngModelChange)="dataSourceChanged.emit($event)">
+      <mat-form-field appearance="outline" class="flex-1 density-compact">
+        <mat-label>Data Source</mat-label>
+        <mat-select [value]="selectedDataSource()" (selectionChange)="dataSourceChanged.emit($event.value)">
           @for (src of medigapDataSources; track src.label) {
-            <option [ngValue]="src.value">{{ src.label }}</option>
+            <mat-option [value]="src.value">{{ src.label }}</mat-option>
           }
-        </select>
-      </div>
-      <div class="flex-1">
-        <label class="text-[10px] text-gray-600 font-medium block mb-0.5">Plan Type</label>
-        <select class="w-full border border-gray-300 rounded-md text-xs px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400"
-                [ngModel]="selectedPlanType()"
-                (ngModelChange)="planTypeChanged.emit($event)">
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-1 density-compact">
+        <mat-label>Plan Type</mat-label>
+        <mat-select [value]="selectedPlanType()" (selectionChange)="planTypeChanged.emit($event.value)">
           @for (pt of medigapPlanTypes; track pt.value) {
-            <option [value]="pt.value">{{ pt.label }}</option>
+            <mat-option [value]="pt.value">{{ pt.label }}</mat-option>
           }
-        </select>
-      </div>
+        </mat-select>
+      </mat-form-field>
     </div>
   </div>
 
@@ -48,7 +44,7 @@
           (seeDetails)="detailRequested.emit($event)" />
       }
     } @else {
-      <div class="text-center py-4 text-gray-400">
+      <div class="text-center py-4 text-gray-600">
         <p class="text-xs">No Medigap quotes loaded</p>
       </div>
     }

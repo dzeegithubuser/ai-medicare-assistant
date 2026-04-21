@@ -21,7 +21,7 @@ users (1) ──── (1) profiles
 | `profiles` | UserId (FK), FirstName, LastName, CoverageYear, HealthCondition, TaxFilingStatus, MagiTier, Gender, TobaccoStatus, DateOfBirth, Concierge, ConciergeAmount, AlternateEmail, AlternateMobile, LifeExpectancy, AddressLine1, AddressLine2, Street, City, State, ZipCode, County, CountyCode, Latitude, Longitude | 1:1 with users, CASCADE delete |
 
 ### Provider
-`Pomelo.EntityFrameworkCore.MySql` 9.0 with EF Core 9. Connection string configured in `appsettings.json` → `ConnectionStrings:DefaultConnection`. Uses `ServerVersion.AutoDetect`.
+`Pomelo.EntityFrameworkCore.MySql` with EF Core. Connection string configured in `appsettings.json` → `ConnectionStrings:DefaultConnection`. Uses `ServerVersion.AutoDetect`.
 
 ### Design-Time Factory
 `AppDbContextFactory` enables migration generation without a running MySQL instance.
@@ -44,7 +44,6 @@ Connection string configured in `appsettings.json` → `ConnectionStrings:MongoD
 | `chat_sessions` | `ChatSessionDocument` | `(userId ASC, createdAt DESC)` | Chat/AI conversation history with rolling 200-message window |
 | `userAnalysisSelections` | `UserAnalysisSelectionsDocument` | `(userId ASC)` unique | Per-user current analysis selections — confirmed drugs, selected pharmacies + plans, activeSection |
 | `recommendations` | `RecommendationDocument` | `(userId ASC, createdAt DESC)` | Full analysis snapshots — profile, drugs, pharmacies, plan selections, cost snapshots |
-| `convStates` | `ConvStateDocument` | `(userId ASC)` unique + TTL on `expiresAt` | FSM chatbot conversation state (ConversationState enum, pendingChanges, collectedFields) |
 | `ltcCurrentSelections` | `LtcCurrentSelectionsDocument` | `(userId ASC)` unique | Per-user LTC care-type inputs (health profile, care-year counts) + last projection result JSON |
 | `logs` | _(Serilog-managed)_ | _(auto-created)_ | Structured application logs — written by `Serilog.Sinks.MongoDB` v6, 5-second batch period |
 
@@ -57,7 +56,6 @@ User selects pharmacies            → MongoDB (userAnalysisSelections — pharm
 User selects plans                 → MongoDB (userAnalysisSelections — plans + activeSection)
 User saves analysis snapshot       → MongoDB (recommendations — full profile+drug+pharmacy+plan+cost doc)
 Chat messages exchanged            → MongoDB (chat_sessions — rolling 200-message window)
-AI chatbot FSM state               → MongoDB (convStates — TTL-based per-user FSM state)
 User saves prescription            → MongoDB (prescriptions — named drug list)
 LTC wizard selections              → MongoDB (ltcCurrentSelections — care-type inputs + last result)
 Application logs                   → MongoDB (logs — Serilog structured BSON logs, 5-sec batch) + File fallback (Logs/log-*.txt)
@@ -66,7 +64,7 @@ Application logs                   → MongoDB (logs — Serilog structured BSON
 ### .NET Integration
 - **Driver:** `MongoDB.Driver` 3.4.0 (Infrastructure project), `MongoDB.Bson` 3.4.0 (Domain project for BSON attributes)
 - **DI:** `IMongoClient` (singleton), `IMongoDatabase` (singleton), `MongoDbContext` (singleton with index creation on startup)
-- **Repositories (all scoped):** `IPrescriptionDocRepository`, `IChatSessionRepository`, `IUserAnalysisSelectionsRepository`, `IRecommendationRepository`, `IConvStateRepository`, `ILtcSelectionsRepository`
+- **Repositories (all scoped):** `IPrescriptionDocRepository`, `IChatSessionRepository`, `IUserAnalysisSelectionsRepository`, `IRecommendationRepository`, `ILtcSelectionsRepository`
 
 ### Migrations
 

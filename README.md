@@ -8,7 +8,7 @@ A ChatGPT-style Medicare healthcare assistant that helps users understand their 
 
 - **AI-Powered Drug Analysis** — Two-step engine: drug name verification (RxNorm-normalized) followed by full clinical analysis (interactions, dosage validation, therapeutic alternatives)
 - **Medicare Plan Recommendations** — Personalized Part D, Medicare Advantage, and Medigap plan rankings based on user profile and drug list
-- **Pharmacy Search & Pricing** — Nearby pharmacy lookup (Google Places) with AI-generated per-drug pricing comparison
+- **Pharmacy Search & Pricing** — Nearby pharmacy lookup with AI-generated per-drug pricing comparison
 - **Cost Projections** — Lifetime Medicare cost dashboards and LIS/Extra Help tier determination
 - **Conversational Chat** — Real-time AI chat via SignalR WebSocket with 17 classified intents and session persistence
 - **User Profile Onboarding** — Name, demographics, income (MAGI tier), health conditions, address (ZIP-to-county resolution)
@@ -82,8 +82,7 @@ Copy `appsettings.json` and fill in your values:
     "Secret": "YOUR_JWT_SECRET_AT_LEAST_32_CHARACTERS_LONG"
   },
   "OpenAI": { "ApiKey": "YOUR_OPENAI_API_KEY" },
-  "Anthropic": { "ApiKey": "YOUR_ANTHROPIC_API_KEY" },
-  "Google": { "PlacesApiKey": "YOUR_GOOGLE_PLACES_API_KEY" }
+  "Anthropic": { "ApiKey": "YOUR_ANTHROPIC_API_KEY" }
 }
 ```
 

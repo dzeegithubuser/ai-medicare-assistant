@@ -28,14 +28,13 @@ app/
     medigap-plan.model.ts         → MedigapPlanQuotesRequest, MedigapPlanQuotesResponse, MedigapPlanQuote and nested interfaces
     part-d-plan.model.ts          → PartDPlanRecommendationRequest and Part D plan response interfaces
     recommendation.model.ts       → CreateRecommendationRequest, RecommendationResponse, RecommendationSummaryResponse, SelectedDrugDto, SelectedPlanDto, SelectedPharmacyDto, CostSnapshotDto interfaces
-    chat-state.model.ts           → OrchestratorRequest, OrchestratorResponse, ChatMessage, ChatUiState, ChatSession interfaces
-    orchestrator.model.ts         → OrchestratorIntentResult, DeltaResult, DisplayData (orchestrator response types)
+    chat-state.model.ts           → ChatMessage, ChatUiState, ChatSession interfaces
   services/
     drug.service.ts               → HTTP service for /api/drug/suggest-names, /api/drug/analyze, /api/pharmacy/plan-search, /api/pharmacy/lookup
     drug-state.service.ts         → Signal-based shared state
     auth.service.ts               → Signal-based auth state (JWT token, user, signIn/signUp/signOut)
     profile.service.ts            → Signal-based profile state orchestrator (load + save + updateState)
-    county-lookup.service.ts      → ZIP-based county code lookup with caching + Google Places key + MAGI tiers
+    county-lookup.service.ts      → ZIP-based county code lookup with caching + MAGI tiers
     reference-data.service.ts     → Signal-based master data service (fetches + caches /api/reference-data)
     prescription.service.ts        → HTTP service for /api/prescription (save + list)
     plan-recommendation.service.ts → HTTP service for /api/plan-recommendation (recommend, checkLis, getGapAdvice, evaluateCosts)
@@ -44,11 +43,9 @@ app/
     part-d-plan.service.ts         → HTTP service for /api/PartDPlan/recommend
     recommendation.service.ts      → HTTP service for /api/recommendation (CRUD: create, getActive, getAll, getById, updateProfile/drugs/pharmacy/plans/costSnapshot, delete)
     recommendation-state.service.ts → Signal-based active recommendation state (hydration, patch helpers, selection signals)
-    chat-intent.service.ts         → HTTP service for /api/chat/intent (AI intent classification — 17 intents)
+    chat-intent.service.ts         → HTTP service for /api/chat/intent (AI intent classification)
     chat-wizard.service.ts         → Reactive wizard state management (mode, step tracking, auto-advance signals)
     chat-plan-selection.service.ts  → HTTP service for /api/chat/extract-plan-selection (AI plan selection extraction)
-    chat-orchestrator.service.ts    → HTTP service for /api/chat/orchestrate (AI chatbot orchestrator endpoint)
-    chat-orchestrator-flow.service.ts → Client-side orchestrator response routing (maps OrchestratorResponse to UI actions)
     chat-drug-selection.service.ts  → HTTP service for /api/chat/extract-drug-selection
     chat-drug-flow.service.ts       → Handles drug-step chat interactions (search, confirm, remove)
     chat-drug-selection-flow.service.ts → Drug selection flow state machine (guided type→form→strength→qty)
@@ -60,13 +57,17 @@ app/
     chat-navigation-flow.service.ts → Chat navigation actions (route user to steps)
     chat-analysis-selection-hydration.service.ts → Hydrates wizard selections from active recommendation or userAnalysisSelections MongoDB on bootstrap
     chat-intent-phrase.service.ts   → Generates human-readable chat replies for specific intents
+    chat-ltc-care-type-flow.service.ts → Chat-driven LTC care type selection flow
     chat-router.service.ts          → Routes chat intent responses to correct flow handlers
     chat-router.constants.ts        → Constants for chat intent routing (intent → flow mapping)
     chat-router-summary.service.ts  → Builds context summaries injected into chat prompts (current page, selected drugs/pharmacies/plans)
     chat-session.service.ts         → HTTP client for /api/chat/session (messages + ui-state)
     chat-signal-r.service.ts        → SignalR WebSocket connection (connect, disconnect, syncMessages, session$ ReplaySubject)
     analysis-snapshot.service.ts    → Assembles full analysis snapshot (profile, drugs, pharmacy, plans, cost) and saves via RecommendationService
+    ltc-analysis-snapshot.service.ts → Assembles LTC analysis snapshot and saves as recommendation
     plan-card-enrichment.service.ts → Pure computation service — derives display fields (formatted plan IDs, carrier names, surcharges, OOP, pharmacy/drug ratios, Medigap cents→dollars) from raw API responses for Part D, Medigap, and MA cards
+    font-size.service.ts            → User font size preference management
+    theme.service.ts                → Theme/dark mode management
     http-loader.service.ts          → Global HTTP loading state (signal-based — true when any HTTP request is in-flight)
   interceptors/
     auth.interceptor.ts           → HttpInterceptorFn — attaches Bearer token to requests
@@ -91,7 +92,7 @@ app/
     dashboard.component.scss      → Host styling + slideIn animation
   user-profile/
     user-profile.component.ts     → Consolidated single-form profile (all fields in one form)
-    user-profile.component.html   → Profile form template with Google Places Autocomplete
+    user-profile.component.html   → Profile form template
     user-profile.component.scss   → Profile form styling
   chat/
     chat.component.ts             → Right-panel chat logic
@@ -118,10 +119,6 @@ app/
       pharmacy-step.component.ts/html/scss → Pharmacies step (shell step 3): Financial Planner pharmacy lookup with filters (name, radius, page size), pagination, Google Maps links (spot on map + directions), multi-select (max 5)
     plans-step/
       plans-step.component.ts/html/scss → Plans step (shell step 4): Medicare plan recommendations + plan-aware pharmacies
-  pharmacy-list/
-    pharmacy-list.component.ts    → Nearby pharmacies panel (collapsible, sortable, selectable)
-    pharmacy-list.component.html  → Responsive card grid (1/2/3 cols) with inline drug price details on selection
-    pharmacy-list.component.scss  → Pharmacy list host styling
   data/
     tooltips.ts                        → Centralized tooltip/description data (plan types, pharmacy types, formulary tiers, network types, coverage info, gap coverage)
   plan-recommendation/
@@ -198,67 +195,67 @@ AI.MedicareAssistant.Api/
     MedigapPlanController.cs      → [Authorize] Medigap plan quotes (POST api/MedigapPlan/quotes)
     PartDPlanController.cs        → [Authorize] Part D plan recommendations (POST api/PartDPlan/recommend)
   Prompts/                        → File-based prompt system (4 folders: system, tasks, schemas, templates)
-    system/                       → System role prompts (pharma-system, drug-name-suggestion-system, pharmacy-pricing-system, plan-scoring-system, cost-evaluation-system, chat-intent-system)
-    tasks/                        → Task instructions (drug-normalization, drug-name-suggestion, pharmacy-pricing, plan-scoring, cost-evaluation)
-    schemas/                      → JSON output schemas (drug-json-schema, drug-name-suggestion-schema, pharmacy-pricing-schema, plan-scoring-schema, cost-evaluation-schema)
-    templates/                    → User prompt templates with {{placeholders}} (prescription-analysis, drug-name-suggestion, pharmacy-pricing, plan-scoring, cost-evaluation)
+    system/                       → System role prompts (chat-intent-system, cost-evaluation-system, delta-narrative-system, drug-name-suggestion-system, drug-selection-system, gap-coverage-system, ltc-evaluation-system, pharma-system, pharmacy-pricing-system, pharmacy-selection-system, plan-scoring-system, plan-selection-system, profile-extract-system)
+    tasks/                        → Task instructions (cost-evaluation, drug-name-suggestion, drug-normalization, gap-coverage, ltc-evaluation, pharmacy-pricing, plan-scoring)
+    schemas/                      → JSON output schemas (cost-evaluation-schema, drug-json-schema, drug-name-suggestion-schema, gap-coverage-schema, ltc-evaluation-schema, pharmacy-pricing-schema, plan-scoring-schema)
+    templates/                    → User prompt templates with {{placeholders}} (cost-evaluation, drug-name-suggestion, gap-coverage, ltc-evaluation, pharmacy-pricing, plan-scoring, prescription-analysis)
   Logs/                           → Daily rolling log files (30 day retention)
   appsettings.json                → OpenAI + CMS + JWT + MySQL configuration
 
 AI.MedicareAssistant.Domain/
   Entities/
     BaseEntity.cs                 → Abstract base (Id, CreatedDate, ModifiedDate, CreatedBy, ModifiedBy)
-    User.cs                       → Email, Phone, PasswordHash + Profile navigation prop
+    Prescription.cs               → Prescription entity (EF Core)
     Profile.cs                    → CoverageYear, HealthCondition, TaxFilingStatus, MagiTier, Gender, TobaccoStatus, DateOfBirth, Concierge, ConciergeAmount, AlternateEmail, AlternateMobile, LifeExpectancy + Address fields
-    Prescription.cs               → (DELETED — migrated to MongoDB PrescriptionDocument)
+    User.cs                       → Email, Phone, PasswordHash + Profile navigation prop
   Documents/
-    PrescriptionDocument.cs       → MongoDB: named prescription with embedded drug list
     ChatSessionDocument.cs        → MongoDB: chat session messages + UI state
-    ConvStateDocument.cs          → MongoDB: FSM conversation state (ConversationState enum, pendingChanges, collectedFields, TTL)
-    RecommendationDocument.cs     → MongoDB: full recommendation (ProfileSnapshot, SelectedDrugDoc, SelectedPlanDoc, SelectedPharmacyDoc, MailOrderPharmacyDoc, CostSnapshotDoc and nested types)
     LtcCurrentSelectionsDocument.cs → MongoDB: per-user LTC care-type inputs + last projection result (collection ltcCurrentSelections)
+    PrescriptionDocument.cs       → MongoDB: named prescription with embedded drug list
+    RecommendationDocument.cs     → MongoDB: full recommendation (ProfileSnapshot, SelectedDrugDoc, SelectedPlanDoc, SelectedPharmacyDoc, MailOrderPharmacyDoc, CostSnapshotDoc and nested types)
     UserAnalysisSelectionsDocument.cs → MongoDB: per-user current analysis selections — drugs, pharmacies, plans, activeSection (collection userAnalysisSelections)
   Models/
+    AnthropicModels.cs            → Anthropic API request/response models
+    ConstantItem.cs               → Financial Planner constants item model
+    CostProjection.cs             → CostProjectionResult, LifetimeTotals, CostEvaluation, LifetimeSummary, YearlyHighlight, CostCategory, SavingsTip (combined Financial Planner + AI evaluation models)
     DrugAnalysisResult.cs         → DrugResult, DrugFormulation, MedicareCostEstimate models
     DrugNameSuggestion.cs         → DrugNameSuggestionResult, DrugNameSuggestion, DrugCandidate models
-    Pharmacy/PharmacyModels.cs    → PharmacyResult, DrugPrice, PharmacyWithPricing, DrugPricingInput, PlanPharmacySearchRequest, PlanCoverageInput
-    PlanRecommendation.cs         → LisTier, PlanType, PlanRecommendationRequest/Result, RankedPlan
-    IndividualMedicare.cs         → IndividualMedicareRequest, IndividualMedicareResponse, IndividualMedicareDetail (Financial Planner API models)
-    CostProjection.cs             → CostProjectionResult, LifetimeTotals, CostEvaluation, LifetimeSummary, YearlyHighlight, CostCategory, SavingsTip (combined Financial Planner + AI evaluation models)
     FinancialPlannerDrug.cs       → DrugSearchRequest/Response, DrugListItem, DrugDetailRequest/Response, DrugDetailAdvanceItem, DrugSearchResult, BulkDrugSearchResponse, DrugInteractionAnalysis (Financial Planner drug search + AI interaction models)
+    GeminiModels.cs               → Google Gemini API request/response models
+    IndividualMedicare.cs         → IndividualMedicareRequest, IndividualMedicareResponse, IndividualMedicareDetail (Financial Planner API models)
     LongTermCare.cs               → LongTermCareRequest, LongTermCareResponse, LtcExpenseEntry (Financial Planner LTC API models)
-    PresentValue.cs               → PresentValueRequest, PresentValueResponse, YearExpense, PvEntry, PresentValueYears, RateOfReturns (Financial Planner expensesPresentValue API models)
+    LtcCostEvaluation.cs          → AI-generated LTC cost evaluation models
     MedicareAdvantagePlan.cs      → MedicareAdvantagePlanRequest (MA plan recommendation request with MedicareAdvantage=true)
     MedigapPlanQuotes.cs          → MedigapPlanQuotesRequest, MedigapPlanQuotesResponse, MedigapPlanQuote + nested carrier/rate/discount types
     PartDPlanRecommendation.cs    → PartDPlanRecommendationRequest, CountyCodeModel, PrescriptionInput, PharmacyInput (Part D plan recommendation models)
+    PlanRecommendation.cs         → LisTier, PlanType, PlanRecommendationRequest/Result, RankedPlan
+    PresentValue.cs               → PresentValueRequest, PresentValueResponse, YearExpense, PvEntry, PresentValueYears, RateOfReturns (Financial Planner expensesPresentValue API models)
+    Pharmacy/PharmacyModels.cs    → PharmacyResult, DrugPrice, PharmacyWithPricing, DrugPricingInput, PlanPharmacySearchRequest, PlanCoverageInput
   Exceptions/
     AppExceptions.cs              → AppException, NotFoundException, ValidationException, etc.
   Interfaces/
     ICmsPlanDataService.cs        → CMS SOCRATA plan/formulary data contract
-    IDrugAiService.cs             → AI service contract (AnalyzePrescription, SuggestDrugNames)
-    IFdaNdcService.cs             → FDA NDC Directory package info contract
-    IFipsLookupService.cs         → ZIP-to-FIPS county code lookup contract (legacy)
-    ICountyLookupService.cs       → ZIP-based county code lookup contract
     IConstantsService.cs          → Financial Planner constants API contract
-    IMedicareCostService.cs       → Medicare cost service contract
-    IMedicarePlanService.cs       → Medicare plan recommendation orchestrator contract
-    IPharmacyPricingService.cs    → Pharmacy search + pricing contract
-    IPharmacyLookupService.cs     → Financial Planner pharmacy lookup contract + request/response models
-    IPlanPharmacyService.cs       → Plan-aware pharmacy search contract
-    IPlanScoringAiService.cs      → AI plan scoring + explanation contract
-    IIndividualMedicareService.cs  → Financial Planner individualMedicareR5 API contract
-    IPresentValueService.cs       → Financial Planner expensesPresentValue API contract (CalculateAsync)
-    IFinancialPlannerDrugService.cs → Financial Planner drug bulk-search contract (SearchBulkAsync)
     ICostEvaluationAiService.cs   → AI cost evaluation contract (EvaluateAsync → CostEvaluation)
+    ICountyLookupService.cs       → ZIP-based county code lookup contract
+    IDrugAiService.cs             → AI service contract (AnalyzePrescription, SuggestDrugNames)
+    IEmailService.cs              → Email delivery service contract
+    IFdaNdcService.cs             → FDA NDC Directory package info contract
+    IFinancialPlannerDrugService.cs → Financial Planner drug bulk-search contract (SearchBulkAsync)
+    IIndividualMedicareService.cs  → Financial Planner individualMedicareR5 API contract
     ILongTermCareService.cs       → LTC cost projection contract (GetProjectionAsync)
+    ILtcEvaluationAiService.cs    → AI LTC cost evaluation contract
     IMedicareAdvantagePlanService.cs → MA plan recommendation contract (RecommendAsync)
+    IMedicareCostService.cs       → Medicare cost service contract
     IMedigapPlanQuotesService.cs  → Medigap plan quotes contract (GetQuotesAsync)
+    IMongoRepositories.cs         → MongoDB repository interfaces: IPrescriptionDocRepository, IChatSessionRepository, IUserAnalysisSelectionsRepository, IRecommendationRepository, ILtcSelectionsRepository
     IPartDPlanRecommendationService.cs → Part D plan recommendation contract (RecommendAsync)
-    IRepository.cs                → Generic repository contract
+    IPharmacyLookupService.cs     → Financial Planner pharmacy lookup contract + request/response models
+    IPlanScoringAiService.cs      → AI plan scoring + explanation contract
+    IPresentValueService.cs       → Financial Planner expensesPresentValue API contract (CalculateAsync)
     IProfileRepositories.cs       → IProfileRepository marker interface
-    IRxNormService.cs             → RxNorm normalization + interaction + NDC lookup contract
+    IRepository.cs                → Generic repository contract
     IUserRepository.cs            → User data access contract
-    IMongoRepositories.cs         → MongoDB repository interfaces: IPrescriptionDocRepository, IUserAnalysisSelectionsRepository (partial drug/pharmacy/plan updates), IRecommendationRepository (CRUD + GetAllByUserIdAsync), IConvStateRepository (upsert + TTL), ILtcSelectionsRepository
 
 AI.MedicareAssistant.Application/
   DTOs/
@@ -277,46 +274,33 @@ AI.MedicareAssistant.Application/
     LtcSelectionsDtos.cs          → SaveLtcCurrentRequest (validation attributes), LtcCurrentResponse
     PlanCardEnrichmentDtos.cs     → EnrichedPartDCard (planIdDisplay, insuranceCarrier, partDSurcharge, prescriptionOOP, pharmaciesInNetwork, drugsCovered), EnrichedMedigapCard (premiumMonthly, premiumAnnual, insuranceCarrier, partBSurcharge, healthcareOOP, remainingMonths), EnrichedMACard (planIdDisplay, insuranceCarrier, surcharges, prescriptionOOP, healthcareOOP, pharmaciesInNetwork, drugsCovered)
   Services/
-    DrugAnalysisService.cs        → Pipeline orchestrator (iterates IDrugAnalysisStep by Order)
-    Pipeline/
-      IDrugAnalysisStep.cs        → Interface + AnalysisContext record
-      AiAnalysisStep.cs           → Step 1: AI drug analysis
-      DrugValidationStep.cs       → Step 2: Filter invalid drugs
-      CmsRxNormEnrichmentStep.cs  → Step 3: CMS + RxNorm enrichment
-      InteractionMergingStep.cs   → Step 4: Merge RxNorm + AI interactions
-      PharmacyPricingStep.cs      → Pharmacy pricing lookup (not registered in DI pipeline; pharmacy fetched on-demand via /api/pharmacy/search)
+    Pipeline/                     → (empty — pipeline steps removed)
     AuthService.cs                → JWT auth logic
-    ProfileService.cs             → Consolidated profile CRUD (Get/Save/Delete)
-    MedicarePlanService.cs        → Plan recommendation orchestrator
-    PlanPharmacyService.cs        → Plan-aware pharmacy search (overlays copay data)
-    PrescriptionService.cs        → Prescription save/list logic (MongoDB)
+    ChatIntentService.cs          → AI-powered chat intent classification (file-based prompt)
+    ChatSessionService.cs         → Chat session persistence (get/update messages + ui-state)
     CostProjectionService.cs      → Orchestrates cost projections (profile → Financial Planner API → AI evaluation)
-    ChatIntentService.cs          → AI-powered chat intent classification (17 intents, file-based prompt)
-    ProfileExtractService.cs      → AI-powered profile field extraction from natural language
     DrugSelectionExtractService.cs → AI-powered drug formulation selection extraction from chat
+    PageContextBuilder.cs         → Static helper — appends route-specific disambiguation to AI system prompts
     PharmacySelectionExtractService.cs → AI-powered pharmacy selection extraction from chat
     PlanSelectionExtractService.cs → AI-powered plan selection extraction from chat
-    ChatSessionService.cs         → Chat session persistence (get/update messages + ui-state)
+    PrescriptionService.cs        → Prescription save/list logic (MongoDB)
+    ProfileExtractService.cs      → AI-powered profile field extraction from natural language
+    ProfileService.cs             → Consolidated profile CRUD (Get/Save/Delete)
     RecommendationService.cs      → CRUD for MongoDB RecommendationDocument (GetActive, GetAll, Create, UpdateProfile/Drugs/Pharmacy/Plans/CostSnapshot, Delete)
-    ConvStateService.cs           → FSM conversation state persistence (GetOrCreate, UpdateState, SetPendingChange, SetCollectedField, ClearPending, Reset)
-    OrchestratorIntentService.cs  → 19-intent classifier via IChatClient + orchestrator-intent-system.txt + page-context injection
-    ChatOrchestratorService.cs    → Core FSM router (ProcessMessageAsync, 19 handler methods, multi-turn collection wizards)
-    DeltaCalculationService.cs    → Before/after cost comparisons (ComputeAsync → Financial Planner API diff + AI narrative)
-    PageContextBuilder.cs         → Static helper — appends route-specific disambiguation to AI system prompts
-    PlanCardEnrichmentService.cs  → Static utility — pure computation (no DI/IO). EnrichPartD, EnrichMedigap, EnrichMA methods compute derived display fields from raw API responses
 
 AI.MedicareAssistant.Infrastructure/
   AI/
-    DrugAiService.cs              → AI drug analysis integration (IDrugAiService)
-    PromptBuilder.cs              → Prompt assembly from files
-    PlanScoringAiService.cs       → AI plan scoring (IPlanScoringAiService)
     CostEvaluationAiService.cs    → AI cost evaluation (ICostEvaluationAiService)
+    DrugAiService.cs              → AI drug analysis integration (IDrugAiService)
+    LtcEvaluationAiService.cs     → AI LTC cost evaluation (ILtcEvaluationAiService)
+    PlanScoringAiService.cs       → AI plan scoring (IPlanScoringAiService)
+    PromptBuilder.cs              → Prompt assembly from files
   Anthropic/
     AnthropicMeaiChatClient.cs    → Anthropic IChatClient (M.E.AI) adapter, registered via "AiProvider" config switch
-  RxNorm/
-    RxNormService.cs              → NIH RxNorm API integration (IRxNormService)
+  Gemini/
+    GeminiChatClient.cs           → Google Gemini IChatClient adapter
+  RxNorm/                         → (empty)
   Pharmacy/
-    CmsPharmacyPricingService.cs  → NPI Registry + AI pricing (IPharmacyPricingService)
     FinancialPlannerPharmacyService.cs → Financial Planner getPharmacies API (IPharmacyLookupService)
   Medicare/
     CmsMedicareCostService.cs     → CMS open data API (IMedicareCostService)
@@ -334,99 +318,22 @@ AI.MedicareAssistant.Infrastructure/
     PartDPlanRecommendationService.cs → Financial Planner Part D plan recommendations (IPartDPlanRecommendationService)
   CountyLookup/
     CountyLookupService.cs        → ZIP-based county code lookup via Financial Planner API (ICountyLookupService, 1-hour cache)
+  Email/
+    EmailService.cs               → Email delivery service (IEmailService)
+    EmailSettings.cs              → Email configuration model
   Data/
     AppDbContext.cs               → EF Core DbContext (MySQL)
     AppDbContextFactory.cs        → Design-time factory for migrations
-    MongoDbContext.cs             → MongoDB typed collection accessor (prescriptions, chatSessions, userAnalysisSelections, recommendations, convStates, ltcCurrentSelections + indexes)
+    MongoDbContext.cs             → MongoDB typed collection accessor (prescriptions, chatSessions, userAnalysisSelections, recommendations, ltcCurrentSelections + indexes)
     Migrations/                   → EF Core migration files
   Repositories/
-    Repository.cs                 → Generic EF Core repository base
+    ChatSessionRepository.cs      → MongoDB: chat session CRUD (IChatSessionRepository)
+    MongoRepositories.cs          → MongoDB repository implementations (prescriptions, userAnalysisSelections, ltcSelections)
     ProfileRepositories.cs        → ProfileRepository
-    UserRepository.cs             → User repository (no eager loading)
-    MongoRepositories.cs          → MongoDB repository implementations (prescriptions, chat sessions, userAnalysisSelections, ltcSelections)
     RecommendationRepository.cs   → MongoDB: recommendation CRUD (get/create/replace/delete) + unique userId index
-    ConvStateRepository.cs        → MongoDB: conversation state (get/upsert/delete) + userId unique index + TTL index
+    Repository.cs                 → Generic EF Core repository base
+    UserRepository.cs             → User repository (no eager loading)
 ```
-
----
-
-## New Files — Chatbot Orchestrator
-
-Files added across Phases 1–7 of the orchestrator implementation:
-
-### Backend
-
-```
-AI.MedicareAssistant.Domain/
-  Documents/
-    RecommendationDocument.cs     → ProfileSnapshot, SelectedDrugDoc, SelectedPlanDoc, SelectedPharmacyDoc, MailOrderPharmacyDoc, CostSnapshotDoc
-    ConvStateDocument.cs          → ConversationState enum (10 states), BsonDocument for pendingChanges/collectedFields, TTL
-  Interfaces/
-    IMongoRepositories.cs         → (extended) IRecommendationRepository, IConvStateRepository
-
-AI.MedicareAssistant.Application/
-  DTOs/
-    OrchestratorDtos.cs           → OrchestratorRequest, OrchestratorResponse, DeltaResult, DisplayData, OrchestratorIntentResult
-    RecommendationDtos.cs         → CreateRecommendationRequest (with expanded CostSnapshotDto + SelectedPlanDto), UpdateProfileRequest, UpdateDrugsRequest, UpdatePharmacyRequest, UpdatePlansRequest, RecommendationSummaryResponse, YearlyDetailDto, CostEvaluationDto, LifetimeSummaryDto, YearlyHighlightDto, CostCategoryDto, SavingsTipDto, PlanExpenseDto
-  Services/
-    RecommendationService.cs      → CRUD for recommendation documents (GetActive, GetAllAsync, Exists, Create, UpdateProfile/Drugs/Pharmacy/Plans/CostSnapshot, Delete)
-    ConvStateService.cs           → FSM state persistence (GetOrCreate, UpdateState, SetPendingChange, SetCollectedField, ClearPending, Reset)
-    OrchestratorIntentService.cs  → 19-intent classifier via IChatClient + orchestrator-intent-system.txt
-    ChatOrchestratorService.cs    → Core FSM router (~1,300 lines) — ProcessMessageAsync, 19 handler methods, multi-turn collection wizards
-    DeltaCalculationService.cs    → Before/after cost comparisons — ComputeAsync, BuildPreviewDelta, AI narrative
-    PlanCardEnrichmentService.cs  → Static utility — pure computation (no DI/IO). EnrichPartD, EnrichMedigap, EnrichMA
-
-AI.MedicareAssistant.Api/
-  Controllers/
-    RecommendationController.cs   → GET, POST, PUT profile/drugs/pharmacy/plans, DELETE /api/recommendation
-    ChatOrchestratorController.cs → POST /api/chat/orchestrate
-  Prompts/system/
-    orchestrator-intent-system.txt → 19 domain intents with parameter extraction + 55 few-shot examples
-    delta-narrative-system.txt     → 2-4 sentence cost impact narrative prompt
-
-AI.MedicareAssistant.Tests/
-    ChatOrchestratorServiceTests.cs → 18 tests covering FSM routing, confirmation/delete flows, profile validation, error handling
-```
-
-### Frontend
-
-```
-ui-ai-medicare-assistant/src/app/
-  models/
-    recommendation.model.ts       → RecommendationResponse, RecommendationSummaryResponse, ProfileSnapshotDto, SelectedDrugDto, SelectedPlanDto (with deductible, starRating, totalPrescriptionCost, planExpenses, unavailableDrugs), CostSnapshotDto (with yearlyDetails, evaluation), YearlyDetailDto, CostEvaluationDto, LifetimeSummarySnapDto, YearlyHighlightDto, CostCategorySnapDto, SavingsTipSnapDto, PlanExpenseDto, CreateRecommendationRequest
-    orchestrator.model.ts         → OrchestratorRequest, OrchestratorResponse, DeltaResult, DisplayData
-  services/
-    recommendation.service.ts     → HTTP CRUD for /api/recommendation
-    recommendation-state.service.ts → Signal-based state (activeRecommendation, hasRecommendation, refreshAfterUpdate, clear)
-    chat-orchestrator.service.ts  → sendMessage() → POST /api/chat/orchestrate
-  pipes/
-    markdown.pipe.ts              → marked + DomSanitizer for rendering markdown in chat bubbles
-  chat/
-    delta-display/
-      delta-display.component.ts  → 3-column cost grid (lifetime/year/PV), color-coded ↑↓
-    help-menu/
-      help-menu.component.ts      → 5-category help with clickable action chips → orchestrator
-```
-
-### Modified Files
-
-| File | Changes |
-|------|---------|
-| `MongoDbContext.cs` | Added `Recommendations` and `ConvStates` collections with unique + TTL indexes |
-| `Program.cs` | Registered 5 new scoped services + 2 repository interfaces |
-| `chat.component.ts` | Orchestrator mode routing, pendingDelta/awaitingConfirmation/activeDisplayData/deleteConfirmMode signals, handleOrchestratorResponse(), confirmOrCancel(), onHelpAction() |
-| `chat.component.html` | Orchestrator mode pill, markdown rendering, help menu routing, delete banner, delta display, confirmation buttons |
-| `chat.component.scss` | `.markdown-body` styles for tables, headings, lists, code |
-| `dashboard.component.ts` | Loads recommendation on init via `recommendationState.loadActiveRecommendation()` + `openRecommendations()` method + folder_open header button + Recommendations menu item |
-| `RecommendationDocument.cs` | Expanded `SelectedPlanDoc` (+7 fields), `CostSnapshotDoc` (+4 fields + nested collections). Added 8 new embedded document classes: `YearlyDetailDoc`, `CostEvaluationDoc`, `LifetimeSummaryDoc`, `YearlyHighlightDoc`, `CostCategoryDoc`, `SavingsTipDoc`, `PlanExpenseDoc` |
-| `RecommendationDtos.cs` | Added `RecommendationSummaryResponse` + 8 new DTO classes. Expanded `SelectedPlanDto`, `CostSnapshotDto` |
-| `RecommendationController.cs` | Added `GET /api/recommendation/all` endpoint. 8+ new mapping helpers for expanded plan/cost snapshot fields |
-| `IMongoRepositories.cs` | Added `GetAllByUserIdAsync` to `IRecommendationRepository` |
-| `RecommendationRepository.cs` | Implemented `GetAllByUserIdAsync` (sorted by CreatedAt desc) |
-| `RecommendationService.cs` | Added `GetAllAsync(Guid userId)` |
-| `chat-intent-system.txt` | Added `ACTION_SAVE_ANALYSIS` (+analysisName param), `ACTION_RUN_ANALYSIS`, `NAVIGATE_SAVED_ANALYSES` intents. Updated to 17 intents |
-| `cost-projections.component.ts` | Added Save Analysis button + `saveAnalysis()` method with dialog + resetAll after save |
-| `chat-router.service.ts` | Added `ACTION_SAVE_ANALYSIS`, `NAVIGATE_SAVED_ANALYSES` handlers, `pendingSaveAnalysisOverwrite` signal, overwrite confirmation flow, reset after save |
 
 ---
 

@@ -2,7 +2,11 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
@@ -17,7 +21,8 @@ import { AppRoutes } from '../app-routes.const';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, CurrencyPipe, DatePipe,
-    MatIconModule, MatButtonModule, MatCardModule,
+    MatIconModule, MatButtonModule, MatButtonToggleModule, MatCardModule,
+    MatFormFieldModule, MatInputModule, MatSelectModule,
     MatTooltipModule, MatProgressSpinnerModule,
   ],
   templateUrl: './recommendation.component.html',
@@ -168,7 +173,7 @@ export class RecommendationComponent implements OnInit {
   }
 
   categoryColor(type?: RecommendationCategory): string {
-    return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
+    return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-cyan-100 text-cyan-700';
   }
 
   planTypeLabel(planType: string): string {
@@ -183,7 +188,7 @@ export class RecommendationComponent implements OnInit {
   planTypeBadgeClass(planType: string): string {
     switch (planType.toLowerCase()) {
       case 'partd':   return 'bg-blue-100 text-blue-700';
-      case 'ma':      return 'bg-teal-100 text-teal-700';
+      case 'ma':      return 'bg-cyan-100 text-cyan-700';
       case 'medigap': return 'bg-indigo-100 text-indigo-700';
       default:        return 'bg-gray-100 text-gray-600';
     }

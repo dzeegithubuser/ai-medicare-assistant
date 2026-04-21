@@ -18,7 +18,7 @@
                   [class.bg-cyan-50]="state.currentStep() === step.number"
                   [class.text-cyan-700]="state.currentStep() === step.number"
                   [class.font-semibold]="state.currentStep() === step.number"
-                  [class.text-gray-400]="state.currentStep() !== step.number"
+                  [class.text-gray-600]="state.currentStep() !== step.number"
                   [class.cursor-pointer]="step.number <= state.currentStep()"
                   [class.cursor-default]="step.number > state.currentStep()"
                   (click)="goToStep(step.number)">

@@ -17,7 +17,6 @@ import { RecommendationStateService } from '../services/recommendation-state.ser
 import { ChatSignalRService } from '../services/chat-signal-r.service';
 import { DrugStateService } from '../services/drug-state.service';
 import { ChatAnalysisSelectionHydrationService } from '../services/chat-analysis-selection-hydration.service';
-import { HttpLoaderService } from '../services/http-loader.service';
 import { LtcStateService } from '../long-term-care/ltc-state.service';
 import { catchError, forkJoin, map, Observable, of, switchMap, take, timeout } from 'rxjs';
 import { AppRoutes } from '../app-routes.const';
@@ -44,7 +43,6 @@ export class DashboardComponent implements OnInit {
   private chatSignalR = inject(ChatSignalRService);
   private drugState = inject(DrugStateService);
   private selectionHydrator = inject(ChatAnalysisSelectionHydrationService);
-  protected httpLoader = inject(HttpLoaderService);
   private ltcState = inject(LtcStateService);
   private destroyRef = inject(DestroyRef);
 

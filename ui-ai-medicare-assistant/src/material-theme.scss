@@ -6,45 +6,95 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
-// ─── Blue / Default Theme ────────────────────────────────────────────────────
+// ─── Navy & Gold / Default Theme ─────────────────────────────────────────────
+// Base theme provides typography, density, shape, and fallback palette.
+// `theme-overrides` then pins exact hex colors to match our CSS custom properties.
 html {
   height: 100%;
   font-size: 18px; /* Elderly-friendly: scales all rem-based sizes (~12.5% increase) */
   @include mat.theme((
     color: (
       primary: mat.$blue-palette,
-      tertiary: mat.$orange-palette,
+      tertiary: mat.$yellow-palette,
     ),
     typography: Roboto,
     density: -1,
   ));
-}
-
-// ─── Warm & Soft Theme ───────────────────────────────────────────────────────
-html[data-theme="warm"] {
-  @include mat.theme((
-    color: (
-      primary: mat.$orange-palette,
-      tertiary: mat.$blue-palette,
-    ),
+  // Override M3 system tokens with exact Navy & Gold colors
+  @include mat.theme-overrides((
+    primary:              #1e3a5f,
+    on-primary:           #ffffff,
+    primary-container:    #d4dde8,
+    on-primary-container: #0e1f35,
+    primary-fixed:        #d4dde8,
+    primary-fixed-dim:    #b8c7d9,
+    secondary:            #c9a84c,
+    on-secondary:         #ffffff,
+    tertiary:             #c9a84c,
+    on-tertiary:          #ffffff,
+    surface-tint:         #1e3a5f,
   ));
 }
 
-// ─── Green Theme ─────────────────────────────────────────────────────────────
-html[data-theme="green"] {
+// ─── Lavender Calm Theme ─────────────────────────────────────────────────────
+html[data-theme="lavender"] {
   @include mat.theme((
     color: (
-      primary: mat.$green-palette,
-      tertiary: mat.$orange-palette,
+      primary: mat.$violet-palette,
+      tertiary: mat.$rose-palette,
     ),
+  ));
+  // Override M3 system tokens with exact Lavender colors
+  @include mat.theme-overrides((
+    primary:              #5b4a8a,
+    on-primary:           #ffffff,
+    primary-container:    #ddd6ee,
+    on-primary-container: #352b52,
+    primary-fixed:        #ddd6ee,
+    primary-fixed-dim:    #c5bade,
+    secondary:            #d4849a,
+    on-secondary:         #ffffff,
+    tertiary:             #d4849a,
+    on-tertiary:          #ffffff,
+    surface-tint:         #5b4a8a,
+  ));
+}
+
+// ─── Teal Medical Theme ──────────────────────────────────────────────────────
+html[data-theme="teal"] {
+  @include mat.theme((
+    color: (
+      primary: mat.$cyan-palette,
+      tertiary: mat.$green-palette,
+    ),
+  ));
+  // Override M3 system tokens with exact Teal colors
+  @include mat.theme-overrides((
+    primary:              #0d6e6e,
+    on-primary:           #ffffff,
+    primary-container:    #c0e5e5,
+    on-primary-container: #073e3e,
+    primary-fixed:        #c0e5e5,
+    primary-fixed-dim:    #99d4d4,
+    secondary:            #2e8b57,
+    on-secondary:         #ffffff,
+    tertiary:             #2e8b57,
+    on-tertiary:          #ffffff,
+    surface-tint:         #0d6e6e,
   ));
 }
 
 :root {
   @include mat.form-field-overrides((
-    container-height: 35px,
-    container-vertical-padding: 8px
+    container-height: 44px,
+    container-vertical-padding: 10px
   ));
+}
+
+// Compact density for inline filter bars / toolbars
+.density-compact {
+  @include mat.form-field-density(-3);
+  @include mat.button-toggle-density(-3);
 }
 
 body {

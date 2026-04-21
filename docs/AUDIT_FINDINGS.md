@@ -7,7 +7,7 @@
 
 ## CRITICAL (Fix Immediately)
 
-- [ ] **1. Secrets in source control** — `appsettings.json` and `appsettings.Development.json` contain plaintext OpenAI key, Anthropic key, Google Places key, MySQL/MongoDB credentials, JWT secret, Financial Planner auth token. `.gitignore` does not exclude them.
+- [ ] **1. Secrets in source control** — `appsettings.json` and `appsettings.Development.json` contain plaintext OpenAI key, Anthropic key, MySQL/MongoDB credentials, JWT secret, Financial Planner auth token. `.gitignore` does not exclude them.
   - Files: `api-ai-medicare-assistant/AI.MedicareAssistant.Api/appsettings.json`, `appsettings.Development.json`
   - Fix: Move to User Secrets / env vars / Key Vault. Add to `.gitignore`. Rotate all keys.
 
@@ -64,7 +64,7 @@
   - Fix: Use JWT `exp` claim as source of truth, or implement actual token refresh.
 
 - [ ] **13. No input length validation on AI endpoints** — Attackers can send megabytes to burn token quotas.
-  - Files: `DrugController.cs`, `ChatOrchestratorController.cs` (DTOs)
+  - Files: `DrugController.cs`, `ChatIntentController.cs` (DTOs)
   - Fix: Add `[MaxLength]` to all AI-bound DTO string properties.
 
 - [ ] **14. ChatSessionService accepts arbitrary Role values** — Users can inject `"system"` role messages into chat history.
@@ -159,6 +159,6 @@
 ## TEST COVERAGE GAPS
 
 - [ ] **38. Backend: 0/19 controllers tested** — No integration tests with `WebApplicationFactory`.
-- [x] **39. Backend: ~13 application services untested** — AuthService, ProfileService, all Extract services, Pipeline steps, etc. *(Added 65+ unit tests: AuthService, ProfileService, DrugAnalysisPipelineTests, DrugAnalysisService, ChatSessionService, PrescriptionService — all passing)*
+- [x] **39. Backend: ~13 application services untested** — AuthService, ProfileService, all Extract services, Pipeline steps, etc. *(Added 65+ unit tests: AuthService, ProfileService, DrugService, ChatSessionService, PrescriptionService — all passing)*
 - [x] **40. Frontend: effectively zero test coverage** — Only 1 spec file exists. *(Added 34 Vitest tests: AuthService 12 tests, DrugStateService 22 tests — plus fixed existing 5 chat-send-guards matchers — 39 total passing)*
 - [ ] **41. No E2E tests** — No Cypress/Playwright.

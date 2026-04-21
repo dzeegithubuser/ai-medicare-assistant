@@ -11,7 +11,7 @@
           <div class="flex items-center gap-2 mb-2">
             <mat-icon class="text-cyan-700 !text-lg !w-5 !h-5">medication</mat-icon>
             <span class="text-sm font-bold text-gray-900">{{ item.drugName }}</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold uppercase"
               [class]="item.formulation.drugType === 'Generic'
                 ? 'bg-cyan-100 text-cyan-700'
                 : 'bg-amber-100 text-amber-700'">
@@ -20,11 +20,11 @@
           </div>
           <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
             <div>
-              <span class="text-gray-400">Drug Name:</span>
+              <span class="text-gray-600">Drug Name:</span>
               <span class="text-gray-700 font-medium ml-1">{{ item.formulation.drugName }}</span>
             </div>
             <div>
-              <span class="text-gray-400">Form Type:</span>
+              <span class="text-gray-600">Form Type:</span>
               <span class="text-gray-700 font-medium ml-1">
                 {{ item.formulation.drugType }}
                 @if (item.formulation.drugType !== 'Generic' && item.formulation.brandName) {
@@ -33,20 +33,20 @@
               </span>
             </div>
             <div>
-              <span class="text-gray-400">Dose Form:</span>
+              <span class="text-gray-600">Dose Form:</span>
               <span class="text-gray-700 font-medium ml-1">{{ item.formulation.rxnDoseForm || item.formulation.newDoseForm || '—' }}</span>
             </div>
             <div>
-              <span class="text-gray-400">Strength:</span>
+              <span class="text-gray-600">Strength:</span>
               <span class="text-gray-700 font-medium ml-1">{{ item.formulation.strength || '—' }}</span>
             </div>
             <div>
-              <span class="text-gray-400">RxCUI:</span>
+              <span class="text-gray-600">RxCUI:</span>
               <span class="text-gray-700 font-mono font-medium ml-1">{{ item.formulation.rxcui }}</span>
             </div>
             @if (item.quantity) {
               <div>
-                <span class="text-gray-400">Qty/Month:</span>
+                <span class="text-gray-600">Qty/Month:</span>
                 <span class="text-gray-700 font-medium ml-1">{{ item.quantity }}</span>
               </div>
             }

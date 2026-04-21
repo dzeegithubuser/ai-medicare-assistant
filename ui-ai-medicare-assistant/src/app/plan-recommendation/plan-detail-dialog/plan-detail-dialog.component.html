@@ -20,19 +20,19 @@
         <!-- Cost Summary -->
         <div class="grid grid-cols-2 gap-3">
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Monthly Premium</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Monthly Premium</span>
             <p class="text-sm font-semibold text-gray-800">{{ rec.premium | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Annual Deductible</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Annual Deductible</span>
             <p class="text-sm font-semibold text-gray-800">{{ rec.deductible | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Total Rx Cost</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Total Rx Cost</span>
             <p class="text-sm font-semibold text-gray-800">{{ rec.totalPrescriptionCost | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-indigo-50">
-            <span class="text-[10px] text-indigo-600 uppercase tracking-wide font-medium">Total Plan Cost</span>
+            <span class="text-xs text-indigo-600 uppercase tracking-wide font-medium">Total Plan Cost</span>
             <p class="text-base font-bold text-indigo-700">{{ rec.totalPlanCost | currency }}</p>
           </div>
         </div>
@@ -40,37 +40,37 @@
         <!-- Premiums / ICL -->
         <div class="grid grid-cols-3 gap-3">
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Total Premium</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Total Premium</span>
             <p class="text-sm font-semibold">{{ rec.totalPremiumToPay | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Star Rating</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Star Rating</span>
             <p class="text-sm font-semibold">{{ rec.starRating }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">ICL</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">ICL</span>
             <p class="text-sm font-semibold">{{ rec.icl | currency }}</p>
           </div>
         </div>
 
         <!-- Rx Full Year Cost -->
         <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
-          <span class="text-[10px] text-amber-700 uppercase tracking-wide font-medium">Full Year Rx Cost</span>
+          <span class="text-xs text-amber-700 uppercase tracking-wide font-medium">Full Year Rx Cost</span>
           <p class="text-sm font-bold text-amber-800">{{ rec.totalPrescriptionCostFullYear | currency }}</p>
         </div>
 
         <!-- Part A/B Service Costs -->
         <div class="grid grid-cols-3 gap-3">
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part A+B Service</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Part A+B Service</span>
             <p class="text-sm font-semibold">{{ rec.partAandBBenefitServiceCost | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part A Service</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Part A Service</span>
             <p class="text-sm font-semibold">{{ rec.partABenefitServiceCost | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part B Service</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Part B Service</span>
             <p class="text-sm font-semibold">{{ rec.partBBenefitServiceCost | currency }}</p>
           </div>
         </div>
@@ -79,10 +79,10 @@
         <div>
           <h4 class="text-xs font-semibold text-gray-700 mb-2">Pharmacy</h4>
           <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
-            <mat-icon class="!text-gray-400 !text-lg">local_pharmacy</mat-icon>
+            <mat-icon class="!text-gray-600 !text-lg">local_pharmacy</mat-icon>
             <div>
               <p class="text-xs font-medium text-gray-800">{{ rec.pharmacyName }}</p>
-              <p class="text-[10px] text-gray-500">{{ rec.pharmacyRetailType }} · Dispense Fee: {{ rec.dispenseFee | currency }}</p>
+              <p class="text-xs text-gray-500">{{ rec.pharmacyRetailType }} · Dispense Fee: {{ rec.dispenseFee | currency }}</p>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@
           <div>
             <h4 class="text-xs font-semibold text-gray-700 mb-2">Monthly Expense Breakdown</h4>
             <div class="overflow-x-auto">
-              <table class="w-full text-[10px] border-collapse">
+              <table class="w-full text-xs border-collapse">
                 <thead>
                   <tr class="bg-gray-100">
                     <th class="px-2 py-1 text-left text-gray-600">Month</th>
@@ -169,11 +169,11 @@
           <h3 class="text-base font-semibold text-gray-800">{{ medigapPlan.company_base.name_full || medigapPlan.company_base.name }}</h3>
         }
         <div class="flex items-center gap-2 mt-1 flex-wrap">
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Plan {{ medigapPlan.plan }}</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{{ medigapPlan.rate_type }}</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{{ medigapPlan.rating_class }}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Plan {{ medigapPlan.plan }}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{{ medigapPlan.rate_type }}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">{{ medigapPlan.rating_class }}</span>
           @if (medigapPlan.is_open_rate) {
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">Open Rate</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">Open Rate</span>
           }
         </div>
       </div>
@@ -182,19 +182,19 @@
       @if (medigapPlan.rate) {
         <div class="grid grid-cols-2 gap-3">
           <div class="p-3 rounded-lg bg-indigo-50">
-            <span class="text-[10px] text-indigo-600 uppercase tracking-wide font-medium">Monthly</span>
+            <span class="text-xs text-indigo-600 uppercase tracking-wide font-medium">Monthly</span>
             <p class="text-base font-bold text-indigo-700">{{ medigapPlan.rate.month | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Annual</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Annual</span>
             <p class="text-sm font-semibold text-gray-800">{{ medigapPlan.rate.annual | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Quarterly</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Quarterly</span>
             <p class="text-sm font-semibold text-gray-800">{{ medigapPlan.rate.quarter | currency }}</p>
           </div>
           <div class="p-3 rounded-lg bg-gray-50">
-            <span class="text-[10px] text-gray-500 uppercase tracking-wide">Semi-Annual</span>
+            <span class="text-xs text-gray-500 uppercase tracking-wide">Semi-Annual</span>
             <p class="text-sm font-semibold text-gray-800">{{ medigapPlan.rate.semi_annual | currency }}</p>
           </div>
         </div>
@@ -203,26 +203,26 @@
       <!-- OOP / Service Costs -->
       <div class="grid grid-cols-2 gap-3">
         <div class="p-3 rounded-lg bg-gray-50">
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Medigap OOP</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Medigap OOP</span>
           <p class="text-sm font-semibold">{{ medigapPlan.medigapOOP | currency }}</p>
         </div>
         <div class="p-3 rounded-lg bg-gray-50">
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part B Premium</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Part B Premium</span>
           <p class="text-sm font-semibold">{{ medigapPlan.partBPremium | currency }}</p>
         </div>
         <div class="p-3 rounded-lg bg-gray-50">
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part A Service OOP</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Part A Service OOP</span>
           <p class="text-sm font-semibold">{{ medigapPlan.partAServiceOOP | currency }}</p>
         </div>
         <div class="p-3 rounded-lg bg-gray-50">
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">Part B Service OOP</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Part B Service OOP</span>
           <p class="text-sm font-semibold">{{ medigapPlan.partBServiceOOP | currency }}</p>
         </div>
       </div>
 
       @if (medigapPlan.partBPremiumSurcharge > 0) {
         <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
-          <span class="text-[10px] text-amber-700 uppercase tracking-wide font-medium">Part B Surcharge</span>
+          <span class="text-xs text-amber-700 uppercase tracking-wide font-medium">Part B Surcharge</span>
           <p class="text-sm font-bold text-amber-800">{{ medigapPlan.partBPremiumSurcharge | currency }}</p>
         </div>
       }
@@ -233,18 +233,18 @@
           <h4 class="text-xs font-semibold text-gray-700 mb-2">Company Information</h4>
           <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
             @if (co.ambest_rating) {
-              <div><span class="text-gray-400">AM Best:</span> {{ co.ambest_rating }} ({{ co.ambest_outlook }})</div>
+              <div><span class="text-gray-600">AM Best:</span> {{ co.ambest_rating }} ({{ co.ambest_outlook }})</div>
             }
             @if (co.sp_rating) {
-              <div><span class="text-gray-400">S&P:</span> {{ co.sp_rating }}</div>
+              <div><span class="text-gray-600">S&P:</span> {{ co.sp_rating }}</div>
             }
-            <div><span class="text-gray-400">Est:</span> {{ co.established_year }}</div>
-            <div><span class="text-gray-400">Type:</span> {{ co.type }}</div>
+            <div><span class="text-gray-600">Est:</span> {{ co.established_year }}</div>
+            <div><span class="text-gray-600">Type:</span> {{ co.type }}</div>
             @if (co.customer_satisfaction_ratio) {
-              <div><span class="text-gray-400">Satisfaction:</span> {{ co.customer_satisfaction_ratio }}%</div>
+              <div><span class="text-gray-600">Satisfaction:</span> {{ co.customer_satisfaction_ratio }}%</div>
             }
             @if (co.customer_complaint_ratio !== null) {
-              <div><span class="text-gray-400">Complaint Ratio:</span> {{ co.customer_complaint_ratio }}</div>
+              <div><span class="text-gray-600">Complaint Ratio:</span> {{ co.customer_complaint_ratio }}</div>
             }
           </div>
         </div>

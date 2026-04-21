@@ -50,11 +50,10 @@ Application and Infrastructure both depend on Domain for shared models and inter
 | `ProfileController` | `[Authorize]` | Consolidated profile CRUD. `GET api/profile` returns `UserProfileResponse`. `POST api/profile` saves/updates `ProfileDto`. |
 | `PrescriptionController` | `[Authorize]` | `POST api/prescription` — saves a named prescription with all confirmed drugs to MongoDB. `GET api/prescription` — returns all prescriptions for the authenticated user. `GET api/prescription/{id}` — returns a single prescription by ID (for loading saved prescriptions into the wizard). |
 | `MigrationController` | `[AllowAnonymous]` | Database migration management (no auth required). `GET api/migration/applied` — lists all applied migrations as JSON. `GET api/migration/pending` — lists pending migrations. `POST api/migration/apply` — applies all pending migrations to the database. |
-| `CountyLookupController` | Public/Mixed | ZIP-based county code lookup and configuration. `POST api/county-lookup/getCountycodeList` — accepts `ZipCodeRequest`, returns `CountyCodeEntry[]` (county codes, names, state codes for a ZIP). `GET api/county-lookup/config/google-places-key` — returns the Google Places API key. `GET api/county-lookup/constants/magi-tiers` — accepts `filingStatus` and `coverageYear` query params, returns MAGI tier options from the Financial Planner constants API. |
+| `CountyLookupController` | Public/Mixed | ZIP-based county code lookup and configuration. `POST api/county-lookup/getCountycodeList` — accepts `ZipCodeRequest`, returns `CountyCodeEntry[]` (county codes, names, state codes for a ZIP). `GET api/county-lookup/constants/magi-tiers` — accepts `filingStatus` and `coverageYear` query params, returns MAGI tier options from the Financial Planner constants API. |
 | `FinancialPlannerDrugController` | `[Authorize]` | `POST api/FinancialPlannerDrug/search` — searches a single drug via Financial Planner `drugSearch` API, matches by `displayName`, fetches detail via `getDrugDetailAdvance`. `POST api/FinancialPlannerDrug/search-bulk` — accepts `BulkDrugSearchInput` with `List<string> DrugNames`, searches each drug, matches, fetches details, and if >1 drug calls AI to evaluate pairwise interactions and duplicate therapies. Returns `BulkDrugSearchResponse`. `POST api/FinancialPlannerDrug/detail` — fetches drug detail by rxcui. |
-| `ChatIntentController` | `[Authorize]` | Routes at `api/chat`. 5 endpoints: `POST intent` — accepts `ChatIntentRequest` (message + isProfileComplete + **currentPage?**), delegates to `ChatIntentService`, returns `ChatIntentResponse` (intent, params, confirmationMessage). Supports 20 intents including 3 LTC intents (`NAVIGATE_LTC_CARE_TYPE`, `LTC_CARE_INPUT`, `ACTION_RUN_LTC_PROJECTION`) with 4 LTC params (`LtcHealthProfile`, `LtcAdultDayYears`, `LtcHomeCareYears`, `LtcNursingCareYears`). `POST extract-profile` — accepts `ProfileExtractRequest` (message + missingFields), delegates to `ProfileExtractService`, returns extracted profile fields + reply. `POST extract-drug-selection` — accepts `DrugSelectionExtractRequest` (message + availableDrugs), delegates to `DrugSelectionExtractService`, returns drug formulation extraction (drugName, type, dosageForm, strength, quantity, action, reply). `POST extract-pharmacy-selection` — accepts `PharmacySelectionExtractRequest` (message + availablePharmacies + selectedPharmacies), delegates to `PharmacySelectionExtractService`, returns pharmacy selection extraction (pharmacyName, action, searchTerm, reply). `POST extract-plan-selection` — accepts `PlanSelectionExtractRequest` (message + availablePlans + selectedPlans), delegates to `PlanSelectionExtractService`, returns plan selection extraction (planName, planType, action, section, reply). |
-| `ChatSessionController` | `[Authorize]` | Routes at `api/chat/session` for phase-1 Mongo chat persistence. `GET` returns session (`messages`, `uiState.editMode`), `PATCH messages` updates transcript, `PATCH ui-state` updates persisted UI flags. |
-| `ChatOrchestratorController` | `[Authorize]` | `POST api/chat/orchestrate` — accepts `OrchestratorRequest` (message, currentPage?), delegates to `ChatOrchestratorService.ProcessMessageAsync()`, returns `OrchestratorResponse`. Core AI chatbot endpoint — routes through FSM multi-turn states and 19-intent classification. |
+| `ChatIntentController` | `[Authorize]` | Routes at `api/chat`. 5 endpoints: `POST intent` — accepts `ChatIntentRequest` (message + isProfileComplete + **currentPage?**), delegates to `ChatIntentService`, returns `ChatIntentResponse` (intent, params, confirmationMessage). `POST extract-profile` — accepts `ProfileExtractRequest` (message + missingFields), delegates to `ProfileExtractService`, returns extracted profile fields + reply. `POST extract-drug-selection` — accepts `DrugSelectionExtractRequest` (message + availableDrugs), delegates to `DrugSelectionExtractService`, returns drug formulation extraction (drugName, type, dosageForm, strength, quantity, action, reply). `POST extract-pharmacy-selection` — accepts `PharmacySelectionExtractRequest` (message + availablePharmacies + selectedPharmacies), delegates to `PharmacySelectionExtractService`, returns pharmacy selection extraction (pharmacyName, action, searchTerm, reply). `POST extract-plan-selection` — accepts `PlanSelectionExtractRequest` (message + availablePlans + selectedPlans), delegates to `PlanSelectionExtractService`, returns plan selection extraction (planName, planType, action, section, reply). |
+| `ChatSessionController` | `[Authorize]` | Routes at `api/chat/session` for phase-1 Mongo chat persistence. `POST start-new` starts a new session. |
 | `RecommendationController` | `[Authorize]` | Routes at `api/recommendation`. `GET` — returns active recommendation for user. `GET {id}` — returns recommendation by ID. `GET all` — list all recommendations (summary response with drug/plan counts, cost totals). `POST` — creates new recommendation (`CreateRecommendationRequest` with profile, drugs, pharmacy, plans, costSnapshot; `?force=true` replaces existing). `PUT profile` — updates profile snapshot. `PUT drugs` — replaces drug list. `PUT pharmacy` — updates pharmacy + mail order. `PUT plans` — replaces plan selections. `PUT cost-snapshot` — saves cost projection snapshot. `DELETE` — removes active recommendation. |
 | `LongTermCareController` | `[Authorize]` | Routes at `api/long-term-care`. `POST` — accepts `LongTermCareRequest` (age, pvAsOfYear, lifeExpectancy, healthProfile, location, zipcode, tobacco, care years, gender, alzheimers/heartStroke flags), delegates to `ILongTermCareService.GetProjectionAsync()`, returns `LongTermCareResponse` (year-by-year LTC expense breakdowns and present-value totals). |
 | `LtcSelectionsController` | `[Authorize]` | Routes at `api/ltc`. `PUT current` — accepts `SaveLtcCurrentRequest` (healthProfile, care-type year counts, ltcResultJson), upserts `LtcCurrentSelectionsDocument` in MongoDB. `GET current` — returns `LtcCurrentResponse` (care-type selections + last projection result). |
@@ -66,13 +65,13 @@ Application and Infrastructure both depend on Domain for shared models and inter
 Configured for `localhost:4200` (dev) and `169.61.105.110:9600` (production). `AllowCredentials()` is required for the SignalR WebSocket handshake and must be combined with explicit `WithOrigins(...)` (not `AllowAnyOrigin`).
 
 ### DI Registration
-`builder.Services.AddSignalR()` registers the SignalR runtime (no extra NuGet package — included in `Microsoft.AspNetCore`). `ChatHub` is mapped via `app.MapHub<ChatHub>("/hubs/chat")` after `app.MapControllers()`. `PromptBuilder` (singleton), `IDrugAiService`/`DrugAiService` (scoped), `DrugAnalysisService` (scoped), **`IDrugAnalysisStep` pipeline steps** (4x scoped: `AiAnalysisStep`, `DrugValidationStep`, `CmsRxNormEnrichmentStep`, `InteractionMergingStep`), `IChatClient` (via config-driven `"AiProvider"` switch: `"Anthropic"` → `AnthropicMeaiChatClient` via `AddHttpClient`, `"OpenAI"` → OpenAI SDK via `AddChatClient`), `IMedicareCostService`/`CmsMedicareCostService` (via `AddHttpClient`), `IRxNormService`/`RxNormService` (via `AddHttpClient`), `IPharmacyPricingService`/`CmsPharmacyPricingService` (via `AddHttpClient`, 15s timeout), `IMemoryCache` (via `AddMemoryCache`), `IProfileRepository`/`ProfileRepository` (scoped), `ProfileService` (scoped), `PrescriptionService` (scoped), `ICountyLookupService`/`CountyLookupService` (via `AddHttpClient`), `IConstantsService`/`FinancialPlannerConstantsService` (via `AddHttpClient`), `IPlanScoringAiService`/`PlanScoringAiService` (scoped), `ICmsPlanDataService`/`CmsPlanDataService` (via `AddHttpClient`, 10s timeout), `MedicarePlanService` (scoped), `IPlanPharmacyService`/`PlanPharmacyService` (scoped), `IIndividualMedicareService`/`IndividualMedicareService` (via `AddHttpClient`, 30s timeout), `ICostEvaluationAiService`/`CostEvaluationAiService` (scoped), `CostProjectionService` (scoped), `IPharmacyLookupService`/`FinancialPlannerPharmacyService` (via `AddHttpClient`, 15s timeout), `IFinancialPlannerDrugService`/`FinancialPlannerDrugService` (via `AddHttpClient`, 15s timeout), `ChatIntentService` (scoped — AI-powered chat intent classification).
+`builder.Services.AddSignalR()` registers the SignalR runtime (no extra NuGet package — included in `Microsoft.AspNetCore`). `ChatHub` is mapped via `app.MapHub<ChatHub>("/hubs/chat")` after `app.MapControllers()`. `PromptBuilder` (singleton), `IDrugAiService`/`DrugAiService` (scoped), `IChatClient` (via config-driven `"AiProvider"` switch: `"Anthropic"` → `AnthropicMeaiChatClient` via `AddHttpClient`, `"Gemini"` → `GeminiChatClient` via `AddHttpClient`, `"OpenAI"` → OpenAI SDK via `AddChatClient`), `IMedicareCostService`/`CmsMedicareCostService` (via `AddHttpClient`), `IFdaNdcService`/`FdaNdcService` (via `AddHttpClient`), `IMemoryCache` (via `AddMemoryCache`), `IProfileRepository`/`ProfileRepository` (scoped), `ProfileService` (scoped), `PrescriptionService` (scoped), `ICountyLookupService`/`CountyLookupService` (via `AddHttpClient`), `IConstantsService`/`FinancialPlannerConstantsService` (via `AddHttpClient`), `IPlanScoringAiService`/`PlanScoringAiService` (scoped), `ICmsPlanDataService`/`CmsPlanDataService` (via `AddHttpClient`, 10s timeout), `IIndividualMedicareService`/`IndividualMedicareService` (via `AddHttpClient`, 30s timeout), `ICostEvaluationAiService`/`CostEvaluationAiService` (scoped), `ILtcEvaluationAiService`/`LtcEvaluationAiService` (scoped), `CostProjectionService` (scoped), `IPharmacyLookupService`/`FinancialPlannerPharmacyService` (via `AddHttpClient`, 15s timeout), `IFinancialPlannerDrugService`/`FinancialPlannerDrugService` (via `AddHttpClient`, 15s timeout), `ChatIntentService` (scoped — AI-powered chat intent classification), `IEmailService`/`EmailService` (scoped).
 
-### DI Registration (continued — new services)
-`ILongTermCareService`/`LongTermCareService` (via `AddHttpClient`, 30s timeout), `IPresentValueService`/`PresentValueService` (via `AddHttpClient`, 30s timeout), `IMedicareAdvantagePlanService`/`MedicareAdvantagePlanService` (via `AddHttpClient`), `IMedigapPlanQuotesService`/`MedigapPlanQuotesService` (via `AddHttpClient`), `IPartDPlanRecommendationService`/`PartDPlanRecommendationService` (via `AddHttpClient`), `RecommendationService` (scoped), `ConvStateService` (scoped), `OrchestratorIntentService` (scoped), `ChatOrchestratorService` (scoped), `DeltaCalculationService` (scoped).
+### DI Registration (continued — Financial Planner services)
+`ILongTermCareService`/`LongTermCareService` (via `AddHttpClient`, 30s timeout), `IPresentValueService`/`PresentValueService` (via `AddHttpClient`, 30s timeout), `IMedicareAdvantagePlanService`/`MedicareAdvantagePlanService` (via `AddHttpClient`), `IMedigapPlanQuotesService`/`MedigapPlanQuotesService` (via `AddHttpClient`), `IPartDPlanRecommendationService`/`PartDPlanRecommendationService` (via `AddHttpClient`), `RecommendationService` (scoped).
 
 ### MongoDB DI Registration
-`IMongoClient` (singleton via `MongoClient`), `IMongoDatabase` (singleton), `MongoDbContext` (singleton — typed collection accessor with index creation on startup), `IPrescriptionDocRepository`/`PrescriptionDocRepository` (scoped), `IChatSessionRepository`/`ChatSessionRepository` (scoped), `IUserAnalysisSelectionsRepository`/`UserAnalysisSelectionsRepository` (scoped), `IRecommendationRepository`/`RecommendationRepository` (scoped), `IConvStateRepository`/`ConvStateRepository` (scoped), `ILtcSelectionsRepository`/`LtcSelectionsRepository` (scoped).
+`IMongoClient` (singleton via `MongoClient`), `IMongoDatabase` (singleton), `MongoDbContext` (singleton — typed collection accessor with index creation on startup), `IPrescriptionDocRepository`/`PrescriptionDocRepository` (scoped), `IChatSessionRepository`/`ChatSessionRepository` (scoped), `IUserAnalysisSelectionsRepository`/`UserAnalysisSelectionsRepository` (scoped), `IRecommendationRepository`/`RecommendationRepository` (scoped), `ILtcSelectionsRepository`/`LtcSelectionsRepository` (scoped).
 
 ---
 
@@ -93,6 +92,7 @@ Configured for `localhost:4200` (dev) and `169.61.105.110:9600` (production). `A
 | `Models/CostProjection.cs` | `CostProjectionResult` (combined financial planner + AI evaluation — yearlyDetails, lifetimeTotals, evaluation, presentValue from FP Present Value API), `LifetimeTotals` (lifetime AB/MA expenses/premium/OOP, surcharges, totalIrmaa, lifeTimeConciergePremium, supplementPlanType, supplementPlanPremium, conciergeIncluded, plan-specific lifetime fields: lifeTimeABGD/ABFD/ABND/ABCDExpenses/Premium/Oop), `CostEvaluation` (AI-generated — planName, planBundleCode, lifetimeSummary, costTrajectory, trajectoryExplanation, yearlyHighlights, categories, savingsTips, overallAssessment), `LifetimeSummary` (totalPremiums, totalOutOfPocket, totalCombined, projectionYears, averageAnnualCost), `YearlyHighlight` (year, totalCost, flag, explanation), `CostCategory` (name, lifetimeTotal, percentOfTotal, trend, insight), `SavingsTip` (title, description, estimatedSavings, priority) |
 | `Models/FinancialPlannerDrug.cs` | `DrugSearchRequest`, `DrugSearchResponse` (webServiceTransactionId, webServiceStatus, drugName, drugList), `DrugListItem` (rxcui, displayName, prescription), `DrugDetailRequest`, `DrugDetailResponse` (rxcui, drugDetailAdvanceList), `DrugDetailAdvanceItem` (drugName, rxcui, genericDrugName, genericRxcui, newDoseForm, rxnDoseForm, strength, brandName, prescription, drugType — computed: "Generic" if brandName empty, else "Branded"), `DrugSearchResult` (drugName, search, matchedDrug, detail), `BulkDrugSearchResponse` (results, interactions, duplicateTherapies), `DrugInteractionAnalysis` (interactions, duplicateTherapies) |
 | `Models/LongTermCare.cs` | `LongTermCareRequest` (age, pvAsOfYear, lifeExpectancy, transactionTypeFlag, healthProfile, location, zipcode, tobacco, currentLifeStyleExpenses, care-year counts, gender, alzheimersFlag, heartStorkeFlag), `LongTermCareResponse` (full LTC API response — region, county code, per-care-type totals, present values, year-by-year `LtcExpenseEntry` lists for adult day health, home care, assisted care, nursing care), `LtcExpenseEntry` (year + expense) |
+| `Models/LtcCostEvaluation.cs` | AI-generated LTC cost evaluation models |
 | `Models/MedicareAdvantagePlan.cs` | `MedicareAdvantagePlanRequest` (same shape as `PartDPlanRecommendationRequest` with `MedicareAdvantage: true` flag, paginated filters: `StarRatingFilter?, PrescriptionCoverageFilter?, ContractIdFilter?, MailOrderPharmacy`) |
 | `Models/MedigapPlanQuotes.cs` | `MedigapPlanQuotesRequest` (zip5, gender, tobacco, birthDate MM-YYYY, plan type, county, taxFilingStatus, magiTier, healthProfile, coverageYear, versionId?), `MedigapPlanQuotesResponse` (contractIdCarrierMap, deductible, planList), `MedigapPlanQuote` (key, age, companyBase, contextualData, discounts, eAppLink, effectiveDate, expiresDate, fees, gender, rate, rateIncreases, rateType, plan), with nested `MedigapCompanyBase`, `MedigapContextualData`, `MedigapRate`, `MedigapDiscount`, `MedigapFee`, `MedigapRateIncrease` |
 | `Models/PartDPlanRecommendation.cs` | `PartDPlanRecommendationRequest` (userId, sortRecommendations, `CountyCodeModel`, prescriptions `List<PrescriptionInput>`, beneficiaryCostDataRequired, pharmacyNetworkDataRequired, pharmacies `List<PharmacyInput>`, planRecommendName/Email, drugListingName, recommendationListId, taxFilingStatus, magiTier, healthGrade, birthDate, fullYearOOPCost, coverageYear, includePlanExpensesFullYear, pagination, `StarRatingFilter?`, filters, `MailOrderPharmacy`), `CountyCodeModel` (zipcode, state, stateCode, city, lat/lng, countyCode, countyName), `PrescriptionInput` (rxcui, refillDuration, prescriptionCount, ndc), `PharmacyInput` (pharmacyNumber, pharmacyName, latitude, longitude). **Response types:** `PartDPlanRecommendationResponse` (response-level `ContractIdCarrierMap`, `PartDPremiumSurcharge`, `PartBPremiumSurcharge`, `MonthsUsedForExpenseCalc`, pagination, `RecommendationList`), `RecommendationListItem` (contractId, planId, segmentId, `PharmacyWiseRecommendations[]`), `PharmacyWiseRecommendation` (premium, deductible, totalPlanCost, totalPrescriptionCost, starRating, `PrescriptionDrugCovered`, `PartAandBBenefitServiceCost`, `UnavailableDrugs[]`, `PharmacyNetworks[]`), `PharmacyNetwork` (pharmacyNumber, pharmacyName, pharmacyNetworkType, distance) |
@@ -101,12 +101,11 @@ Configured for `localhost:4200` (dev) and `169.61.105.110:9600` (production). `A
 
 | File | Key Types |
 |------|-----------|
-| `Documents/RecommendationDocument.cs` | `RecommendationDocument` (root — userId, name, status, profile snapshot, planSelections, drugList, pharmacy, mailOrderPharmacy, lastCostSnapshot, timestamps), `ProfileSnapshot` (full profile mirror: name, DOB, gender, zip, county, state, city, address, coverage year, health, LIS), `SelectedDrugDoc`, `SelectedPlanDoc` (+deductible, starRating, totalPrescriptionCost, totalPlanCost, prescriptionDrugCovered, unavailableDrugs[], planExpenses[]), `SelectedPharmacyDoc`, `MailOrderPharmacyDoc`, `CostSnapshotDoc` (+supplementPlanType, supplementPlanPremium, yearlyDetails[], evaluation), `YearlyDetailDoc` (20 per-year financial fields including planG/F/NPremium, totalABGD/ABFD/ABND/ABCD), `CostEvaluationDoc`, `LifetimeSummaryDoc`, `YearlyHighlightDoc`, `CostCategoryDoc`, `SavingsTipDoc`, `PlanExpenseDoc` |
-| `Documents/ConvStateDocument.cs` | `ConvStateDocument` (userId, `ConversationState` enum: Idle/AwaitingConfirmation/AwaitingDeletePhrase/CollectingProfile/CollectingDrugs/CollectingPharmacy/CollectingPlans/Processing, activeIntent, awaitingConfirmationFor, pendingChanges `BsonDocument`, collectedFields `BsonDocument`, TTL expiresAt) |
-| `Documents/LtcCurrentSelectionsDocument.cs` | `LtcCurrentSelectionsDocument` (userId, name, healthProfile, numberOfAdultDayHealthCareYears, numberOfHomeCareYears, numberOfNursingCareYears, ltcResultJson, createdAt, updatedAt) — one document per user in collection `ltcCurrentSelections` |
-| `Documents/UserAnalysisSelectionsDocument.cs` | `UserAnalysisSelectionsDocument` (userId, name, drugs `List<PrescriptionDrugDoc>`, activeSection, selectedPharmacies `List<UserAnalysisPharmacyDoc>`, selectedPlans `List<UserAnalysisPlanDoc>`, createdAt, updatedAt) — one logical row per user in collection `userAnalysisSelections`. `UserAnalysisPharmacyDoc` (pharmacyNumber, name, address, distance, zipcode). `UserAnalysisPlanDoc` (slot, planId, planName, contractId, medigapKey?, medigapPlanType?) |
-| `Documents/PrescriptionDocument.cs` | Named prescriptions with embedded drug list |
 | `Documents/ChatSessionDocument.cs` | Chat session messages + UI state |
+| `Documents/LtcCurrentSelectionsDocument.cs` | `LtcCurrentSelectionsDocument` (userId, name, healthProfile, numberOfAdultDayHealthCareYears, numberOfHomeCareYears, numberOfNursingCareYears, ltcResultJson, createdAt, updatedAt) — one document per user in collection `ltcCurrentSelections` |
+| `Documents/PrescriptionDocument.cs` | Named prescriptions with embedded drug list |
+| `Documents/RecommendationDocument.cs` | `RecommendationDocument` (root — userId, name, status, profile snapshot, planSelections, drugList, pharmacy, mailOrderPharmacy, lastCostSnapshot, timestamps), `ProfileSnapshot` (full profile mirror: name, DOB, gender, zip, county, state, city, address, coverage year, health, LIS), `SelectedDrugDoc`, `SelectedPlanDoc` (+deductible, starRating, totalPrescriptionCost, totalPlanCost, prescriptionDrugCovered, unavailableDrugs[], planExpenses[]), `SelectedPharmacyDoc`, `MailOrderPharmacyDoc`, `CostSnapshotDoc` (+supplementPlanType, supplementPlanPremium, yearlyDetails[], evaluation), `YearlyDetailDoc` (20 per-year financial fields including planG/F/NPremium, totalABGD/ABFD/ABND/ABCD), `CostEvaluationDoc`, `LifetimeSummaryDoc`, `YearlyHighlightDoc`, `CostCategoryDoc`, `SavingsTipDoc`, `PlanExpenseDoc` |
+| `Documents/UserAnalysisSelectionsDocument.cs` | `UserAnalysisSelectionsDocument` (userId, name, drugs `List<PrescriptionDrugDoc>`, activeSection, selectedPharmacies `List<UserAnalysisPharmacyDoc>`, selectedPlans `List<UserAnalysisPlanDoc>`, createdAt, updatedAt) — one logical row per user in collection `userAnalysisSelections`. `UserAnalysisPharmacyDoc` (pharmacyNumber, name, address, distance, zipcode). `UserAnalysisPlanDoc` (slot, planId, planName, contractId, medigapKey?, medigapPlanType?) |
 
 ### Exceptions (`Exceptions/AppExceptions.cs`)
 
@@ -128,47 +127,34 @@ Configured for `localhost:4200` (dev) and `169.61.105.110:9600` (production). `A
 - `IFdaNdcService` — FDA NDC Directory package info contract (`GetPackageInfo`, `GetPackageInfoBatch`).
 - `IPharmacyPricingService` — pharmacy search + pricing contract.
 - `IPharmacyLookupService` — Financial Planner pharmacy lookup contract (`GetPharmaciesAsync`). Request/response models co-located: `PharmacyLookupRequest`, `PharmacyLookupResponse`, `PharmacyLookupEntry`.
-- `IChatClient` — M.E.AI standard chat client interface. Single provider registered via `"AiProvider"` config switch (`"Anthropic"` or `"OpenAI"`).
+- `IChatClient` — M.E.AI standard chat client interface. Single provider registered via `"AiProvider"` config switch (`"Anthropic"`, `"Gemini"`, or `"OpenAI"`).
 - `ICountyLookupService` — ZIP-to-county lookup, county name, state code, county code list.
 - `IConstantsService` — Financial Planner constants API (MAGI tiers, filing statuses, etc.).
-- `IMedicarePlanService` — Medicare plan recommendation contract.
-- `IFipsLookupService` — synchronous ZIP-to-county-FIPS lookup (legacy, replaced by `ICountyLookupService`).
 - `IPlanScoringAiService` — AI plan scoring contract.
-- `ICmsPlanDataService` — CMS open data plan lookups (Phase 2).
-- `IPlanPharmacyService` — plan-aware pharmacy search (Phase 3).
+- `ICmsPlanDataService` — CMS open data plan lookups.
 - `IIndividualMedicareService` — Financial Planner individualMedicareR5 API contract (`CalculateAsync`).
 - `IFinancialPlannerDrugService` — Financial Planner drug search contract (`SearchBulkAsync`). Internally calls `SearchAndMatchAsync` per drug (search + match by displayName + detail), then AI pairwise interaction evaluation if >1 drug.
 - `ICostEvaluationAiService` — AI cost evaluation contract. `EvaluateAsync()` takes `IndividualMedicareResponse` + plan/profile context + `supplementPlanType` + `supplementPlanPremium`, returns `CostEvaluation` with chart-ready insights, category breakdowns, savings tips, and trajectory.
+- `ILtcEvaluationAiService` — AI LTC cost evaluation contract.
+- `IEmailService` — Email delivery service contract.
 - `IPrescriptionDocRepository` — MongoDB: save/get/list/delete prescription documents.
+- `IChatSessionRepository` — MongoDB: chat session CRUD.
 - `IRecommendationRepository` — MongoDB: recommendation CRUD including `GetAllByUserIdAsync` (sorted by CreatedAt descending), `ExistsByUserIdAsync`, `DeleteByUserIdAsync`.
 - `IUserAnalysisSelectionsRepository` — MongoDB: per-user current analysis selections (`ReplaceCurrentForUserAsync`, `GetCurrentForUserAsync`, `UpdateDrugsAsync`, `UpdatePharmaciesAsync`, `UpdatePlansAsync`).
-- `IConvStateRepository` — MongoDB: FSM conversation state per user (`GetByUserIdAsync`, `UpsertAsync`, `DeleteByUserIdAsync`).
+- `ILtcSelectionsRepository` — MongoDB: LTC care-type selections CRUD.
 - `ILongTermCareService` — LTC cost projection contract (`GetProjectionAsync(request, userEmail, ct)`).
 - `IMedicareAdvantagePlanService` — MA plan recommendation contract (`RecommendAsync(request, ct)`).
 - `IMedigapPlanQuotesService` — Medigap plan quotes contract (`GetQuotesAsync(request, ct)`).
 - `IPartDPlanRecommendationService` — Part D plan recommendation contract (`RecommendAsync(request, ct)`).
+- `IPresentValueService` — Financial Planner expensesPresentValue API contract (`CalculateAsync`).
 
 ---
 
 ## Application Layer (`AI.MedicareAssistant.Application`)
 
-### DrugAnalysisService — Pipeline Orchestrator
-Thin orchestrator. Injects `IEnumerable<IDrugAnalysisStep>` and `ILogger<DrugAnalysisService>`. Iterates steps ordered by `IDrugAnalysisStep.Order` — stops early if any step returns `false` (short-circuit). Logs pipeline start, short-circuit step name, and completion summary.
+### Application Services
 
-### Drug Analysis Pipeline (`Services/Pipeline/`)
-
-| Step | Order | Class | Responsibility |
-|------|-------|-------|----------------|
-| 1 | 1 | `AiAnalysisStep` | Calls `IDrugAiService.AnalyzePrescription()`, deserializes AI JSON into `DrugAnalysisResult` |
-| 2 | 2 | `DrugValidationStep` | Filters invalid drug entries. Populates flat arrays (`Strengths`, `Packaging`, `NdcCodes`, `DosageForms`) from `Formulations[]` for backward compatibility with downstream steps. Returns `false` to short-circuit if zero valid drugs remain |
-| 3 | 3 | `CmsRxNormEnrichmentStep` | Parallel CMS + RxNorm enrichment per drug via `Task.WhenAll`. Resolves NDC codes from RxNorm, then calls `IFdaNdcService.GetPackageInfoBatch()` to match NDCs to formulations by package description (size + container type scoring). Falls back to index-based assignment if FDA API unavailable |
-| 4 | 4 | `InteractionMergingStep` | Merges RxNorm-validated interactions with AI-identified ones (deduplicates by drug pair) |
-
-> **Note:** `PharmacyPricingStep` exists in the codebase but is **not registered in the DI pipeline**. Pharmacy pricing is fetched on-demand via the standalone `GET /api/pharmacy/search` endpoint.
-
-**Interface:** `IDrugAnalysisStep` — `int Order` (execution priority) + `Task<bool> ExecuteAsync(DrugAnalysisResult, AnalysisContext)`. Returns `false` to short-circuit.
-
-**`AnalysisContext`** — immutable record: `Prescription` (string) + `ZipCode` (string?).
+The Application layer contains service orchestrators that coordinate domain interfaces and infrastructure calls:
 
 ### Other Application Services
 
@@ -211,12 +197,11 @@ Thin orchestrator. Injects `IEnumerable<IDrugAnalysisStep>` and `ILogger<DrugAna
 | Service | Interface | External API | Caching | Graceful Degradation |
 |---------|-----------|-------------|---------|---------------------|
 | `CmsMedicareCostService` | `IMedicareCostService` | CMS SOCRATA (`data.cms.gov`) | None | Returns `null` on timeout/error |
-| `RxNormService` | `IRxNormService` | NIH RxNorm REST API | None | Returns null/empty on failure. `GetNdcsByRxCui()` calls `/rxcui/{id}/ndcs.json` — provides NDC list (no packaging detail) |
-| `FdaNdcService` | `IFdaNdcService` | openFDA NDC Directory | 7 days (per NDC) | Returns null on failure. Resolves package descriptions (size + type) for each NDC. Used by enrichment step for package-accurate matching |
-| `CmsPharmacyPricingService` | `IPharmacyPricingService` | NPI Registry + IChatClient AI pricing | NPI: 7 days, AI pricing: 30 days | Builds prompts via `PromptBuilder.BuildPharmacyPricing()` (system + task + schema + template). Fallback chain: AI prices → ParsePriceString → null ("—") |
+| `RxNormService` | `IRxNormService` | NIH RxNorm REST API | None | Returns null/empty on failure. `GetNdcsByRxCui()` calls `/rxcui/{id}/ndcs.json` — provides NDC list (no packaging detail). **Note: RxNorm directory is currently empty; service may have been removed.** |
+| `FdaNdcService` | `IFdaNdcService` | openFDA NDC Directory | 7 days (per NDC) | Returns null on failure. Resolves package descriptions (size + type) for each NDC. |
 | `FinancialPlannerPharmacyService` | `IPharmacyLookupService` | Financial Planner (`getPharmacies`) | None | Fetches paginated pharmacies by lat/lng from Financial Planner API. Basic auth token from config. Returns `PharmacyLookupResponse` with pharmacy name, number, address, distance, zipcode. 15s timeout. |
 | `CmsPlanDataService` | `ICmsPlanDataService` | CMS SOCRATA (Phase 2) | 7 days per state+county | Returns empty list on failure |
-| `FipsLookupService` | `IFipsLookupService` | None (static in-memory) | Singleton | Tries `Data/zip-fips.csv`, falls back to ~400+ built-in ZIPs |
+| `FipsLookupService` | `IFipsLookupService` | None (static in-memory) | Singleton | Tries `Data/zip-fips.csv`, falls back to ~400+ built-in ZIPs. **Note: Legacy service; may have been superseded by CountyLookupService.** |
 | `CountyLookupService` | `ICountyLookupService` | Financial Planner API | 1 hour per ZIP | Fetches county code, name, state code via Financial Planner API. Used for county-based plan lookups |
 | `FinancialPlannerConstantsService` | `IConstantsService` | Financial Planner API | In-memory cache | Fetches MAGI tiers, filing statuses, and other constants from Financial Planner constants API |
 | `IndividualMedicareService` | `IIndividualMedicareService` | Financial Planner (`individualMedicareR5`) | None | Computes lifetime Medicare cost projections. Posts `IndividualMedicareRequest` to external API, returns year-by-year breakdown. Basic auth token from config. 30s timeout. |
@@ -235,12 +220,11 @@ Thin orchestrator. Injects `IEnumerable<IDrugAnalysisStep>` and `ILogger<DrugAna
 | `UserRepository` | User-specific queries. No eager loading. |
 | `AppDbContext` | EF Core DbContext (MySQL) with entity configurations. |
 | `AppDbContextFactory` | Design-time factory for migration generation. |
-| `MongoDbContext` | MongoDB typed collection accessor. Provides `Prescriptions`, `ChatSessions`, `UserAnalysisSelections`, `Recommendations`, `ConvStates`, `LtcCurrentSelections` collections. Creates compound indexes at startup. |
+| `MongoDbContext` | MongoDB typed collection accessor. Provides `Prescriptions`, `ChatSessions`, `UserAnalysisSelections`, `Recommendations`, `LtcCurrentSelections` collections. Creates compound indexes at startup. |
 | `PrescriptionDocRepository` | MongoDB: prescription CRUD (save, list by user, get by ID, delete). |
 | `ChatSessionRepository` | MongoDB: chat session persistence (get/upsert by userId). |
 | `UserAnalysisSelectionsRepository` | MongoDB: per-user current analysis selections — drugs/pharmacies/plans partial updates. |
 | `RecommendationRepository` | MongoDB: recommendation CRUD (get by user, get all by user sorted by CreatedAt desc, get by ID, create, replace, delete). Unique userId compound index. |
-| `ConvStateRepository` | MongoDB: FSM conversation state (get/upsert/delete by userId). Unique userId index + TTL index on `expiresAt`. |
 | `LtcSelectionsRepository` | MongoDB: LTC care-type selections (get/upsert by userId). |
 
 ### Utilities
@@ -248,83 +232,3 @@ Thin orchestrator. Injects `IEnumerable<IDrugAnalysisStep>` and `ILogger<DrugAna
 
 ---
 
-## Chatbot Orchestrator Layer
-
-The orchestrator layer manages the full lifecycle of a Medicare recommendation through a conversational interface. It uses a finite state machine (FSM) to route messages, a 19-intent classifier for natural language understanding, and a delta engine for cost impact previews.
-
-### MongoDB Document Models
-
-| Document | Collection | Key Fields |
-|----------|-----------|------------|
-| `RecommendationDocument` | `recommendations` | userId (unique index), `ProfileSnapshot`, `List<SelectedDrugDoc>`, `List<SelectedPlanDoc>`, `SelectedPharmacyDoc`, `MailOrderPharmacyDoc`, `CostSnapshotDoc` |
-| `ConvStateDocument` | `conv_states` | userId (unique + TTL index), `ConversationState` enum, `BsonDocument PendingChanges`, `BsonDocument CollectedFields`, `AwaitingConfirmationFor` |
-| `ChatSessionDocument` | `chat_sessions` | one active doc per user; `messages[]` (`role`, `content`, `timestamp`), `uiState.editMode`, `createdAt`, `updatedAt` |
-
-**ConversationState enum:** `Idle`, `CollectingProfile`, `CollectingDrugs`, `CollectingPharmacy`, `CollectingPlans`, `AwaitingConfirmation`, `AwaitingDeletePhrase`, `ShowingComparison`, `ShowingProjections`, `WhatIfMode`
-
-### MongoDB Repositories
-
-| Repository | Interface | Methods |
-|-----------|-----------|---------|
-| `RecommendationRepository` | `IRecommendationRepository` | `GetByUserIdAsync`, `GetAllByUserIdAsync` (sorted by CreatedAt desc), `CreateAsync`, `ReplaceAsync`, `ExistsByUserIdAsync`, `DeleteByUserIdAsync` |
-| `ConvStateRepository` | `IConvStateRepository` | `GetByUserIdAsync`, `UpsertAsync`, `DeleteByUserIdAsync` |
-| `ChatSessionRepository` | `IChatSessionRepository` | `GetByUserIdAsync`, `UpsertAsync` |
-
-Both registered in `MongoDbContext` with unique indexes on `userId`. ConvStates has a 30-minute TTL via `expiresAt`.
-
-### Orchestrator Services
-
-| Service | Responsibility |
-|---------|---------------|
-| `RecommendationService` | CRUD for recommendation documents — `GetActive`, `GetAllAsync` (returns all for user), `Exists`, `Create` (with force flag), `UpdateProfile`, `UpdateDrugs`, `UpdatePharmacy`, `UpdatePlans`, `UpdateCostSnapshot`, `Delete` |
-| `ConvStateService` | FSM state persistence — `GetOrCreate`, `UpdateState`, `SetPendingChange`, `SetCollectedField`, `ClearPending`, `Reset`. Auto-refreshes 30-min TTL on every operation. |
-| `OrchestratorIntentService` | 19-intent classifier via IChatClient + `orchestrator-intent-system.txt`. Returns `OrchestratorIntentResult { Intent, Params }`. Handles markdown fence stripping and JSON parse errors gracefully. |
-| `ChatOrchestratorService` | Core FSM router (~1,300 lines). `ProcessMessageAsync` checks FSM state priority: Confirmation → DeletePhrase → CollectingProfile/Drugs/Pharmacy/Plans → Intent classification → Handler dispatch. Contains 19 handler methods + multi-turn collection wizards + helper methods. Top-level try/catch for error resilience. |
-| `DeltaCalculationService` | Before/after cost comparisons — `ComputeAsync` (full recalculation via CostProjectionService), `BuildPreviewDelta` (lightweight from snapshot), AI narrative via `delta-narrative-system.txt`. `BuildSnapshotFromResult` uses plan-specific lifetime fields (ABGD for Plan G, ABFD for Plan F, etc.) based on `SupplementPlanType`, and stores real FP present value from `CostProjectionResult.PresentValue`. |
-
-### Orchestrator Controllers
-
-| Endpoint | Controller | Method |
-|----------|-----------|--------|
-| `POST /api/chat/orchestrate` | `ChatOrchestratorController` | Accepts `OrchestratorRequest { Message }`, extracts userId from JWT, calls `ProcessMessageAsync`, returns `OrchestratorResponse` |
-| `GET /api/recommendation` | `RecommendationController` | Get active recommendation |
-| `GET /api/recommendation/{id}` | `RecommendationController` | Get full recommendation by ID (for loading saved analyses into the wizard) |
-| `GET /api/recommendation/all` | `RecommendationController` | Get all saved recommendations for the user (returns `RecommendationSummaryResponse[]` with id, name, status, drugCount, planCount, hasCostSnapshot, lifetimeTotal, dates; sorted by CreatedAt desc) |
-| `POST /api/recommendation` | `RecommendationController` | Create recommendation (request includes expanded `CostSnapshotDto` with yearlyDetails + full evaluation, expanded `SelectedPlanDto` with deductible/starRating/totalPrescriptionCost/planExpenses/unavailableDrugs; supports `force` flag for overwrite) |
-| `PUT /api/recommendation/profile` | `RecommendationController` | Update profile snapshot |
-| `PUT /api/recommendation/drugs` | `RecommendationController` | Update drug list |
-| `PUT /api/recommendation/pharmacy` | `RecommendationController` | Update pharmacy selection |
-| `PUT /api/recommendation/plans` | `RecommendationController` | Update plan selections |
-| `DELETE /api/recommendation` | `RecommendationController` | Delete (requires `confirmed=true`) |
-
-### FSM Message Flow
-
-```
-User Message
-  │
-  ▼
-ProcessMessageAsync
-  │
-  ├── AwaitingConfirmation? → HandleConfirmation (yes/no → commit or cancel)
-  ├── AwaitingDeletePhrase? → HandleDeletePhrase (exact phrase match)
-  ├── CollectingProfile?    → ContinueProfileCollection (12-step wizard)
-  ├── CollectingDrugs?      → ContinueDrugCollection
-  ├── CollectingPharmacy?   → ContinuePharmacyCollection
-  ├── CollectingPlans?      → ContinuePlanCollection
-  └── Idle                  → OrchestratorIntentService.ClassifyAsync
-                                 │
-                                 ▼
-                            19-intent handler dispatch
-```
-
-### DI Registrations (Program.cs)
-
-All orchestrator services registered as **Scoped**:
-- `IRecommendationRepository` → `RecommendationRepository`
-- `IConvStateRepository` → `ConvStateRepository`
-- `IChatSessionRepository` → `ChatSessionRepository`
-- `RecommendationService`, `ConvStateService`, `OrchestratorIntentService`, `ChatOrchestratorService`, `DeltaCalculationService`
-
----
-
-← [Chapter 3 — Prompt Architecture](ch03-prompt-architecture.md) | [Table of Contents](APPLICATION_BLUEPRINT.md) | [Chapter 5 → Data & Authentication](ch05-data-and-auth.md)

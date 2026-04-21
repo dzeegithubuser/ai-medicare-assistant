@@ -312,7 +312,7 @@
 
 **Auth:** `[Authorize]` — JWT required.
 
-**Purpose:** Returns lightweight pharmacy location data (NPI Registry only, no pricing). Legacy endpoint — kept for backward compatibility. See `GET api/pharmacy/lookup` for the primary pharmacy lookup.
+**Purpose:** Returns lightweight pharmacy location data. Legacy endpoint — kept for backward compatibility. See `GET api/pharmacy/lookup` for the primary pharmacy lookup.
 
 **Query Parameters:** `zip` (optional) — falls back to user's saved address zip.
 

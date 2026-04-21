@@ -25,7 +25,7 @@
                (input)="nameFilter.set($any($event.target).value)"
                (keyup.enter)="applyFilters()"
                placeholder="e.g. CVS, Walgreens">
-        <mat-icon matPrefix class="!text-gray-400 !mr-1">search</mat-icon>
+        <mat-icon matPrefix class="!text-gray-600 !mr-1">search</mat-icon>
       </mat-form-field>
 
       <!-- Radius -->
@@ -79,12 +79,12 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-xs font-semibold text-gray-800 truncate">{{ pharmacy.pharmacyName }}</p>
-          <p class="text-[10px] text-gray-500 truncate">{{ pharmacy.address }} · {{ pharmacy.zipcode }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ pharmacy.address }} · {{ pharmacy.zipcode }}</p>
         </div>
         @if (pharmacy.distance) {
-          <span class="text-[10px] text-blue-500 whitespace-nowrap">{{ formatDistance(pharmacy.distance) }}</span>
+          <span class="text-xs text-blue-500 whitespace-nowrap">{{ formatDistance(pharmacy.distance) }}</span>
         }
-        <button class="text-gray-400 hover:text-red-500 transition-colors"
+        <button class="text-gray-600 hover:text-red-500 transition-colors"
                 (click)="state.toggleLookupPharmacy(pharmacy); $event.stopPropagation()"
                 matTooltip="Remove from selection">
           <mat-icon class="!text-base !w-4 !h-4">close</mat-icon>
@@ -113,9 +113,9 @@
         <p class="text-sm text-gray-600">
           {{ lookup.totalPharmacies }} pharmacies found
           @if (lookup.searchRadiusInMiles) {
-            <span class="text-gray-400">within {{ lookup.searchRadiusInMiles }} miles</span>
+            <span class="text-gray-600">within {{ lookup.searchRadiusInMiles }} miles</span>
           }
-          <span class="text-gray-400 ml-1">(page {{ lookup.page }}/{{ lookup.totalPages }})</span>
+          <span class="text-gray-600 ml-1">(page {{ lookup.page }}/{{ lookup.totalPages }})</span>
         </p>
       </div>
       <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
@@ -166,19 +166,19 @@
         </div>
 
         <!-- Address -->
-        <p class="text-[11px] text-gray-500 leading-snug mt-2">{{ pharmacy.address }}</p>
+        <p class="text-xs text-gray-500 leading-snug mt-2">{{ pharmacy.address }}</p>
 
         <!-- Meta: ID + Zip -->
         <div class="flex items-center gap-3 mt-1">
           @if (pharmacy.pharmacyNumber) {
-            <span class="text-[10px] text-gray-400">
-              <mat-icon class="!text-[10px] !w-3 !h-3 align-middle mr-0.5">tag</mat-icon>
+            <span class="text-xs text-gray-600">
+              <mat-icon class="!text-xs !w-3 !h-3 align-middle mr-0.5">tag</mat-icon>
               #{{ pharmacy.pharmacyNumber }}
             </span>
           }
           @if (pharmacy.zipcode) {
-            <span class="text-[10px] text-gray-400">
-              <mat-icon class="!text-[10px] !w-3 !h-3 align-middle mr-0.5">location_on</mat-icon>
+            <span class="text-xs text-gray-600">
+              <mat-icon class="!text-xs !w-3 !h-3 align-middle mr-0.5">location_on</mat-icon>
               {{ pharmacy.zipcode }}
             </span>
           }
@@ -186,7 +186,7 @@
 
         <!-- Map Actions -->
         <div class="flex gap-1.5 mt-auto pt-2.5">
-          <a class="flex-1 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-1 transition-colors text-[10px] font-medium text-blue-600"
+          <a class="flex-1 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-blue-600"
              [href]="getSpotOnMapUrl(pharmacy)"
              target="_blank"
              rel="noopener noreferrer"
@@ -195,7 +195,7 @@
             <mat-icon class="!text-sm !w-4 !h-4">place</mat-icon>
             Map
           </a>
-          <a class="flex-1 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center gap-1 transition-colors text-[10px] font-medium text-indigo-600"
+          <a class="flex-1 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-indigo-600"
              [href]="getDirectionsUrl(pharmacy)"
              target="_blank"
              rel="noopener noreferrer"
@@ -216,7 +216,7 @@
       <button mat-icon-button
               [disabled]="currentPage() <= 1"
               (click)="goToPage(currentPage() - 1)"
-              class="!w-8 !h-8"
+              class="!w-10 !h-10"
               matTooltip="Previous page">
         <mat-icon class="!text-base">chevron_left</mat-icon>
       </button>
@@ -224,7 +224,7 @@
       @for (p of getPageNumbers(); track p) {
         <button mat-icon-button
                 (click)="goToPage(p)"
-                class="!w-8 !h-8 !text-sm !font-medium !rounded-lg"
+                class="!w-10 !h-10 !text-sm !font-medium !rounded-lg"
                 [class.!bg-emerald-600]="p === currentPage()"
                 [class.!text-white]="p === currentPage()"
                 [class.!text-gray-600]="p !== currentPage()">
@@ -235,7 +235,7 @@
       <button mat-icon-button
               [disabled]="currentPage() >= lookup.totalPages"
               (click)="goToPage(currentPage() + 1)"
-              class="!w-8 !h-8"
+              class="!w-10 !h-10"
               matTooltip="Next page">
         <mat-icon class="!text-base">chevron_right</mat-icon>
       </button>
@@ -246,7 +246,7 @@
 
   <!-- Empty/Error State (no lookup loaded yet) -->
   @if (state.pharmacyLookup() === null && !state.isPharmacyLookupLoading()) {
-  <div class="flex flex-col items-center justify-center mt-20 text-gray-400">
+  <div class="flex flex-col items-center justify-center mt-20 text-gray-600">
     <mat-icon class="!text-7xl !w-20 !h-20 mb-4 opacity-40">local_pharmacy</mat-icon>
     <p class="text-lg font-medium">No pharmacies found</p>
     <p class="text-sm mt-1">Try adjusting your filters or increasing the search radius</p>

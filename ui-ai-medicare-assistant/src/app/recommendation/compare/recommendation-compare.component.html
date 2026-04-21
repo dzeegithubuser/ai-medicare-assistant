@@ -1,0 +1,150 @@
+<div class="h-full overflow-y-auto p-6 bg-slate-50">
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-5">
+    <button mat-icon-button (click)="goBack()" class="!-ml-2">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="flex-1">
+      <h1 class="text-xl font-bold text-gray-900">Compare Analyses</h1>
+      <p class="text-sm text-gray-500">Side-by-side recommendation comparison</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-14"><mat-spinner diameter="38"></mat-spinner></div>
+  } @else if (error()) {
+    <mat-card class="!rounded-xl">
+      <mat-card-content class="!py-8 text-center text-gray-600">
+        <mat-icon class="!text-5xl !w-14 !h-14 text-amber-500">error_outline</mat-icon>
+        <p class="mt-2">{{ error() }}</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (left(); as l) {
+    @if (right(); as r) {
+      <!-- ═══ Merged Comparison Card ═══ -->
+      <mat-card class="!rounded-xl !shadow-sm mb-5">
+        <mat-card-content class="!p-5">
+
+          <!-- Row 1 — Names + Arrow + Badges -->
+          <div class="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <p class="font-semibold text-gray-900 text-base truncate">{{ l.name }}</p>
+                <span class="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0" [class]="typeBadgeClass(leftType())">
+                  {{ typeLabel(leftType()) }}
+                </span>
+              </div>
+              <p class="text-xs text-gray-500 mt-0.5">{{ l.createdAt | date:'medium' }}</p>
+            </div>
+            <div class="flex flex-col items-center gap-1 pt-1">
+              <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                <mat-icon class="!text-gray-500 !text-xl">compare_arrows</mat-icon>
+              </div>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap" [class]="modeBadgeClass()">
+                {{ modeLabel() }}
+              </span>
+            </div>
+            <div class="text-right">
+              <div class="flex items-center justify-end gap-2">
+                <span class="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0" [class]="typeBadgeClass(rightType())">
+                  {{ typeLabel(rightType()) }}
+                </span>
+                <p class="font-semibold text-gray-900 text-base truncate">{{ r.name }}</p>
+              </div>
+              <p class="text-xs text-gray-500 mt-0.5">{{ r.createdAt | date:'medium' }}</p>
+            </div>
+          </div>
+
+          <!-- Row 2 — Plan pills -->
+          @if (l.planSelections.length || r.planSelections.length) {
+            <div class="grid grid-cols-[1fr_auto_1fr] gap-4 mt-3 pt-3 border-t border-gray-100">
+              <div class="flex flex-wrap gap-1">
+                @for (p of l.planSelections; track $index) {
+                  <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium max-w-[200px]"
+                        [class]="planTypeBadgeClass(p.planType)" [matTooltip]="p.planName">
+                    <span class="font-semibold">{{ planTypeLabel(p.planType) }}:</span>
+                    <span class="truncate">{{ p.planName }}</span>
+                  </span>
+                }
+              </div>
+              <div></div>
+              <div class="flex flex-wrap gap-1 justify-end">
+                @for (p of r.planSelections; track $index) {
+                  <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium max-w-[200px]"
+                        [class]="planTypeBadgeClass(p.planType)" [matTooltip]="p.planName">
+                    <span class="font-semibold">{{ planTypeLabel(p.planType) }}:</span>
+                    <span class="truncate">{{ p.planName }}</span>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Row 3 — Cost Metrics (small side-by-side cards) -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-100">
+            @for (m of [
+              { label: 'Lifetime Cost', left: leftLifetime(), right: rightLifetime() },
+              { label: 'Present Value', left: (l.lastCostSnapshot?.presentValue ?? 0), right: (r.lastCostSnapshot?.presentValue ?? 0) },
+              { label: 'IRMAA Surcharge', left: (l.lastCostSnapshot?.lifetimeIrmaa ?? 0), right: (r.lastCostSnapshot?.lifetimeIrmaa ?? 0) }
+            ]; track m.label) {
+              <div class="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ m.label }}</p>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p class="text-[10px] text-gray-400 truncate">{{ l.name }}</p>
+                    <p class="font-bold text-gray-900">{{ m.left | currency:'USD':'symbol':'1.0-0' }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[10px] text-gray-400 truncate">{{ r.name }}</p>
+                    <p class="font-bold text-gray-900">{{ m.right | currency:'USD':'symbol':'1.0-0' }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Row 4 — Profile Metrics (small side-by-side cards) -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+            @for (m of [
+              { label: 'Coverage Year', left: '' + l.profile.coverageYear, right: '' + r.profile.coverageYear },
+              { label: 'Life Expectancy', left: l.profile.lifeExpectancy + ' yrs', right: r.profile.lifeExpectancy + ' yrs' },
+              { label: 'ZIP Code', left: l.profile.zipCode, right: r.profile.zipCode }
+            ]; track m.label) {
+              <div class="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ m.label }}</p>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p class="text-[10px] text-gray-400 truncate">{{ l.name }}</p>
+                    <p class="font-semibold text-gray-800">{{ m.left }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[10px] text-gray-400 truncate">{{ r.name }}</p>
+                    <p class="font-semibold text-gray-800">{{ m.right }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Winner banner -->
+          @if (winner() !== 'tie') {
+            <div class="flex items-center gap-2 mt-4 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
+              <mat-icon class="!text-base text-green-600">emoji_events</mat-icon>
+              <span class="text-sm font-semibold text-green-700">{{ winnerName() }}</span>
+              <span class="text-xs text-green-600">has the lower lifetime cost</span>
+              <span class="ml-auto text-sm font-bold text-green-700">saves {{ winnerSavings() | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+          }
+
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ═══ Mode-specific comparison ═══ -->
+      @switch (mode()) {
+        @case ('medicare') { <app-compare-medicare [left]="l" [right]="r" /> }
+        @case ('longterm') { <app-compare-ltc [left]="l" [right]="r" /> }
+        @case ('cross') { <app-compare-cross [left]="l" [right]="r" /> }
+      }
+    }
+  }
+</div>

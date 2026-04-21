@@ -1,0 +1,291 @@
+<!-- LTC KPI Strip -->
+@if (rec().ltcSnapshot; as ltc) {
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+      <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">Total Cost</p>
+      <p class="text-base font-bold text-gray-900">{{ ltc.totalCost | currency:'USD':'symbol':'1.0-0' }}</p>
+    </div>
+    <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+      <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">Present Value</p>
+      <p class="text-base font-bold text-emerald-700">{{ ltc.totalPresentValue | currency:'USD':'symbol':'1.0-0' }}</p>
+    </div>
+    @if (ltc.evaluation; as ev) {
+      <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+        <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">Avg Annual</p>
+        <p class="text-base font-bold text-cyan-700">{{ ev.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
+      </div>
+      <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+        <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">Projection</p>
+        <p class="text-base font-bold text-indigo-700">{{ ev.projectionYears }} yrs</p>
+      </div>
+    }
+  </div>
+}
+
+<mat-tab-group class="saved-detail-tabs" animationDuration="200ms"
+               (selectedTabChange)="onCostTabActivate($event.index)">
+
+  <!-- LTC: Profile -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
+    </ng-template>
+    <div class="pt-5 space-y-4">
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center"><mat-icon class="!text-base text-indigo-600">badge</mat-icon></div>
+          <p class="text-sm font-semibold text-gray-800">Personal Details</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Name</p><p class="text-sm font-medium text-gray-900 mt-0.5">{{ rec().profile.firstName }} {{ rec().profile.lastName }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Date of birth</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.dateOfBirth }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Gender</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtGender(rec().profile.gender) }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Coverage year</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.coverageYear }}</p></div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center"><mat-icon class="!text-base text-blue-600">location_on</mat-icon></div>
+          <p class="text-sm font-semibold text-gray-800">Location</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-3"><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Address</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.addressLine1 }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">City</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.city }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">State</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtState(rec().profile.state) }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">ZIP</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.zipCode }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">County</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.county }} ({{ rec().profile.countyCode }})</p></div>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center"><mat-icon class="!text-base text-rose-600">favorite</mat-icon></div>
+          <p class="text-sm font-semibold text-gray-800">Health &amp; Financial</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Health condition</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtHealth(rec().profile.healthCondition) }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Life expectancy</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.lifeExpectancy }} yrs</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Tobacco</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.tobaccoStatus === 0 ? 'No' : 'Yes' }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Tax filing</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtTaxFiling(rec().profile.taxFilingStatus) }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">MAGI tier</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtMagiTier(rec().profile.magiTier) }}</p></div>
+          @if (rec().profile.concierge) {
+            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Concierge</p><p class="text-sm text-gray-700 mt-0.5">Yes &mdash; {{ rec().profile.conciergeAmount | currency:'USD':'symbol':'1.0-0' }}</p></div>
+          }
+        </div>
+      </div>
+    </div>
+  </mat-tab>
+
+  <!-- LTC: Cost Analysis -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">analytics</mat-icon> Cost Analysis</span>
+    </ng-template>
+    <div class="pt-5">
+      @if (rec().ltcSnapshot; as ltc) {
+        <!-- Care Configuration card -->
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm mb-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center"><mat-icon class="!text-base text-violet-600">elderly</mat-icon></div>
+            <p class="text-sm font-semibold text-gray-800">Care Configuration</p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Health Profile</p><p class="text-sm font-medium text-gray-900 mt-0.5">{{ fmtHealth(ltc.healthProfile) }}</p></div>
+            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Adult Day</p><p class="text-sm text-gray-700 mt-0.5">{{ ltc.adultDayYears }} yr{{ ltc.adultDayYears === 1 ? '' : 's' }}</p></div>
+            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Home Care</p><p class="text-sm text-gray-700 mt-0.5">{{ ltc.homeCareYears }} yr{{ ltc.homeCareYears === 1 ? '' : 's' }}</p></div>
+            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Nursing Care</p><p class="text-sm text-gray-700 mt-0.5">{{ ltc.nursingCareYears }} yr{{ ltc.nursingCareYears === 1 ? '' : 's' }}</p></div>
+          </div>
+        </div>
+
+        @if (ltc.evaluation; as ev) {
+          <!-- KPI Summary Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+            <mat-card class="!rounded-2xl !border !border-indigo-100 !shadow-sm">
+              <div class="p-4">
+                <p class="text-xs uppercase tracking-wide text-indigo-600">Total LTC Cost</p>
+                <p class="text-xl font-bold text-gray-900">{{ ev.totalCost | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ ev.projectionYears }} year projection</p>
+              </div>
+            </mat-card>
+            <mat-card class="!rounded-2xl !border !border-emerald-100 !shadow-sm">
+              <div class="p-4">
+                <p class="text-xs uppercase tracking-wide text-emerald-600">Total Present Value</p>
+                <p class="text-xl font-bold text-gray-900">{{ ev.totalPresentValue | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="text-xs text-gray-500 mt-1">Today's dollars</p>
+              </div>
+            </mat-card>
+            <mat-card class="!rounded-2xl !border !border-cyan-100 !shadow-sm">
+              <div class="p-4">
+                <p class="text-xs uppercase tracking-wide text-cyan-600">Avg Annual Cost</p>
+                <p class="text-xl font-bold text-gray-900">{{ ev.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
+                <p class="text-xs text-gray-500 mt-1">Per year</p>
+              </div>
+            </mat-card>
+            @if (ltc.projection; as proj) {
+              <mat-card class="!rounded-2xl !border !border-amber-100 !shadow-sm">
+                <div class="p-4">
+                  <p class="text-xs uppercase tracking-wide text-amber-600">PV Home Care</p>
+                  <p class="text-xl font-bold text-gray-900">{{ proj.pvHomeCare | currency:'USD':'symbol':'1.0-0' }}</p>
+                </div>
+              </mat-card>
+              <mat-card class="!rounded-2xl !border !border-rose-100 !shadow-sm">
+                <div class="p-4">
+                  <p class="text-xs uppercase tracking-wide text-rose-600">PV Nursing Care</p>
+                  <p class="text-xl font-bold text-gray-900">{{ proj.pvNursingCare | currency:'USD':'symbol':'1.0-0' }}</p>
+                </div>
+              </mat-card>
+            }
+          </div>
+
+          <!-- Trajectory Banner -->
+          <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mb-5">
+            <div class="p-4 flex items-center gap-3">
+              <mat-icon [class]="getTrajectoryColor(ev.costTrajectory)">{{ getTrajectoryIcon(ev.costTrajectory) }}</mat-icon>
+              <div>
+                <p class="font-semibold text-gray-900">
+                  Cost Trajectory: <span [class]="getTrajectoryColor(ev.costTrajectory)">{{ ev.costTrajectory }}</span>
+                </p>
+                <p class="text-sm text-gray-600">{{ ev.trajectoryExplanation }}</p>
+              </div>
+            </div>
+          </mat-card>
+
+          <!-- Charts Row 1: Line + Stacked Bar -->
+          @if (ltc.projection) {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+              <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+                <div class="p-4 border-b border-gray-100">
+                  <h3 class="font-semibold text-gray-900 text-sm">Cost Trend Over Time</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">Year-by-year care type trends</p>
+                </div>
+                <div class="p-4">
+                  <div class="chart-container"><canvas #ltcLineChart></canvas></div>
+                </div>
+              </mat-card>
+              <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+                <div class="p-4 border-b border-gray-100">
+                  <h3 class="font-semibold text-gray-900 text-sm">Annual Expense Breakdown</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">Stacked care type expenses per year</p>
+                </div>
+                <div class="p-4">
+                  <div class="chart-container"><canvas #ltcStackedChart></canvas></div>
+                </div>
+              </mat-card>
+            </div>
+          }
+
+          <!-- Charts Row 2: Doughnut -->
+          @if (ev.categories.length) {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+              <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200">
+                <div class="p-4 border-b border-gray-100">
+                  <h3 class="font-semibold text-gray-900 text-sm">Lifetime Cost Distribution</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">Share of total cost by care type</p>
+                </div>
+                <div class="p-4">
+                  <div class="chart-container"><canvas #ltcDoughnutChart></canvas></div>
+                </div>
+              </mat-card>
+            </div>
+          }
+
+          <!-- Yearly Highlights -->
+          @if (ev.yearlyHighlights.length) {
+            <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mb-5">
+              <div class="p-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900 text-sm">Yearly Highlights</h3>
+              </div>
+              <div class="p-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  @for (hl of ev.yearlyHighlights; track hl.year) {
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50">
+                      <span [class]="'flex items-center justify-center w-8 h-8 rounded-lg text-sm ' + getFlagColor(hl.flag)">
+                        <mat-icon class="!text-[18px]">{{ getFlagIcon(hl.flag) }}</mat-icon>
+                      </span>
+                      <div class="min-w-0">
+                        <p class="font-semibold text-gray-900 text-sm">
+                          {{ hl.year }} &mdash; {{ hl.totalCost | currency:'USD':'symbol':'1.0-0' }}
+                        </p>
+                        <p class="text-xs text-gray-600 mt-0.5">{{ hl.explanation }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </mat-card>
+          }
+
+          <!-- Category Insights -->
+          @if (ev.categories.length) {
+            <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mb-5">
+              <div class="p-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900 text-sm">Category Insights</h3>
+              </div>
+              <div class="p-4 space-y-4">
+                @for (cat of ev.categories; track cat.name) {
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-sm text-gray-900">{{ cat.name }}</span>
+                        <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full bg-gray-100"
+                              [class]="getTrendColor(cat.trend)">
+                          <mat-icon class="!text-[14px]">{{ getTrendIcon(cat.trend) }}</mat-icon>
+                          {{ cat.trend }}
+                        </span>
+                      </div>
+                      <span class="text-sm font-semibold text-gray-900">{{ cat.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-emerald-500 h-2 rounded-full transition-all" [style.width.%]="cat.percentOfTotal"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ cat.insight }}</p>
+                  </div>
+                }
+              </div>
+            </mat-card>
+          }
+
+          <!-- Savings Tips -->
+          @if (ev.savingsTips.length) {
+            <mat-card class="!rounded-2xl !shadow-sm !border !border-gray-200 mb-5">
+              <div class="p-4 border-b border-gray-100">
+                <h3 class="font-semibold text-gray-900 text-sm">Savings Tips</h3>
+              </div>
+              <div class="p-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  @for (tip of ev.savingsTips; track tip.title) {
+                    <div class="p-4 rounded-xl border border-gray-100 bg-gray-50">
+                      <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-sm text-gray-900">{{ tip.title }}</h4>
+                        <span [class]="'text-xs px-2 py-0.5 rounded-full font-medium ' + getPriorityColor(tip.priority)">{{ tip.priority }}</span>
+                      </div>
+                      <p class="text-sm text-gray-600">{{ tip.description }}</p>
+                      @if (tip.estimatedSavings) {
+                        <p class="text-xs text-emerald-600 font-medium mt-2">Potential savings: {{ tip.estimatedSavings }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </mat-card>
+          }
+
+          <!-- Overall Assessment -->
+          @if (ev.overallAssessment) {
+            <mat-card class="!rounded-2xl !shadow-sm !border-l-4 !border-l-emerald-500 !border !border-gray-200">
+              <div class="p-4">
+                <h3 class="font-semibold text-gray-900 text-sm mb-2">Overall Assessment</h3>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ ev.overallAssessment }}</p>
+              </div>
+            </mat-card>
+          }
+        } @else {
+          <p class="text-gray-600 text-sm italic">No cost evaluation stored for this LTC analysis.</p>
+        }
+      } @else {
+        <p class="text-gray-600 text-sm italic">No LTC configuration stored.</p>
+      }
+    </div>
+  </mat-tab>
+</mat-tab-group>

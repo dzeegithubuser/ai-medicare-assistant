@@ -68,8 +68,8 @@
           @for (str of availableStrengths(); track str) {
             <button class="px-3.5 py-1.5 rounded-full text-xs font-medium border-2 transition-all"
               [class]="selection().strength === str
-                      ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
-                      : 'bg-white text-teal-700 border-teal-200 hover:border-teal-400'"
+                      ? 'bg-cyan-600 text-white border-cyan-600 shadow-sm'
+                      : 'bg-white text-cyan-700 border-cyan-200 hover:border-cyan-600'"
               [disabled]="confirmed()"
               [class.cursor-pointer]="!confirmed()"
               [class.opacity-60]="confirmed()"
@@ -154,7 +154,7 @@
     </div>
   </div>
 } @else {
-  <div class="py-4 text-center text-gray-400 text-sm">
+  <div class="py-4 text-center text-gray-600 text-sm">
     No formulary details available for this drug.
   </div>
 }

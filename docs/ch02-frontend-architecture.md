@@ -36,8 +36,7 @@ App (root) → <router-outlet />
            │    ├── /saved → RecommendationComponent (saved analyses with filter/sort/pagination + compare basket)
            │    │    ├── /saved/compare → RecommendationCompareComponent (side-by-side comparison)
            │    │    └── /saved/:id → RecommendationDetailComponent (full detail view with 5 tabs + Chart.js)
-           │    ├── /change-password → ChangePasswordComponent
-           │    └── PharmacyListComponent (on-demand, triggered by user button click)
+           │    └── /change-password → ChangePasswordComponent
            └── ChatComponent (right panel, fixed 420px — visible on /medicare-analysis/* and /long-term-care/* routes)
 ```
 
@@ -109,7 +108,7 @@ App (root) → <router-outlet />
 
 ### `ChatComponent` (`chat/chat.component.ts`, `.html`, `.scss`)
 - **Role:** Right-side chat panel (420px fixed width, full height). Implements `OnInit`.
-- **State:** Injects `DrugStateService`, `ProfileService`, `AuthService`, `ChatIntentService`, `ChatWizardService`, `ChatOrchestratorService`, `ChatProfileService`, `ChatDrugSelectionService`, `ChatPharmacySelectionService`, `RecommendationStateService`, `Router`.
+- **State:** Injects `DrugStateService`, `ProfileService`, `AuthService`, `ChatIntentService`, `ChatWizardService`, `ChatRouterService`, `ChatNavigationFlowService`, `ChatDrugFlowService`, `ChatProfileService`, `ChatDrugSelectionService`, `ChatPharmacySelectionService`, `RecommendationStateService`, `Router`.
 - **Features:**
   - Chat header with AI Assistant branding, icon, and **wizard step indicator** (Profile › Drugs & Pharmacy › Plans › Analysis) — visible when wizard mode is `MEDICARE_ANALYSIS`. Current step highlighted cyan, completed steps green with check icon.
   - Startup greeting on first load ("Hello! I'm your AI Medicare Assistant. What would you like to do today?").
@@ -128,12 +127,11 @@ App (root) → <router-outlet />
     - `send()` delegates to `ChatRouterService.route()` which routes messages through 7 contextual branches in priority order:
       0. **Back/previous guard** — `BACK_PATTERN` catches "back", "go back", "previous", "previous step" at the start of input. Shows guidance: "Use the Back button on the left side of the page or the stepper above." No navigation occurs. Compound phrases like "go back to profile" are NOT matched (pattern is anchored).
       1. **Pending confirmation handlers** — checks `pendingDrugAction()`, `pendingProfileUpdate()`, `pendingPharmacyAction()`, `pendingPlanAction()`, `pendingRunAnalysisConfirm()`, and `pendingSaveAnalysisOverwrite()` signals. If any are set, user's yes/no response confirms or cancels the pending action.
-      2. **Orchestrator mode** — when `recState.hasRecommendation()`, routes to `ChatOrchestratorService`. **Guarded by URL:** skips when on wizard step pages (`/medicare-analysis/profile`, `/medicare-analysis/drugs`, `/medicare-analysis/pharmacies`, `/medicare-analysis/plans`) so page-specific handlers can take over.
-      3. **Profile-page message routing** — when on `/profile` or `/medicare-analysis/profile`, classifies intent first via AI. **`DRUG_INPUT` keyword-gated strategy:** when the classifier returns `DRUG_INPUT`, profile extraction is attempted first (via `routeToProfileExtraction` with an `onEmptyExtraction` callback). If extraction finds profile fields (e.g. "magitier is 150" → `{ magiTier: "150" }`), they are applied normally — the user stays on the profile page. When extraction returns empty, the **keyword gate** decides: if the text contains an explicit drug keyword (`DRUG_KEYWORD_PATTERN`: drug, medication, medicine, prescription, rx, meds, pill, tablet, capsule), `pendingCrossPageDrugSearch` is set and the intent reclassified as `NAVIGATE_ANALYSIS_DRUGS` — navigating to drugs where the search auto-fires. If no drug keyword is found (bare drug name like "metformin"), a guidance hint is shown instead ("Navigate to the Drugs step or type 'go to drugs'"). `UNKNOWN` and `NAVIGATE_PROFILE` with field params fall through to `ChatProfileService.extractProfile()` for profile field extraction. All other intents (navigation, actions) pass through to `handleIntent()` normally.
-      4. **Plan selection extraction** — when on `/medicare-analysis/plans` with loaded plan data, routes to `ChatPlanSelectionService.extractSelection()`. Supports select plans (Part D, Medigap, MA), remove plan selections, and switch between PDP/MA sections. **`DRUG_INPUT` keyword gate:** if `DRUG_INPUT` is classified, checks for drug keyword — with keyword, redirects to drugs with auto-search; without keyword, shows guidance hint. **Action bypass:** messages matching `ACTION_PATTERNS` (save prescription, save analysis, run analysis, help, sign out, etc.) fall through to the intent classifier.
-      5. **Drug selection extraction** — when on `/medicare-analysis/drugs` with loaded drug details, routes to `ChatDrugSelectionService.extractSelection()`. Supports select, confirm_all, remove (with confirmation), edit (with confirmation). **Action bypass:** same `ACTION_PATTERNS` guard.
-      6. **Pharmacy selection extraction** — when on `/medicare-analysis/pharmacies` with loaded pharmacy lookup, classifies intent first (single API call — pre-classified result forwarded directly, no second call). Routes to `ChatPharmacySelectionService.extractSelection()` only for `UNKNOWN` / `NAVIGATE_PHARMACIES` intents. **`DRUG_INPUT` keyword gate:** if a drug name is typed on the pharmacy page, checks `DRUG_KEYWORD_PATTERN` — with keyword ("add drug eliquis"), `pendingCrossPageDrugSearch` is set and navigates to drugs; without keyword ("eliquis"), shows guidance hint. Supports select, remove (with confirmation), search (filters by name), list. **Action bypass:** same `ACTION_PATTERNS` guard.
-      7. **Intent classifier** — default fallback to `ChatIntentService.classify()` → `handleIntent()` routes 17 intents.
+      2. **Profile-page message routing** — when on `/profile` or `/medicare-analysis/profile`, classifies intent first via AI. **`DRUG_INPUT` keyword-gated strategy:** when the classifier returns `DRUG_INPUT`, profile extraction is attempted first (via `routeToProfileExtraction` with an `onEmptyExtraction` callback). If extraction finds profile fields (e.g. "magitier is 150" → `{ magiTier: "150" }`), they are applied normally — the user stays on the profile page. When extraction returns empty, the **keyword gate** decides: if the text contains an explicit drug keyword (`DRUG_KEYWORD_PATTERN`: drug, medication, medicine, prescription, rx, meds, pill, tablet, capsule), `pendingCrossPageDrugSearch` is set and the intent reclassified as `NAVIGATE_ANALYSIS_DRUGS` — navigating to drugs where the search auto-fires. If no drug keyword is found (bare drug name like "metformin"), a guidance hint is shown instead ("Navigate to the Drugs step or type 'go to drugs'"). `UNKNOWN` and `NAVIGATE_PROFILE` with field params fall through to `ChatProfileService.extractProfile()` for profile field extraction. All other intents (navigation, actions) pass through to `handleIntent()` normally.
+      3. **Plan selection extraction** — when on `/medicare-analysis/plans` with loaded plan data, routes to `ChatPlanSelectionService.extractSelection()`. Supports select plans (Part D, Medigap, MA), remove plan selections, and switch between PDP/MA sections. **`DRUG_INPUT` keyword gate:** if `DRUG_INPUT` is classified, checks for drug keyword — with keyword, redirects to drugs with auto-search; without keyword, shows guidance hint. **Action bypass:** messages matching `ACTION_PATTERNS` (save prescription, save analysis, run analysis, help, sign out, etc.) fall through to the intent classifier.
+      4. **Drug selection extraction** — when on `/medicare-analysis/drugs` with loaded drug details, routes to `ChatDrugSelectionService.extractSelection()`. Supports select, confirm_all, remove (with confirmation), edit (with confirmation). **Action bypass:** same `ACTION_PATTERNS` guard.
+      5. **Pharmacy selection extraction** — when on `/medicare-analysis/pharmacies` with loaded pharmacy lookup, classifies intent first (single API call — pre-classified result forwarded directly, no second call). Routes to `ChatPharmacySelectionService.extractSelection()` only for `UNKNOWN` / `NAVIGATE_PHARMACIES` intents. **`DRUG_INPUT` keyword gate:** if a drug name is typed on the pharmacy page, checks `DRUG_KEYWORD_PATTERN` — with keyword ("add drug eliquis"), `pendingCrossPageDrugSearch` is set and navigates to drugs; without keyword ("eliquis"), shows guidance hint. Supports select, remove (with confirmation), search (filters by name), list. **Action bypass:** same `ACTION_PATTERNS` guard.
+      6. **Intent classifier** — default fallback to `ChatIntentService.classify()` → `handleIntent()` routes 17 intents.
     - **`ACTION_PATTERNS`:** Regex array that detects app-level commands (save/load prescription, save/run/reset analysis, sign out, help, show saved). These bypass page-specific selection handlers so they always reach the intent classifier regardless of current page.
       - `NAVIGATE_PROFILE` — sets edit mode, applies `pendingPrefill` if name params extracted, saves current analysis route to `returnRoute`, navigates to `/medicare-analysis/profile`. **Pharmacy-save on redirect:** if the user is on `/medicare-analysis/pharmacies` with pharmacies selected when this intent fires, `recState.savePharmacySelection()` is called (fire-and-forget) before navigation and a "Your N selected pharmacies have been saved." prefix is prepended to the chat message.
       - `NAVIGATE_ANALYSIS_DRUGS` — requires profile complete (redirects to `/medicare-analysis/profile` with message if not). Navigates to `/medicare-analysis/drugs`. **Cross-page auto-search:** if `pendingCrossPageDrugSearch` is set (placed there by the keyword-gated `DRUG_INPUT` interception on profile, pharmacy, or plans pages — only when the text contains an explicit drug keyword like "drug", "medication", "prescription"), `ChatComponent` picks it up on `NavigationEnd` and fires `runDrugFlow(text)` automatically within 50 ms.
@@ -159,33 +157,11 @@ App (root) → <router-outlet />
 - **Local State:** `selectedNames` Map tracks candidate selection per input drug.
 - **Effects:** (1) auto-scroll on message/loading/suggestion changes, (2) wizard auto-advance on `hasNewStep`, (3) wizard reset on `wizardResetTrigger`, (4) when `activeRecommendation` / loading state changes: `autoHydrateStoredDrugsIfNeeded()` and `autoHydrateStoredPharmacyIfNeeded()` (session-gated: auto-load saved drugs on `/medicare-analysis/drugs` and saved pharmacy on `/medicare-analysis/pharmacies` without a yes/no prompt). **`NavigationEnd` handler:** clears `pendingProfileModifyDetail` when not on `/medicare-analysis/profile`; re-runs the two auto-hydrate helpers; when the URL is **`/medicare-analysis/plans`**, calls **`ChatAnalysisSelectionHydrationService.hydratePlansFromActiveRecommendationSelection()`** so footer navigation and chat navigation both restore saved plan rows and post assistant summaries (Part D / Medigap / MA bullets; duplicate identical posts suppressed via fingerprints inside the hydration service); triggers cross-page drug auto-search when landing on `/medicare-analysis/drugs` with `pendingCrossPageDrugSearch` set.
 - **Change Detection:** OnPush (signals drive all reactivity).
-- **Orchestrator Mode (when recommendation exists):**
-  - **Routing:** When `recState.hasRecommendation()` is true and user is NOT on a wizard step page (`/medicare-analysis/profile`, `/medicare-analysis/drugs`, `/medicare-analysis/pharmacies`, `/medicare-analysis/plans`), `send()` routes messages to `ChatOrchestratorService.sendMessage()` instead of the intent classifier. On wizard step pages, page-specific handlers take priority so drug/pharmacy/plan selection commands work correctly.
-  - **Signals:** `pendingDelta` (DeltaResult | null), `awaitingConfirmation` (boolean), `activeDisplayData` (DisplayData | null), `deleteConfirmMode` (boolean), `pendingDrugAction` (ChatDrugSelectionCommand | null — holds remove/edit drug actions pending yes/no confirmation), `pendingProfileUpdate` (Record<string, unknown> | null — holds extracted profile fields pending confirmation), `pendingPharmacyAction` (ChatPharmacySelectionCommand | null — holds pharmacy remove actions pending confirmation), `pendingSaveAnalysisOverwrite` (string | null — holds analysis name for overwrite confirmation on 409 conflict).
-  - **`handleOrchestratorResponse()`:** Sets delta, confirmation, displayData, and detects delete/create lifecycle events. Refreshes recommendation state after mutations.
-  - **`confirmOrCancel(answer)`:** Sends "yes"/"no" to orchestrator, clears pending state.
-  - **`onHelpAction(action)`:** Receives action string from HelpMenuComponent chip click, clears displayData, sends to orchestrator.
-  - **Header:** Shows emerald "Orchestrator" pill when in orchestrator mode; wizard step indicator hidden.
-  - **Markdown Rendering:** Assistant messages use `[innerHTML]="msg.content | markdown"` via MarkdownPipe; user messages stay plain text.
-  - **Delete Banner:** Red instruction card shown when `deleteConfirmMode()` is true — prompts user to type "DELETE MY RECOMMENDATION".
-  - **Error Handling:** Differentiates network timeout (`status === 0`) vs server error for user-friendly messages.
+- **Markdown Rendering:** Assistant messages use `[innerHTML]="msg.content | markdown"` via MarkdownPipe; user messages stay plain text.
+- **Error Handling:** Differentiates network timeout (`status === 0`) vs server error for user-friendly messages.
 - **Chat-Driven Helpers:**
   - `buildAvailableDrugSummaries()` — extracts types, dosage forms, strengths per drug from loaded drug details for the AI drug selection extractor.
   - `buildPharmacySummaries()` — builds available + selected pharmacy summaries from `pharmacyLookup()` and `selectedLookupPharmacies()` for the AI pharmacy selection extractor.
-
-### `DeltaDisplayComponent` (`chat/delta-display/delta-display.component.ts`)
-- **Role:** Inline cost comparison card shown in chat after a profile/plan change is proposed.
-- **Layout:** 3-column grid: Lifetime Total, This Year, Present Value. Each column shows before → after with trend icon.
-- **Color Coding:** Red (cost increase, `trending_up`), Green (cost decrease, `trending_down`), Gray (no change, `trending_flat`).
-- **Input:** `@Input() delta: DeltaResult` — bound from `pendingDelta()` signal.
-- **Pattern:** Standalone, inline template, OnPush.
-
-### `HelpMenuComponent` (`chat/help-menu/help-menu.component.ts`)
-- **Role:** 5-category help menu rendered inline in chat when orchestrator returns `displayData.type === 'help_menu'`.
-- **Categories:** Recommendation, Profile Updates, Drugs & Pharmacy, Medicare Plans, Projections & Funding.
-- **UI:** Each category is a white card with icon + title + row of clickable `rounded-full` action chips (cyan theme).
-- **Output:** `actionClicked` output emits the action string (e.g., "Add a drug") — handled by ChatComponent's `onHelpAction()`.
-- **Pattern:** Standalone, OnPush.
 
 ### `MarkdownPipe` (`pipes/markdown.pipe.ts`)
 - **Role:** Transforms markdown strings to safe HTML for rendering in assistant chat bubbles.
@@ -259,20 +235,6 @@ App (root) → <router-outlet />
 - **Plan Card Enrichment:** Injects `PlanCardEnrichmentService` and creates three `computed()` enrichment maps (`partDEnrichmentMap`, `maEnrichmentMap`, `medigapEnrichmentMap`). Each map is keyed by `contractId-planId` (Part D/MA) or `key` (Medigap) and contains derived display fields computed from raw API responses. Helper methods `getPartDEnriched()`, `getMAEnriched()`, `getMedigapEnriched()` pass enriched data to card `[enriched]` inputs. Enriched fields include: formatted plan IDs, insurance carrier lookups, Part D surcharge, prescription OOP, pharmacy network ratios, drug coverage ratios, Medigap cents→dollars conversion, Part B surcharge, healthcare OOP, remaining months, MA combined surcharges.
 - **Section Chooser:** When no `activeSection` — two cards: "Part D + Medigap" / "Medicare Advantage" separated by a vertical "OR" divider (3-column grid `sm:grid-cols-[1fr_auto_1fr]`) that switches to a horizontal line divider on mobile.
 
-### `PharmacyListComponent` (`pharmacy-list/pharmacy-list.component.ts`, `.html`, `.scss`)
-- **Role:** Nearby pharmacies panel (collapsible, sortable, selectable). Used in both standalone mode and plan-aware mode.
-- **State:** Injects `DrugStateService`. Local signals `collapsed`, `sortBy`.
-- **Inputs:** `planMode` (boolean, default `false`) — when true, shows plan copays instead of retail prices and reads from `state.planAwarePharmacies()`.
-- **Features:**
-  - Collapsible panel with gradient header and sort toggle (price ↔ name).
-  - **Responsive card grid:** `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` — pharmacy cards wrap automatically by screen width.
-  - Compact pharmacy cards with name + cost badge at top, address + phone below. "Best Price" / "Best Copay" chip on cheapest. "Preferred" badge in plan mode.
-  - Selected card gets emerald ring highlight (`ring-2 ring-emerald-300`) + background. Drug price detail rows expand inline within the card on selection.
-  - Multi-select support — `isSelected()` checks via `state.isPharmacySelected(npi)`.
-  - `pharmacySource()` returns appropriate list based on `planMode`.
-  - `sortedPharmacies()` sorts by `totalPlanCopay` in plan mode, `totalRetailCost` otherwise.
-  - `formatPhone()` formats 10-digit phone numbers.
-
 ### `PlanRecommendationComponent` (`plan-recommendation/plan-recommendation.component.ts`, `.html`, `.scss`)
 - **Role:** Medicare plan recommendations panel. Loaded on-demand.
 - **State:** Injects `DrugStateService`, `PlanRecommendationService`, `DrugService`.
@@ -294,7 +256,7 @@ App (root) → <router-outlet />
 
   | Component | Selector | Role | @Input | @Output |
   |-----------|----------|------|--------|---------|
-  | `PlanRecommendationComponent` | `app-plan-recommendation` | Orchestrator — plan loading, compare state, LIS banner, recommended badge | — | — |
+  | `PlanRecommendationComponent` | `app-plan-recommendation` | Plan loading, compare state, LIS banner, recommended badge | — | — |
   | `PlanCardComponent` | `app-plan-card` | Individual plan card — header, badges, benefits, pros/cons, cost grid, calculate cost button | `plan`, `index`, `isCompareSelected`, `compareDisabled`, `isSelected`, `isCostLoading` | `compareToggled`, `calculateCost` |
   | `PlanGapCoverageComponent` | `app-plan-gap-coverage` | Gap coverage plans sub-component — AI gap plan cards with checkboxes, selection tracking | `plan` | `gapPlanSelected` |
   | `PlanComparePanelComponent` | `app-plan-compare-panel` | Side-by-side comparison table (max 3 plans, green winner indicators per row) | `plans` | `closed`, `cleared` |
@@ -493,8 +455,8 @@ App (root) → <router-outlet />
 - **Methods:** `getSession()` (`GET /api/chat/session`), `updateMessages()` (`PATCH /api/chat/session/messages` — no longer called by the app), `updateUiState()` (`PATCH /api/chat/session/ui-state`), `startNewSession()` (`POST /api/chat/session/start-new`), `clearSession()` (`DELETE /api/chat/session`).
 
 ### `CountyLookupService` (`services/county-lookup.service.ts`)
-- **Role:** Fetches ZIP-based county code data and Google Places API key.
-- **Methods:** `getCountyCodeList(zipcode)` → cached county entries. `getGooglePlacesKey()` → Google Places API key.
+- **Role:** Fetches ZIP-based county code data.
+- **Methods:** `getCountyCodeList(zipcode)` → cached county entries.
 - **Caching:** Results cached by ZIP code to avoid repeated API calls.
 
 ### `ReferenceDataService` (`services/reference-data.service.ts`)
@@ -526,11 +488,6 @@ App (root) → <router-outlet />
 - **Computed Signals:** `currentStep` (derived from `profileService.isProfileComplete()`, `state.hasConfirmedDrugs()`, `state.pharmacySelectionConfirmed()`, plan selection flags (`selectedPartDPlan` / `selectedMedigapPlan` / `selectedMAPlan`), `state.hasCostProjection()`), `hasNewStep` (true when currentStep differs from last announced step — triggers auto-advance), `isComplete` (true when currentStep is COMPLETE).
 - **Methods:** `startMedicareAnalysis()` (sets mode, clears announced step, hides buttons), `resumeMedicareAnalysis()` (restores Medicare mode on hard refresh without re-announcing steps), `reset()` (returns to NONE mode, re-shows buttons), `markStepAnnounced()` (records current step to prevent duplicate messages).
 - **Pattern:** Purely signal-driven — no subscriptions. ChatComponent watches `hasNewStep` via `effect()` to auto-advance wizard steps when completion signals fire.
-
-### `ChatOrchestratorService` (`services/chat-orchestrator.service.ts`)
-- **Role:** HTTP service for the conversational orchestrator pipeline.
-- **Methods:** `sendMessage(message: string, currentPage?: string)` → `Observable<OrchestratorResponse>` — `POST /api/chat/orchestrate`. Passes `currentPage` (caller's `router.url`) so the backend orchestrator's intent classifier can apply the same page-context disambiguation as `ChatIntentService`.
-- **Types:** Uses `OrchestratorRequest` (message, currentPage?), `OrchestratorResponse` from `models/orchestrator.model.ts`.
 
 ### `RecommendationService` (`services/recommendation.service.ts`)
 - **Role:** HTTP CRUD service for user recommendation documents.

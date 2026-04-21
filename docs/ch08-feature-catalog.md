@@ -19,7 +19,7 @@
 ## ✅ Medicare Plan Cost Estimation (CMS API Integration)
 - **What:** Real-time lookup of Medicare Part D drug spending data from the official CMS open data API (`data.cms.gov`).
 - **Backend:** `CmsMedicareCostService` queries the SOCRATA API by brand/generic drug name, returns structured `MedicareCostEstimate` with total claims, beneficiary counts, average costs, and total spending.
-- **Integration:** `DrugAnalysisService` enriches AI results with CMS data in parallel (`Task.WhenAll`). Graceful fallback — if CMS is unavailable, AI estimates still display.
+- **Integration:** `DrugService` enriches AI results with CMS data in parallel (`Task.WhenAll`). Graceful fallback — if CMS is unavailable, AI estimates still display.
 - **Frontend:** New blue "CMS Medicare Part D Data" card section with official badge, showing 7 cost metrics with currency formatting.
 - **Configuration:** CMS endpoint URL configurable via `CMS:MedicarePartDSpendingUrl` in `appsettings.json`.
 
@@ -40,7 +40,7 @@
 ---
 
 ## ✅ MySQL Database with EF Core Code First
-- **Provider:** `Pomelo.EntityFrameworkCore.MySql` 9.0 with EF Core 9.
+- **Provider:** `Pomelo.EntityFrameworkCore.MySql` with EF Core.
 - **Base Entity:** All tables inherit Id (GUID), CreatedDate, ModifiedDate, CreatedBy, ModifiedBy.
 - **Tables:** `users` (email/phone unique, bcrypt hash), `profiles` (consolidated: first name, last name, coverage year, health condition, tax filing, MAGI tier, gender, tobacco, DOB, concierge, life expectancy, address fields).
 - **Relationships:** `profiles` has 1:1 relationship with `users` via UserId FK with CASCADE delete.
@@ -97,7 +97,7 @@
 ## ✅ Zipcode-Aware Drug Cost Estimation
 - **What:** User's address zipcode is used for location-aware cost estimation.
 - **Frontend:** ChatComponent reads profile zipcode.
-- **Backend:** `DrugAnalysisService` accepts `zipCode` parameter and stores it on `DrugAnalysisResult` for downstream consumers.
+- **Backend:** `DrugService` accepts `zipCode` parameter and stores it on `DrugAnalysisResult` for downstream consumers.
 
 ---
 
@@ -123,9 +123,8 @@
 ---
 
 ## ✅ RxNorm Normalization & Verification
-- **Backend:** `RxNormService` — exact match via `/rxcui.json`, fallback to approximate match via `/approximateTerm.json`. Multi-drug interaction lookup via `/interaction/list.json`. NDC lookup via `/rxcui/{id}/ndcs.json`.
-- **NDC Resolution:** `CmsRxNormEnrichmentStep` resolves NDC codes via a two-step pipeline: (1) RxNorm `/rxcui/{id}/ndcs.json` returns available NDCs for a drug, (2) FDA NDC Directory (`FdaNdcService`) fetches package descriptions for each NDC (e.g., "60 TABLET in 1 BOTTLE"), then the enrichment step matches each formulation's packaging string (e.g., "Bottle of 60 tablets") to the best-matching FDA package by scoring package size + container type. Falls back to index-based NDC assignment if FDA API is unavailable.
-- **Integration:** Runs in parallel with CMS enrichment. Verified RxCUIs fill in missing AI-provided IDs.
+- **Status:** `RxNorm/` directory exists but implementation is empty. NDC resolution is handled by `FdaNdcService` directly.
+- **NDC Resolution:** FDA NDC Directory (`FdaNdcService`) fetches package descriptions for each NDC (e.g., "60 TABLET in 1 BOTTLE"), then matches each formulation's packaging string to the best-matching FDA package by scoring package size + container type.
 - **Graceful degradation** on timeout or errors — AI-provided data remains available.
 
 ---
@@ -155,19 +154,18 @@
 ---
 
 ## ✅ Nearby Pharmacy Search & AI-Powered Per-Pharmacy Pricing (On-Demand)
-- **What:** Finds nearby pharmacies via NPI Registry and generates per-pharmacy, per-drug pricing via AI. Triggered on-demand when user clicks "Find Nearby Pharmacies" button below drug cards.
-- **APIs:** NPI Registry (free, no API key) for pharmacy lookup. IChatClient for pharmacy-specific AI pricing.
-- **Backend:** `CmsPharmacyPricingService` — fetches pharmacies, calls AI for per-pharmacy pricing (Costco cheaper than CVS, hospital pharmacies more expensive). Caching: NPI 7 days, AI pricing 30 days. `SemaphoreSlim` per zip for thundering herd prevention. `PharmacyPricingStep` exists but is not registered in the DI pipeline — pharmacy data is fetched via the standalone `GET /api/pharmacy/search` endpoint.
-- **Graceful degradation chain:** AI pricing → fallback prices → `null` ("—"). NPI fails → empty pharmacy list.
-- **Frontend:** `PharmacyListComponent` (collapsible panel with responsive card grid — `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` — cards wrap by screen width, with inline drug price details on selection).
+- **What:** Finds nearby pharmacies and generates per-pharmacy, per-drug pricing via AI. Triggered on-demand when user clicks "Find Nearby Pharmacies" button below drug cards.
+- **APIs:** IChatClient for pharmacy-specific AI pricing.
+- **Backend:** `Pharmacy/` directory contains pharmacy pricing infrastructure. `PharmacyPricingStep` exists but is not registered in the DI pipeline — pharmacy data is fetched via the standalone `GET /api/pharmacy/search` endpoint.
+- **Graceful degradation chain:** AI pricing → fallback prices → `null` ("—").
+- **Frontend:** Pharmacy selection is handled within the `PharmaciesStepComponent` in the Medicare analysis wizard.
 - **Design Principles:** All changes additive. No database migrations. Optional fields. Graceful degradation. On-demand loading reduces initial analysis time.
 
 ---
 
-## ✅ Lightweight Nearby Pharmacy Lookup (NPI Only)
-- **What:** Finds nearby pharmacies via NPI Registry without pricing — only location data. Legacy endpoint kept for backward compatibility.
-- **Endpoint:** `GET /api/pharmacy/nearby?zip=` — returns `PharmacyResult[]` (NPI, name, address, phone, fax, pharmacy type, enumeration date). Falls back to user's saved zip.
-- **Backend:** `IPharmacyPricingService.GetNearbyPharmaciesAsync()` delegates to the existing NPI Registry lookup in `CmsPharmacyPricingService`, skipping the AI pricing pipeline.
+## ✅ Lightweight Nearby Pharmacy Lookup
+- **What:** Finds nearby pharmacies without pricing — only location data. Legacy endpoint kept for backward compatibility.
+- **Endpoint:** `GET /api/pharmacy/nearby?zip=` — returns `PharmacyResult[]` (name, address, phone, fax, pharmacy type). Falls back to user's saved zip.
 - **Purpose:** Separates pharmacy discovery from pricing. Superseded by Financial Planner Pharmacy Lookup (below) as the primary pharmacy source for step 2.
 
 ---
@@ -196,7 +194,7 @@
   2. **Drug Selection** — Analyze prescriptions, confirm drug selections (no costing).
   3. **Pharmacy Selection** — Click "Find Nearby Pharmacies" to get lightweight NPI list. Toggle-select up to 5 pharmacies.
   4. **Plan Recommendation** — Click "Load Medicare Plan Recommendations" (only shown after ≥1 pharmacy selected). Plans include per-pharmacy cost breakdowns.
-- **Backend:** `MedicarePlanService` orchestrates: county FIPS → LIS tier → AI scoring (with pharmacy context) → CMS enrichment (Phase 2) → pharmacy cost breakdowns. `PlanScoringAiService` generates 5 ranked plans with `{{PHARMACY_CONTEXT}}` placeholder for selected pharmacies. `ComputePharmacyCostBreakdowns` calculates per-drug copays at each pharmacy (~20% preferred discount). `FipsLookupService` — static in-memory ZIP-to-FIPS. LIS: 2025 FPL thresholds.
+- **Backend:** Plan recommendation orchestrates: county FIPS → LIS tier → AI scoring (with pharmacy context) → CMS enrichment → pharmacy cost breakdowns. `PlanScoringAiService` generates 5 ranked plans with `{{PHARMACY_CONTEXT}}` placeholder for selected pharmacies. `FipsLookupService` — static in-memory ZIP-to-FIPS (legacy). LIS: 2025 FPL thresholds.
 - **AI Extended Fields:** AI generates 12 additional fields per plan: `networkType` (HMO/PPO/PFFS/HMO-POS), benefit flags (`includesDental`, `includesVision`, `includesHearing`, `includesFitness`, `includesOtc`), `otcAllowancePerQuarter`, `gapCoverage` (None/Some/Full), `mailOrderSavings`, `providerNetworkSize` (Large/Medium/Small), `emergencyCoverage`, and `pros`/`cons` bullet lists. Additionally, each plan includes a `planCategory` field (`MA_ONLY`, `PDP_ONLY`, `PDP_MEDIGAP`, `MA_PDP`) indicating the coverage bundling strategy.
 - **Frontend:** `PlanRecommendationComponent` orchestrates plan loading, compare state, LIS banner, and Part D gap fill via `ensurePartDGapLoadForMA()`. Decomposed into child components: `RecommendationCardComponent` (individual plan card), `MedigapCardComponent` (Medigap supplemental plan card), `MedigapGapSectionComponent`, `PartdGapSectionComponent` (Part D gap plan cards with checkboxes), `PlanDetailDialogComponent` (full plan detail dialog), and `SelectedPlansSummaryComponent`. All tooltip data centralized in `data/tooltips.ts`.
 - **Early Summary Panel:** `hasAnyPlanSelected` computed signal in `PlanRecommendationComponent` shows `SelectedPlansSummaryComponent` as soon as _any_ plan is selected in the active section (MA or Part D), even before the selection is complete. The summary is rendered with `[canCalculate]="hasCompleteSelection()"` passed as input — when `false`, the Calculate button is disabled and an amber hint guides the user (e.g., "Select a Part D gap plan below to calculate your total cost."). `hasCompletePlanSelection` in `DrugStateService` remains the gate for enabling the actual cost evaluation.
@@ -205,11 +203,7 @@
 ---
 
 ## ✅ Plan-Aware Pharmacy Search
-- **What:** After selecting a Medicare plan, users can search for nearby pharmacies with plan-specific copay pricing overlaid on retail prices.
-- **Flow:** User selects a plan → clicks "Find Plan Pharmacies" → `POST /api/pharmacy/plan-search` → pharmacies returned with per-drug copay, formulary tier, prior auth flags, and preferred network status.
-- **Backend:** `PlanPharmacyService` (implements `IPlanPharmacyService`) — takes plan ID, drugs, and coverage data. Overlays copay pricing from the plan's formulary onto NPI pharmacy results.
-- **Frontend:** `DrugService.searchPlanPharmacies()` sends `PlanPharmacySearchRequest`. `PharmacyListComponent` accepts `planMode` input to toggle between standard and plan-aware display (showing copay columns instead of AI-estimated prices).
-- **Models:** `PlanPharmacySearchRequest`, `PlanCoverageInput` on frontend. `PharmacyWithPricing` extended with `planCopay`, `formularyTier`, `requiresPriorAuth`, `isPreferredPharmacy` per drug, and `totalPlanCopay`, `isPreferredNetwork` per pharmacy.
+- **Status:** Feature structure exists but `PlanPharmacyService` has been removed. Plan-specific pharmacy pricing is not currently active.
 
 ---
 
@@ -257,7 +251,7 @@
 
 ## ✅ Per-Pharmacy Cost Breakdown in Plan Recommendations
 - **What:** Each recommended plan includes a cost breakdown for every selected pharmacy, showing annual premium, deductible, drug copay, and total — with per-drug copay details and preferred pharmacy discounts.
-- **Backend:** `MedicarePlanService.ComputePharmacyCostBreakdowns()` iterates each selected pharmacy per plan. Preferred pharmacies (CVS, Walgreens, Walmart, Costco, etc.) get ~20% copay discount via `IsLikelyPreferredPharmacy()`. `RankedPlan.CostBreakdowns` is a `List<PlanCostBreakdown>` sorted cheapest-first. Plan totals re-calculated from best pharmacy.
+- **Backend:** Plan recommendation computes pharmacy cost breakdowns — iterates each selected pharmacy per plan. Preferred pharmacies get copay discounts. `RankedPlan.CostBreakdowns` is a `List<PlanCostBreakdown>` sorted cheapest-first. Plan totals re-calculated from best pharmacy.
 - **Frontend:** `PlanCostBreakdownComponent` renders `plan.costBreakdowns` via a self-contained toggle button. Each pharmacy shows an indigo card with cost grid + per-drug copay table with tier chips and preferred discount icons. Component manages its own expanded/collapsed state.
 - **Models:** `PlanCostBreakdown` (pharmacyName, pharmacyNpi, isPreferredPharmacy, annualPremium, annualDeductible, annualDrugCopay, annualTotal, drugCopays). `DrugCopayDetail` (drugName, rxCui, formularyTier, monthlyCopay, annualCopay, isCovered, preferredDiscount).
 
@@ -298,7 +292,7 @@
 ## ✅ MongoDB Document Store
 - **What:** MongoDB is used for document-oriented persistence — prescriptions, chat sessions, recommendations, analysis selections, FSM state, LTC selections, and structured application logs.
 - **Driver:** `MongoDB.Driver` 3.4.0 (Infrastructure), `MongoDB.Bson` 3.4.0 (Domain for `[BsonId]` / `[BsonRepresentation]` attributes).
-- **Collections:** `prescriptions`, `chatSessions`, `userAnalysisSelections`, `recommendations`, `convStates` (TTL-based FSM state), `ltcCurrentSelections`, `logs` (Serilog structured BSON logs).
+- **Collections:** `prescriptions`, `chatSessions`, `userAnalysisSelections`, `recommendations`, `ltcCurrentSelections`, `logs` (Serilog structured BSON logs).
 - **Indexes:** Compound indexes on user/timestamp fields for efficient per-user retrieval. `MongoIndexInitializer` (hosted service) creates indexes at startup.
 - **Architecture:** `MongoDbContext` includes typed collections for both prescriptions and chat sessions.
 - **DI Registration:** `IMongoClient` + `IMongoDatabase` as singletons. `MongoDbContext` as singleton. Repository as scoped.
@@ -320,7 +314,7 @@
   - **Interface:** `IIndividualMedicareService` with `CalculateAsync(request, cancellationToken)` method. `IPresentValueService` with `CalculateAsync(request, cancellationToken)` for present value computation. `ICostEvaluationAiService` with `EvaluateAsync()` method for AI cost evaluation (accepts `supplementPlanType` and `supplementPlanPremium` parameters).
   - **Service:** `IndividualMedicareService` in `Infrastructure/FinancialPlanner/` — HTTP POST with Basic auth token from config, JSON serialization, structured logging. `PresentValueService` in `Infrastructure/FinancialPlanner/` — HTTP POST to `/expensesPresentValue` with same auth pattern. `CostEvaluationAiService` in `Infrastructure/AI/` — builds prompts via `PromptBuilder.BuildCostEvaluation()`, renders year-by-year breakdown text, calls `IChatClient`, parses AI JSON response into `CostEvaluation`.
   - **Application Service:** `CostProjectionService` orchestrates the full pipeline: profile resolution via `ProfileService`, state code→name resolution via static dictionary, DOB formatting, remaining months calculation, builds `IndividualMedicareRequest`, calls Financial Planner API, then AI evaluation, then Present Value API (non-fatal — wrapped in try/catch). Populates `LifetimeTotals` with `TotalIrmaa` (combined Part B + Part D surcharges), `SupplementPlanType`, `SupplementPlanPremium`, `ConciergeIncluded`, `LifeTimeConciergePremium`, and 12 plan-specific lifetime fields (ABGD/ABFD/ABND/ABCD × Expenses/Premium/Oop). Sets `CostProjectionResult.PresentValue` from PV API response. Method: `EvaluateCostsAsync()` (combined `CostProjectionResult`).
-  - **Snapshot:** `DeltaCalculationService.BuildSnapshotFromResult` uses plan-specific lifetime fields based on `SupplementPlanType` (G→ABGD, F→ABFD, N→ABND, C→ABCD, MA→ABMedicareAdvantage) and stores real FP present value instead of AI-derived `TotalCombined`.
+  - **Snapshot:** Cost snapshot uses plan-specific lifetime fields based on `SupplementPlanType` (G→ABGD, F→ABFD, N→ABND, C→ABCD, MA→ABMedicareAdvantage) and stores real FP present value instead of AI-derived `TotalCombined`.
   - **Controller:** `PlanRecommendationController.EvaluateCosts()` — thin delegation to `CostProjectionService` via `MapToInput()` helper. `CalculateCostsRequestDto` for plan-specific inputs (planBundleCode, premiums, OOP, benefit costs, supplementDataProvided, partDDataProvided, reserveDaysUsed, dental, dentalHealthGrade, boughtPlanA, medicareAdvantageDataProvided, partDPremium, calculateForAdjustedMonth, supplementPlanType).
   - **DI:** `AddHttpClient<IIndividualMedicareService, IndividualMedicareService>` with 30s timeout. `AddHttpClient<IPresentValueService, PresentValueService>` with 30s timeout. `AddScoped<ICostEvaluationAiService, CostEvaluationAiService>()`. `AddScoped<CostProjectionService>()`.
   - **AI Prompts:** 4 prompt files for cost evaluation: `cost-evaluation-system.txt` (Medicare financial advisor role, 8 rules), `cost-evaluation.txt` (task description), `cost-evaluation-schema.txt` (JSON schema with output rules), `cost-evaluation.txt` (template with 15 placeholders including plan details, lifetime totals, Total IRMAA, supplement plan type/premium, and yearly breakdown).
@@ -408,50 +402,23 @@
   - **Rendering:** System messages appear as centered pill-shaped badges with a `touch_app` icon, grey background, muted text — visually distinct from user (cyan, right-aligned) and assistant (white, left-aligned) bubbles.
   - **Tracked actions:** Profile saved, drug confirmed/removed, pharmacy selected/deselected, Part D/Medigap/MA plan selected, section switched, cost calculation started, wizard navigation (step transitions), new analysis started.
 
-## ✅ Chatbot Orchestrator & Recommendation Management
+## ✅ Chat-Based Recommendation Management
 
-- **What:** A conversational AI assistant that manages the entire lifecycle of a Medicare recommendation — create, update, delete, and analyze — through natural language. Replaces the guided wizard for returning users who already have a recommendation.
-- **19 Domain Intents:** `create_recommendation`, `delete_recommendation`, `view_summary`, `update_demographic`, `update_health_financial`, `update_tax_filing`, `update_magi`, `update_life_expectancy`, `update_concierge`, `modify_drugs`, `modify_pharmacy`, `modify_plans`, `compare_plans`, `view_plan_details`, `filter_sort_plans`, `check_drug_coverage`, `view_projections`, `view_funding`, `help`
-- **Finite State Machine:** 10 states (Idle, CollectingProfile, CollectingDrugs, CollectingPharmacy, CollectingPlans, AwaitingConfirmation, AwaitingDeletePhrase, ShowingComparison, ShowingProjections, WhatIfMode). FSM state persisted in MongoDB `ConvStateDocument` with 30-min TTL and auto-refresh.
-- **Multi-Turn Collection Wizards:** Profile collection (12 steps: name → dob → gender → zip → health → lifeExp → tobacco → taxFiling → magi → coverageYear → concierge → amount), drug collection (comma-separated, "done" to finish), pharmacy collection (numeric selection from list).
-- **Two-Step Delete:** Confirmation prompt → "Type DELETE MY RECOMMENDATION exactly" → permanent deletion with state reset.
-- **Auto-Populate from Profile:** When creating a recommendation and user has a complete profile, auto-populates the recommendation snapshot from existing profile data (including county lookup for ZIP).
+- **What:** A conversational AI assistant that helps manage Medicare recommendations through natural language chat. Uses intent classification to route user messages to appropriate handlers.
 - **Backend:**
-  - `ChatOrchestratorService` (~1,300 lines) — FSM router + 19 handler methods + collection wizards + helper methods. Top-level try/catch. `IsAffirmative` (21 patterns) / `IsNegative` (19 patterns) for natural confirmation handling.
-  - `OrchestratorIntentService` — IChatClient-based classifier with `orchestrator-intent-system.txt` (55+ few-shot examples). JSON response parsing with markdown fence stripping and graceful fallback to `unknown`.
+  - `ChatIntentService` — IChatClient-based classifier with `chat-intent-system.txt`. Classifies into 20 intents (navigation, actions, plan switching, save/run analysis, LTC).
   - `RecommendationService` — Full CRUD: GetActive, Exists, Create (with force), UpdateProfile/Drugs/Pharmacy/Plans/CostSnapshot, Delete.
-  - `ConvStateService` — FSM persistence: GetOrCreate, UpdateState, SetPendingChange, SetCollectedField, ClearPending, Reset. 30-min TTL auto-refresh.
   - `RecommendationController` — 8 REST endpoints for recommendation CRUD.
-  - `ChatOrchestratorController` — `POST /api/chat/orchestrate` with JWT auth + empty message validation.
 - **Frontend:**
-  - `ChatOrchestratorService` — HTTP service for `POST /api/chat/orchestrate`.
   - `RecommendationService` — HTTP CRUD for `/api/recommendation`.
   - `RecommendationStateService` — Signal-based: `activeRecommendation`, `hasRecommendation` (computed), `refreshAfterUpdate()`, `clear()`.
-  - `ChatComponent` — Dual-mode: routes to orchestrator when `recState.hasRecommendation()`, wizard otherwise. Signals: `pendingDelta`, `awaitingConfirmation`, `activeDisplayData`, `deleteConfirmMode`.
+  - `ChatComponent` — Routes messages through `ChatRouterService` with 6 contextual branches. Signals: `pendingDrugAction`, `pendingProfileUpdate`, `pendingPharmacyAction`, `pendingPlanAction`, `pendingSaveAnalysisOverwrite`.
   - `DashboardComponent` — Loads recommendation on init.
 
-## ✅ What-If Delta Engine & Cost Impact Preview
+## ✅ Cost Projection & Snapshot
 
-- **What:** Before committing any profile or plan change, the system shows a before/after cost comparison so the user can decide whether to proceed.
-- **Delta Calculation:** `DeltaCalculationService` provides two methods: `ComputeAsync` (full recalculation via `CostProjectionService`) and `BuildPreviewDelta` (lightweight from stored snapshot). Both produce `DeltaResult` with lifetime, current year, and present value deltas. `BuildSnapshotFromResult` uses plan-specific lifetime fields based on `SupplementPlanType` (G→ABGD, F→ABFD, N→ABND, C→ABCD, MA→ABMedicareAdvantage) and stores real FP present value from `CostProjectionResult.PresentValue`.
-- **AI Narrative:** A 2–4 sentence plain-English summary generated via `delta-narrative-system.txt`. Highlights direction, magnitude, and affected cost categories.
-- **Confirmation Flow:** Change proposed → delta preview shown → yes/no confirmation → commit or cancel. Pending changes stored in `ConvStateDocument.PendingChanges` as serialized BsonDocument.
-- **Frontend:**
-  - `DeltaDisplayComponent` — 3-column cost grid (Lifetime / This Year / Present Value) with color-coded indicators (red ↑ for increases, green ↓ for decreases, gray → for no change). Inline template, standalone, OnPush.
-  - Confirmation buttons: "Yes, confirm" (primary) / "No, cancel" (warn) — rendered when `awaitingConfirmation()` signal is true.
-
-## ✅ Interactive Help Menu
-
-- **What:** A categorized help system rendered inline in the chat when the user asks for help. Displays 5 category cards with clickable action chips that send the selected action directly to the orchestrator.
-- **Categories:** Recommendation (create/view/delete), Profile Updates (ZIP/DOB/health/lifeExp/tax/MAGI/concierge), Drugs & Pharmacy (add/remove/change/mail-order), Medicare Plans (compare/details/coverage), Projections & Funding (lifetime/funding).
-- **Frontend:** `HelpMenuComponent` — standalone component with `actionClicked` output. Chips styled as `rounded-full` pills with cyan theme. Wired in `chat.component.html` via `@if (activeDisplayData()?.type === 'help_menu')`.
-
-## ✅ Markdown Rendering in Chat
-
-- **What:** Assistant messages from the orchestrator return markdown-formatted responses (headings, bold, tables, lists). These are rendered as rich HTML in the chat bubble.
-- **Implementation:** `MarkdownPipe` (standalone Angular pipe) using the `marked` library with GFM (GitHub Flavored Markdown) + line breaks enabled. Output sanitized via `DomSanitizer.bypassSecurityTrustHtml`.
-- **Styling:** `.markdown-body` CSS in `chat.component.scss` — headings (h2-h4), tables (border-collapse, striped rows, gray headers), lists, code blocks, strong/em.
-- **Mode Indicator:** Orchestrator mode shows an emerald "Orchestrator" pill in the chat header; wizard step indicators are hidden when in orchestrator mode.
+- **What:** Cost projection snapshots capture plan-specific lifetime cost data for comparison.
+- **Snapshot:** Uses plan-specific lifetime fields based on `SupplementPlanType` (G→ABGD, F→ABFD, N→ABND, C→ABCD, MA→ABMedicareAdvantage) and stores real FP present value from `CostProjectionResult.PresentValue`.
 
 ## ✅ Chat-Based Profile Filling
 

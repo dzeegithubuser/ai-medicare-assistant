@@ -2,6 +2,8 @@ import { Component, ChangeDetectionStrategy, inject, input, output, signal } fro
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DrugStateService } from '../../services/drug-state.service';
 import { ReferenceDataService } from '../../services/reference-data.service';
@@ -14,7 +16,7 @@ import { MedigapCardComponent } from '../medigap-card/medigap-card.component';
   templateUrl: './medigap-gap-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, MatProgressSpinnerModule, MedigapCardComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatProgressSpinnerModule, MedigapCardComponent],
 })
 export class MedigapGapSectionComponent {
   protected state = inject(DrugStateService);

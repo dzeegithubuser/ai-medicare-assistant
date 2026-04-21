@@ -11,7 +11,7 @@
   </div>
 
   @if (!data) {
-    <div class="flex flex-col items-center justify-center mt-20 text-gray-400">
+    <div class="flex flex-col items-center justify-center mt-20 text-gray-600">
       <mat-icon class="!text-7xl !w-20 !h-20 mb-4 opacity-40">analytics</mat-icon>
       <p class="text-lg font-medium">No cost projection data</p>
       <p class="text-sm mt-1">Go back and select a plan to calculate costs</p>
@@ -28,27 +28,27 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <mat-card class="!rounded-xl !shadow-sm">
         <mat-card-content class="!p-4 text-center">
-          <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Premiums</p>
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Total Premiums</p>
           <p class="text-lg font-bold text-indigo-700">{{ evaluation.lifetimeSummary.totalPremiums | currency:'USD':'symbol':'1.0-0' }}</p>
         </mat-card-content>
       </mat-card>
       <mat-card class="!rounded-xl !shadow-sm">
         <mat-card-content class="!p-4 text-center">
-          <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Out-of-Pocket</p>
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Total Out-of-Pocket</p>
           <p class="text-lg font-bold text-amber-700">{{ evaluation.lifetimeSummary.totalOutOfPocket | currency:'USD':'symbol':'1.0-0' }}</p>
         </mat-card-content>
       </mat-card>
       <mat-card class="!rounded-xl !shadow-sm">
         <mat-card-content class="!p-4 text-center">
-          <p class="text-[10px] text-gray-500 uppercase tracking-wide">Lifetime Total</p>
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Lifetime Total</p>
           <p class="text-lg font-bold text-gray-900">{{ evaluation.lifetimeSummary.totalCombined | currency:'USD':'symbol':'1.0-0' }}</p>
         </mat-card-content>
       </mat-card>
       <mat-card class="!rounded-xl !shadow-sm">
         <mat-card-content class="!p-4 text-center">
-          <p class="text-[10px] text-gray-500 uppercase tracking-wide">Avg Annual Cost</p>
+          <p class="text-xs text-gray-500 uppercase tracking-wide">Avg Annual Cost</p>
           <p class="text-lg font-bold text-cyan-700">{{ evaluation.lifetimeSummary.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
-          <p class="text-[10px] text-gray-400">over {{ evaluation.lifetimeSummary.projectionYears }} years</p>
+          <p class="text-xs text-gray-600">over {{ evaluation.lifetimeSummary.projectionYears }} years</p>
         </mat-card-content>
       </mat-card>
     </div>
@@ -67,20 +67,20 @@
             <thead>
               <tr class="border-b border-gray-200">
                 <th rowspan="2" class="text-left py-2 px-3 text-xs font-semibold text-gray-600 align-bottom">Medicare Bundle</th>
-                <th colspan="3" class="text-center py-1.5 px-3 text-[10px] font-semibold text-indigo-700 uppercase tracking-wide border-b border-indigo-100">
+                <th colspan="3" class="text-center py-1.5 px-3 text-xs font-semibold text-indigo-700 uppercase tracking-wide border-b border-indigo-100">
                   Coverage Year ({{ years[0]?.year }})
                 </th>
-                <th colspan="3" class="text-center py-1.5 px-3 text-[10px] font-semibold text-cyan-700 uppercase tracking-wide border-b border-cyan-100">
+                <th colspan="3" class="text-center py-1.5 px-3 text-xs font-semibold text-cyan-700 uppercase tracking-wide border-b border-cyan-100">
                   Lifetime Expense
                 </th>
               </tr>
               <tr class="border-b border-gray-200 bg-gray-50/50">
-                <th class="text-right py-2 px-3 text-[10px] font-medium text-gray-500">Total Expenses</th>
-                <th class="text-right py-2 px-3 text-[10px] font-medium text-gray-500">Total Premiums</th>
-                <th class="text-right py-2 px-3 text-[10px] font-medium text-gray-500">Total Out-of-Pocket</th>
-                <th class="text-right py-2 px-3 text-[10px] font-medium text-gray-500">Total Expenses</th>
-                <th class="text-right py-2 px-3 text-[10px] font-medium text-gray-500">Total Premiums</th>
-                <th class="text-right py-2 px-3 text-[10px] font-medium text-gray-500">Total Out-of-Pocket</th>
+                <th class="text-right py-2 px-3 text-xs font-medium text-gray-500">Total Expenses</th>
+                <th class="text-right py-2 px-3 text-xs font-medium text-gray-500">Total Premiums</th>
+                <th class="text-right py-2 px-3 text-xs font-medium text-gray-500">Total Out-of-Pocket</th>
+                <th class="text-right py-2 px-3 text-xs font-medium text-gray-500">Total Expenses</th>
+                <th class="text-right py-2 px-3 text-xs font-medium text-gray-500">Total Premiums</th>
+                <th class="text-right py-2 px-3 text-xs font-medium text-gray-500">Total Out-of-Pocket</th>
               </tr>
             </thead>
             <tbody>
@@ -114,15 +114,15 @@
         <!-- Summary Strip -->
         <div class="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
           <div class="text-center">
-            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Present Value as of {{ coverageYear }}</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Present Value as of {{ coverageYear }}</p>
             <p class="text-lg font-bold text-gray-900">{{ presentValueAmount | currency:'USD':'symbol':'1.0-0' }}</p>
           </div>
           <div class="text-center">
-            <p class="text-[10px] text-gray-500 uppercase tracking-wide">{{ bundleLabel }} Total Expenses</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide">{{ bundleLabel }} Total Expenses</p>
             <p class="text-lg font-bold text-green-700">{{ planSpecificLifetimeExpense | currency:'USD':'symbol':'1.0-0' }}</p>
           </div>
           <div class="text-center">
-            <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total IRMAA Surcharge</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Total IRMAA Surcharge</p>
             <p class="text-lg font-bold text-red-700">{{ totalIrmaaSurcharge | currency:'USD':'symbol':'1.0-0' }}</p>
           </div>
         </div>
@@ -255,9 +255,9 @@
                   <div class="w-full bg-gray-200 rounded-full h-1.5">
                     <div class="bg-indigo-500 h-1.5 rounded-full" [style.width.%]="cat.percentOfTotal"></div>
                   </div>
-                  <p class="text-[10px] text-gray-500 mt-1">{{ cat.insight }}</p>
+                  <p class="text-xs text-gray-500 mt-1">{{ cat.insight }}</p>
                 </div>
-                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0"
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
                       [class.bg-red-100]="cat.trend === 'Rising'" [class.text-red-700]="cat.trend === 'Rising'"
                       [class.bg-green-100]="cat.trend === 'Declining'" [class.text-green-700]="cat.trend === 'Declining'"
                       [class.bg-blue-100]="cat.trend === 'Stable'" [class.text-blue-700]="cat.trend === 'Stable'">
@@ -289,13 +289,13 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
                     <p class="text-xs font-semibold text-gray-800">{{ tip.title }}</p>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium" [class]="getPriorityColor(tip.priority)">
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium" [class]="getPriorityColor(tip.priority)">
                       {{ tip.priority }}
                     </span>
                   </div>
-                  <p class="text-[10px] text-gray-600">{{ tip.description }}</p>
+                  <p class="text-xs text-gray-600">{{ tip.description }}</p>
                   @if (tip.estimatedSavings) {
-                    <p class="text-[10px] text-green-700 font-medium mt-1">
+                    <p class="text-xs text-green-700 font-medium mt-1">
                       Potential savings: {{ tip.estimatedSavings }}
                     </p>
                   }

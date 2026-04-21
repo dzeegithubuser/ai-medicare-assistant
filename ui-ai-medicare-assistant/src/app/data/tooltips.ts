@@ -211,8 +211,8 @@ export const PHARMACY_TYPES: Record<string, PharmacyTypeInfo> = {
     description:
       'Home infusion or long-term care pharmacy providing medications and infusion therapy services to patients in their homes or care facilities.',
     icon: 'home_health',
-    bgClass: 'bg-teal-50',
-    textClass: 'text-teal-600',
+    bgClass: 'bg-cyan-50',
+    textClass: 'text-cyan-600',
   },
 };
 
@@ -237,7 +237,7 @@ export const FORMULARY_TIERS: Record<number, TierInfo> = {
   2: {
     label: 'Tier 2 — Generic',
     description: 'Other generic drugs with slightly higher copays than Tier 1.',
-    chipClass: 'bg-teal-100 text-teal-700',
+    chipClass: 'bg-cyan-100 text-cyan-700',
   },
   3: {
     label: 'Tier 3 — Preferred Brand',
@@ -270,7 +270,7 @@ export const NETWORK_TYPES: Record<string, { description: string; chipClass: str
   },
   'HMO-POS': {
     description: 'HMO with Point-of-Service option — primarily HMO, but allows some out-of-network visits at higher cost.',
-    chipClass: 'bg-teal-100 text-teal-700',
+    chipClass: 'bg-cyan-100 text-cyan-700',
   },
   PFFS: {
     description: 'Private Fee-for-Service — can see any Medicare-approved provider who agrees to the plan payment terms. Most flexible network.',
@@ -328,7 +328,7 @@ export const PLAN_CATEGORIES: Record<string, PlanCategoryInfo> = {
   MA_PDP: {
     label: 'MA + Separate PDP',
     description: 'Medicare Advantage plan without built-in drug coverage, paired with a separate standalone Part D plan for prescriptions.',
-    chipClass: 'bg-teal-100 text-teal-700',
+    chipClass: 'bg-cyan-100 text-cyan-700',
     icon: 'add_circle',
   },
 };

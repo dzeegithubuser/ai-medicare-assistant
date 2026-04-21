@@ -4,12 +4,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RecommendationResponse } from '../models/recommendation.model';
+import { RecommendationResponse } from '../../../models/recommendation.model';
 import {
   deltaIcon, deltaLabel,
   getTrajectoryIcon, getTrajectoryColor, getPriorityColor,
   buildProfileRows, ProfileRow,
-} from './compare-helpers';
+} from '../compare-helpers';
 
 @Component({
   selector: 'app-compare-ltc',

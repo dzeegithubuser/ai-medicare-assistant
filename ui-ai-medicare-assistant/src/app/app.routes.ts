@@ -18,12 +18,12 @@ export const routes: Routes = [
       {
         path: AppRoutes.SAVED_COMPARE,
         loadComponent: () =>
-          import('./recommendation/recommendation-compare.component').then(m => m.RecommendationCompareComponent),
+          import('./recommendation/compare/recommendation-compare.component').then(m => m.RecommendationCompareComponent),
       },
       {
         path: AppRoutes.SAVED_DETAIL,
         loadComponent: () =>
-          import('./recommendation/recommendation-detail.component').then(m => m.RecommendationDetailComponent),
+          import('./recommendation/detail/recommendation-detail.component').then(m => m.RecommendationDetailComponent),
       },
       { path: AppRoutes.SAVED, loadComponent: () => import('./recommendation/recommendation.component').then(m => m.RecommendationComponent) },
       { path: AppRoutes.CHANGE_PASSWORD, loadComponent: () => import('./auth/change-password/change-password.component').then(m => m.ChangePasswordComponent) },

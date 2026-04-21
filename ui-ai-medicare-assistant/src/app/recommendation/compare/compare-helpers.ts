@@ -1,4 +1,4 @@
-import { ProfileSnapshotDto, RecommendationCategory } from '../models/recommendation.model';
+import { ProfileSnapshotDto, RecommendationCategory } from '../../models/recommendation.model';
 
 export function deltaClass(left: number, right: number): string {
   if (left === right) return 'text-gray-600';
@@ -47,7 +47,7 @@ export function starArray(rating: number): boolean[] {
 }
 
 export function typeBadgeClass(type: RecommendationCategory): string {
-  return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
+  return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-cyan-100 text-cyan-700';
 }
 
 export function typeLabel(type: RecommendationCategory): string {

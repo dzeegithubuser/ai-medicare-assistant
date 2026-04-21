@@ -105,7 +105,7 @@
 
 | # | Scenario | Precondition | Expected Result |
 |---|----------|--------------|-----------------|
-| 5.1 | Pharmacies found | User has zip "90210". Submit drugs, then click "Find Nearby Pharmacies" button | Pharmacies populated. PharmacyListComponent appears. Cheapest has "Best Price" chip. Button hides after load. |
+| 5.1 | Pharmacies found | User has zip "90210". Submit drugs, then click "Find Nearby Pharmacies" button | Pharmacies populated. Cheapest has "Best Price" chip. Button hides after load. |
 | 5.2 | No zip code | No address profile. Click "Find Nearby Pharmacies" | Empty pharmacies. Panel not shown. Error handled gracefully. |
 | 5.3 | Select pharmacy | Click a pharmacy row | Row highlights. Per-drug price grid expands (Retail/Medicare/Generic). |
 | 5.4 | Sort toggle | Click sort icon | Re-sorts by name ↔ price. |
@@ -113,7 +113,7 @@
 | 5.7 | Chat summary | Check chat message after drug analysis | Summary mentions "Use the buttons below the results to load Medicare plan recommendations or find nearby pharmacies." |
 | 5.8 | Standalone search | `GET /api/pharmacy/search?zip=90210&drugs=1364430` | Returns pharmacies with pricing. |
 | 5.9 | Missing zip | `GET /api/pharmacy/search?drugs=1364430` (no zip) | Returns 400. |
-| 5.10 | NPI API timeout | NPI Registry down, click "Find Nearby Pharmacies" | Loading spinner stops. No pharmacy panel. No errors. |
+| 5.10 | Pharmacy API timeout | Pharmacy API down, click "Find Nearby Pharmacies" | Loading spinner stops. No pharmacy panel. No errors. |
 | 5.11 | AI pricing fails | IChatClient timeout | Fallback to ParsePriceString prices. |
 | 5.12 | Both pricing fail | AI + ParsePriceString fail | Prices null. UI shows "—". |
 | 5.13 | Brand-only drug | `"Eliquis 5mg"` | `genericPrice` null. "—" in Generic column. |
@@ -206,7 +206,7 @@
 
 ## 5c. Plan-Aware Pharmacy Search (Legacy Backend-Only)
 
-> **Note:** `PharmacyListComponent` in `planMode` still exists in the codebase but is only rendered in the unreachable "regular" (non-FP) flow path of `PlansStepComponent`. Since the UI always uses the flow, these scenarios are effectively dead. Retained for backend API testing only.
+> **Note:** Plan-aware pharmacy display mode is not currently active in the UI. These scenarios are retained for backend API testing only.
 
 | # | Scenario | Precondition | Expected Result |
 |---|----------|--------------|-----------------|
@@ -780,84 +780,13 @@
 
 ---
 
-## 18. Chatbot Orchestrator (Backend-Only — Not Reachable from UI)
+## 18. ~~Chatbot Orchestrator~~ (Removed)
 
-> **Note:** The `POST /api/chat/orchestrate` endpoint and `ChatOrchestratorService` FSM exist on the backend but are never called by the frontend. The chat panel is hidden on `/cost-projections` and `/` (dashboard), which are the only pages where `routeToOrchestrator()` would pass. All wizard pages (`/drugs`, `/pharmacies`, `/plans`, `/profile`) are explicitly blocked by the orchestrator guard. As a result, the `convStates` MongoDB collection is always empty in normal usage. These scenarios are retained for direct backend API testing only.
+> **Note:** The chatbot orchestrator (`ChatOrchestratorService`, `ChatOrchestratorController`, `ConvStateService`, `ConvStateDocument`, `DeltaCalculationService`, `DeltaDisplayComponent`, `HelpMenuComponent`) has been fully removed from the codebase. Chat coordination is now handled by `ChatRouterService` with `ChatIntentService` (20 intents), page-specific extraction services, and `ChatNavigationFlowService`. The `convStates` MongoDB collection no longer exists. All test scenarios in this section are obsolete.
 
-### 18a. Conversation State & Session
+---
 
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18a.1 | New conversation | First `POST /api/chat/orchestrate` for user | `ConvStateDocument` created in MongoDB with `state: "idle"`, empty `pendingChanges`, 30-min TTL expiry. |
-| 18a.2 | Resume conversation | Send message within 30 minutes of last | Same `ConvStateDocument` reused. State preserved from previous turn. |
-| 18a.3 | TTL expired | Send message after 30 minutes of inactivity | Old state discarded. Fresh `ConvStateDocument` created. Reply: "Your previous session expired..." |
-| 18a.4 | State transitions | Send "add Lipitor" → confirm → complete | State: idle → awaiting_drug_name → awaiting_confirmation → idle. Each step persisted to MongoDB. |
-| 18a.5 | Empty message | `POST /api/chat/orchestrate` with `{ "message": "" }` | 400 Bad Request. |
-
-### 18b. Recommendation Lifecycle
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18b.1 | Create recommendation | "Create a recommendation" (no existing rec) | Profile, drugs, pharmacy, plans snapshots captured. `RecommendationDocument` created. Reply: "I've created your recommendation..." |
-| 18b.2 | Create — already exists | "Create a recommendation" (rec already exists) | Reply: "You already have a recommendation. Would you like to replace it?" Awaiting confirmation. |
-| 18b.3 | View summary | "Show my recommendation" (rec exists) | Reply: Markdown summary with profile, drugs, pharmacy, plan details. Disclaimer appended. |
-| 18b.4 | View summary — none exists | "Show my recommendation" (no rec) | Reply: "No recommendation found. Would you like to create one?" |
-| 18b.5 | Delete recommendation | "Delete my recommendation" | Delete confirm mode activated. Reply: "Type DELETE MY RECOMMENDATION to confirm." |
-| 18b.6 | Confirm delete | Type "DELETE MY RECOMMENDATION" | `RecommendationDocument` deleted. Reply: "Recommendation deleted." State reset to idle. |
-| 18b.7 | Cancel delete | Type anything other than exact phrase | Reply: "Delete cancelled." State returns to idle. |
-
-### 18c. Profile & Drug Updates via Orchestrator
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18c.1 | Change profile field | "Change my coverage year to 2026" | Confirmation prompt with delta preview. `awaitingConfirmation: true`. |
-| 18c.2 | Confirm profile change | "yes" after profile change prompt | Profile field updated in recommendation. Delta applied. Reply confirms change. |
-| 18c.3 | Cancel profile change | "no" after profile change prompt | Pending changes discarded. Reply: "Change cancelled." State returns to idle. |
-| 18c.4 | Add drug | "Add Metformin to my drugs" | Drug validated. Confirmation prompt shown with cost delta. |
-| 18c.5 | Remove drug | "Remove Lipitor" | Drug found in recommendation. Confirmation prompt with delta. |
-| 18c.6 | Change pharmacy | "Switch to CVS Pharmacy" | Pharmacy lookup performed. Confirmation prompt with delta. |
-| 18c.7 | Change plan | "Switch to plan H5521-001-0" | Plan validated. Confirmation prompt with delta. |
-
-### 18d. Delta Calculation & Display
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18d.1 | Cost increase | Proposed change increases lifetime cost | `DeltaDisplayComponent` shows red `trending_up` icon. Lifetime, this-year, PV columns show before → after. |
-| 18d.2 | Cost decrease | Proposed change decreases lifetime cost | Green `trending_down` icon. Values show savings. |
-| 18d.3 | No change | Proposed change has no cost impact | Gray `trending_flat` icon. |
-| 18d.4 | Delta in response | Orchestrator response with `delta` field | `pendingDelta` signal set. `DeltaDisplayComponent` rendered inline in chat. |
-| 18d.5 | Delta cleared | Confirmation or cancellation | `pendingDelta` reset to null. Delta card disappears. |
-
-### 18e. Financial Projections & Funding
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18e.1 | View projections | "Show my cost projections" | Markdown table with year-by-year costs. Financial disclaimer appended. |
-| 18e.2 | View funding | "Show funding sources" | Markdown funding breakdown. Financial disclaimer appended. |
-| 18e.3 | View summary with disclaimer | "Show my recommendation summary" | Summary includes disclaimer: "These projections are estimates..." |
-
-### 18f. Help Menu
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18f.1 | Help command | "help" or "what can I do?" | `displayData.type === 'help_menu'`. `HelpMenuComponent` rendered with 5 categories. |
-| 18f.2 | Help chip click | Click "Add a drug" chip | `actionClicked` emits "Add a drug". ChatComponent sends message to orchestrator. |
-| 18f.3 | Help dismissed | Any non-help message after help shown | `activeDisplayData` cleared. Help menu disappears. |
-
-### 18g. Orchestrator Mode Toggle
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18g.1 | No recommendation | Initial state, no recommendation loaded | Chat uses wizard/intent mode. No "Orchestrator" pill visible. |
-| 18g.2 | Recommendation exists | `RecommendationStateService.hasRecommendation()` true | Chat switches to orchestrator mode. Emerald "Orchestrator" pill visible in header. Messages routed to `ChatOrchestratorService`. |
-| 18g.3 | After delete | Delete recommendation via orchestrator | Mode reverts to wizard/intent. "Orchestrator" pill disappears. |
-| 18g.4 | After create | Create recommendation via orchestrator | Mode active. "Orchestrator" pill appears. |
-
-### 18h. Error Handling
-
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 18h.1 | Network timeout | Orchestrator request times out (`status === 0`) | Assistant: "Request timed out. Please try again." |
+## 19. SignalR Message Context Attachment
 | 18h.2 | Server error | 500 response from `/api/chat/orchestrate` | Assistant: "Something went wrong. Please try again." |
 | 18h.3 | Top-level catch | Unhandled exception in `ProcessMessageAsync` | 500 response with generic error message. Exception logged. |
 | 18h.4 | Affirmative/negative patterns | "yes", "sure", "yep", "go ahead", "absolutely" | All recognized as affirmative by `IsAffirmative()` (21 patterns). |

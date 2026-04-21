@@ -20,35 +20,35 @@
         <span [class]="'px-2 py-0.5 rounded-full transition-colors ' +
           (wizard.currentStep() === 'PROFILE' || wizard.currentStep() === 'PROFILE_REVIEW'
             ? 'bg-cyan-100 text-cyan-700 font-medium'
-            : 'bg-gray-100 text-gray-400')">
+            : 'bg-gray-100 text-gray-600')">
           Profile
         </span>
-        <span class="text-gray-300">›</span>
+        <span class="text-gray-500">›</span>
         <span [class]="'px-2 py-0.5 rounded-full transition-colors ' +
           (wizard.currentStep() === 'DRUGS'
             ? 'bg-cyan-100 text-cyan-700 font-medium'
-            : 'bg-gray-100 text-gray-400')">
+            : 'bg-gray-100 text-gray-600')">
           Drugs
         </span>
-        <span class="text-gray-300">›</span>
+        <span class="text-gray-500">›</span>
         <span [class]="'px-2 py-0.5 rounded-full transition-colors ' +
           (wizard.currentStep() === 'PHARMACIES'
             ? 'bg-cyan-100 text-cyan-700 font-medium'
-            : 'bg-gray-100 text-gray-400')">
+            : 'bg-gray-100 text-gray-600')">
           Pharmacy
         </span>
-        <span class="text-gray-300">›</span>
+        <span class="text-gray-500">›</span>
         <span [class]="'px-2 py-0.5 rounded-full transition-colors ' +
           (wizard.currentStep() === 'PLANS'
             ? 'bg-cyan-100 text-cyan-700 font-medium'
-            : 'bg-gray-100 text-gray-400')">
+            : 'bg-gray-100 text-gray-600')">
           Plans
         </span>
-        <span class="text-gray-300">›</span>
+        <span class="text-gray-500">›</span>
         <span [class]="'px-2 py-0.5 rounded-full transition-colors ' +
           (wizard.currentStep() === 'ANALYSIS' || wizard.currentStep() === 'COMPLETE'
             ? 'bg-cyan-100 text-cyan-700 font-medium'
-            : 'bg-gray-100 text-gray-400')">
+            : 'bg-gray-100 text-gray-600')">
           Analysis
         </span>
       </div>
@@ -90,11 +90,11 @@
     @if (chatRouter.pendingTaxFilingChoice()) {
       <div class="flex justify-start">
         <div class="flex gap-2 px-1">
-          <button mat-flat-button color="primary" class="!text-xs !h-8 !rounded-full"
+          <button mat-flat-button color="primary" class="!text-xs !h-10 !rounded-full"
                   (click)="onTaxFilingChoice('MARRIED_FILING_JOINTLY')">
             <mat-icon class="!text-sm !w-4 !h-4 mr-1">done_all</mat-icon>Jointly
           </button>
-          <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+          <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                   (click)="onTaxFilingChoice('FILING_INDIVIDUALLY')">
             <mat-icon class="!text-sm !w-4 !h-4 mr-1">person</mat-icon>Individually
           </button>
@@ -107,7 +107,7 @@
       <div class="flex justify-start">
         <div class="flex flex-wrap gap-2 px-1">
           @for (tier of chatRouter.pendingMagiTierChoices(); track tier.value) {
-            <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+            <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                     (click)="onMagiTierChoice(tier.value)">
               {{ tier.value }} - {{ tier.label }}
             </button>
@@ -120,11 +120,11 @@
     @if (chatRouter.pendingRunAnalysisConfirm()) {
       <div class="flex justify-start">
         <div class="flex gap-2 px-1">
-          <button mat-flat-button color="primary" class="!text-xs !h-8 !rounded-full"
+          <button mat-flat-button color="primary" class="!text-xs !h-10 !rounded-full"
                   (click)="onRunAnalysisConfirm(true)">
             <mat-icon class="!text-sm !w-4 !h-4 mr-1">check_circle</mat-icon>Yes
           </button>
-          <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+          <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                   (click)="onRunAnalysisConfirm(false)">
             <mat-icon class="!text-sm !w-4 !h-4 mr-1">cancel</mat-icon>No
           </button>
@@ -144,7 +144,7 @@
             <p class="text-xs text-gray-500 mb-1.5">Type</p>
             <div class="flex flex-wrap gap-2 mb-3">
               @for (opt of dc.typeOptions!; track opt) {
-                <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+                <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                         (click)="chatRouter.applyDrugChatChip('type', opt)">{{ opt }}</button>
               }
             </div>
@@ -153,7 +153,7 @@
             <p class="text-xs text-gray-500 mb-1.5">Dosage form</p>
             <div class="flex flex-wrap gap-2 mb-3">
               @for (opt of dc.formOptions!; track opt) {
-                <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+                <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                         (click)="chatRouter.applyDrugChatChip('form', opt)">{{ opt }}</button>
               }
             </div>
@@ -162,7 +162,7 @@
             <p class="text-xs text-gray-500 mb-1.5">Strength</p>
             <div class="flex flex-wrap gap-2 mb-3">
               @for (opt of dc.strengthOptions!; track opt) {
-                <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+                <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                         (click)="chatRouter.applyDrugChatChip('strength', opt)">{{ opt }}</button>
               }
             </div>
@@ -171,7 +171,7 @@
             <p class="text-xs text-gray-500 mb-1.5">Tablets per month</p>
             <div class="flex flex-wrap gap-2">
               @for (q of dc.quantityOptions!; track q) {
-                <button mat-stroked-button color="primary" class="!text-xs !h-8 !rounded-full"
+                <button mat-stroked-button color="primary" class="!text-xs !h-10 !rounded-full"
                         (click)="chatRouter.applyDrugChatChip('quantity', q)">{{ q }}</button>
               }
             </div>
@@ -220,11 +220,11 @@
             }
           </div>
           <div class="flex gap-2 mt-4 justify-end">
-            <button mat-stroked-button color="warn" class="!text-xs !h-8 !rounded-full"
+            <button mat-stroked-button color="warn" class="!text-xs !h-10 !rounded-full"
                     (click)="cancelSuggestions()">
               <mat-icon class="!text-sm !w-4 !h-4 mr-1">close</mat-icon>Cancel
             </button>
-            <button mat-flat-button color="primary" class="!text-xs !h-8 !rounded-full"
+            <button mat-flat-button color="primary" class="!text-xs !h-10 !rounded-full"
                     [disabled]="!allSelected()" (click)="confirmAndAnalyze()">
               <mat-icon class="!text-sm !w-4 !h-4 mr-1">check_circle</mat-icon>Confirm &amp; Analyze
             </button>

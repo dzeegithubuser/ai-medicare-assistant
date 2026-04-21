@@ -23,22 +23,22 @@
       <div>
         <h4 class="text-xs font-semibold text-gray-800">{{ plan().planName }}</h4>
         <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
-          <span class="text-[10px] text-gray-500">{{ r.planType }}</span>
+          <span class="text-xs text-gray-500">{{ r.planType }}</span>
           @if (enriched(); as e) {
-            <span class="text-[10px] text-gray-400">·</span>
-            <span class="text-[10px] text-gray-500 font-medium">{{ e.planIdDisplay }}</span>
+            <span class="text-xs text-gray-600">·</span>
+            <span class="text-xs text-gray-500 font-medium">{{ e.planIdDisplay }}</span>
             @if (e.insuranceCarrier) {
-              <span class="text-[10px] text-gray-400">·</span>
-              <span class="text-[10px] text-gray-600 font-medium">{{ e.insuranceCarrier }}</span>
+              <span class="text-xs text-gray-600">·</span>
+              <span class="text-xs text-gray-600 font-medium">{{ e.insuranceCarrier }}</span>
             }
           } @else {
-            <span class="text-[10px] text-gray-400">·</span>
-            <span class="text-[10px] text-gray-500">{{ plan().contractId }}</span>
+            <span class="text-xs text-gray-600">·</span>
+            <span class="text-xs text-gray-500">{{ plan().contractId }}</span>
           }
           <ng-content select="[badges]"></ng-content>
         </div>
       </div>
-      <div class="flex items-center gap-1 text-[10px]">
+      <div class="flex items-center gap-1 text-xs">
         <mat-icon class="!text-amber-400 !text-xs !w-3 !h-3">star</mat-icon>
         <span class="text-gray-600">{{ r.starRating }}</span>
       </div>
@@ -47,15 +47,15 @@
     <!-- Core metrics -->
     <div class="grid grid-cols-3 gap-2 text-center">
       <div>
-        <p class="text-[10px] text-gray-500">Premium</p>
+        <p class="text-xs text-gray-500">Premium</p>
         <p class="text-xs font-semibold" [class.text-green-600]="r.premium === 0">{{ r.premium | currency }}</p>
       </div>
       <div>
-        <p class="text-[10px] text-gray-500">Deductible</p>
+        <p class="text-xs text-gray-500">Deductible</p>
         <p class="text-xs font-semibold">{{ r.deductible | currency }}</p>
       </div>
       <div>
-        <p class="text-[10px] text-gray-500">Total Cost</p>
+        <p class="text-xs text-gray-500">Total Cost</p>
         <p class="text-xs font-bold text-indigo-700">{{ r.totalPlanCost | currency }}</p>
       </div>
     </div>
@@ -64,15 +64,15 @@
     @if (enrichedPartD; as pd) {
       <div class="grid grid-cols-3 gap-2 text-center mt-2 pt-2 border-t border-gray-100">
         <div>
-          <p class="text-[10px] text-gray-500">Part D Surcharge</p>
+          <p class="text-xs text-gray-500">Part D Surcharge</p>
           <p class="text-xs font-semibold" [class.text-green-600]="pd.partDSurcharge === 0">{{ pd.partDSurcharge | currency }}</p>
         </div>
         <div>
-          <p class="text-[10px] text-gray-500">Rx OOP</p>
+          <p class="text-xs text-gray-500">Rx OOP</p>
           <p class="text-xs font-semibold">{{ pd.prescriptionOOP | currency }}</p>
         </div>
         <div>
-          <p class="text-[10px] text-gray-500">Drugs Covered</p>
+          <p class="text-xs text-gray-500">Drugs Covered</p>
           <p class="text-xs font-semibold" [class.text-red-600]="pd.drugsCovered < pd.totalDrugs">
             {{ pd.drugsCovered }}/{{ pd.totalDrugs }}
           </p>
@@ -80,7 +80,7 @@
       </div>
       @if (pd.totalSelectedPharmacies > 0) {
         <div class="mt-1 text-center">
-          <span class="text-[10px] text-gray-500">Pharmacies In Network:
+          <span class="text-xs text-gray-500">Pharmacies In Network:
             <span class="font-semibold" [class.text-green-600]="pd.pharmaciesInNetwork === pd.totalSelectedPharmacies"
                   [class.text-amber-600]="pd.pharmaciesInNetwork < pd.totalSelectedPharmacies">
               {{ pd.pharmaciesInNetwork }}/{{ pd.totalSelectedPharmacies }}
@@ -95,31 +95,31 @@
       <div class="grid grid-cols-3 gap-2 text-center mt-2 pt-2 border-t border-gray-100">
         @if (ma.surcharges > 0) {
           <div>
-            <p class="text-[10px] text-gray-500">Surcharges</p>
+            <p class="text-xs text-gray-500">Surcharges</p>
             <p class="text-xs font-semibold text-amber-600">{{ ma.surcharges | currency }}</p>
           </div>
         }
         @if (ma.hasPrescriptionDrug) {
           <div>
-            <p class="text-[10px] text-gray-500">Rx OOP</p>
+            <p class="text-xs text-gray-500">Rx OOP</p>
             <p class="text-xs font-semibold">{{ ma.prescriptionOOP | currency }}</p>
           </div>
         }
         <div>
-          <p class="text-[10px] text-gray-500">Healthcare OOP</p>
+          <p class="text-xs text-gray-500">Healthcare OOP</p>
           <p class="text-xs font-semibold">{{ ma.healthcareOOP | currency }}</p>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-2 text-center mt-1">
         <div>
-          <p class="text-[10px] text-gray-500">Drugs Covered</p>
+          <p class="text-xs text-gray-500">Drugs Covered</p>
           <p class="text-xs font-semibold" [class.text-red-600]="ma.drugsCovered < ma.totalDrugs">
             {{ ma.drugsCovered }}/{{ ma.totalDrugs }}
           </p>
         </div>
         @if (ma.totalSelectedPharmacies > 0) {
           <div>
-            <p class="text-[10px] text-gray-500">Pharmacies In Network</p>
+            <p class="text-xs text-gray-500">Pharmacies In Network</p>
             <p class="text-xs font-semibold" [class.text-green-600]="ma.pharmaciesInNetwork === ma.totalSelectedPharmacies"
                     [class.text-amber-600]="ma.pharmaciesInNetwork < ma.totalSelectedPharmacies">
               {{ ma.pharmaciesInNetwork }}/{{ ma.totalSelectedPharmacies }}
@@ -130,15 +130,15 @@
     }
 
     @if ((r.unavailableDrugs?.length ?? 0) > 0 && !enriched()) {
-      <p class="text-[10px] text-red-500 mt-1">
-        <mat-icon class="!text-[10px] !w-3 !h-3 align-middle">warning</mat-icon>
+      <p class="text-xs text-red-500 mt-1">
+        <mat-icon class="!text-xs !w-3 !h-3 align-middle">warning</mat-icon>
         {{ r.unavailableDrugs!.length }} drug(s) not covered
       </p>
     }
 
     <div class="flex justify-end mt-2">
       <button mat-stroked-button
-              class="!text-[10px] !h-6 !min-w-0 !px-2 !rounded-full"
+              class="!text-xs !h-6 !min-w-0 !px-2 !rounded-full"
               [class.!border-blue-300]="accentColor() === 'blue'"
               [class.!text-blue-600]="accentColor() === 'blue'"
               [class.!border-purple-300]="accentColor() === 'purple'"

@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between">
       <!-- New Analysis -->
       <button mat-stroked-button
-              class="!rounded-xl !px-4 !text-xs !border-red-300 !text-red-600 hover:!bg-red-50"
+              class="!rounded-xl !px-4 !text-xs !border-cyan-300 !text-cyan-700 hover:!bg-cyan-50"
               (click)="startNewAnalysis()">
         <mat-icon class="!text-sm mr-1">restart_alt</mat-icon>
         New Analysis
@@ -18,7 +18,7 @@
                 [class.bg-cyan-50]="state.currentStep() === step.number"
                 [class.text-cyan-700]="state.currentStep() === step.number"
                 [class.font-semibold]="state.currentStep() === step.number"
-                [class.text-gray-400]="state.currentStep() !== step.number"
+                [class.text-gray-600]="state.currentStep() !== step.number"
                 [class.cursor-pointer]="step.number <= state.currentStep()"
                 [class.cursor-default]="step.number > state.currentStep()"
                 (click)="goToStep(step.number)">
@@ -74,7 +74,7 @@
     <!-- Continue -->
     @if (state.currentStep() < 4) {
       <button mat-raised-button color="primary"
-              class="!rounded-xl !px-6 !min-w-[200px] inline-flex items-center justify-center gap-2"
+              class="!rounded-xl !px-6 !min-w-[200px] !h-10 inline-flex items-center justify-center gap-2"
               [disabled]="!canContinue || state.isSavingCurrentPrescription() || profileService.chatSaveInProgress()"
               (click)="goNext()">
         @if (state.isSavingCurrentPrescription()) {

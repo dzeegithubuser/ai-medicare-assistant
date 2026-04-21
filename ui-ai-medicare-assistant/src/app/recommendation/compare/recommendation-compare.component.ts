@@ -9,11 +9,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RecommendationService } from '../services/recommendation.service';
-import { RecommendationResponse, RecommendationCategory } from '../models/recommendation.model';
-import { CompareMedicareComponent } from './compare-medicare.component';
-import { CompareLtcComponent } from './compare-ltc.component';
-import { CompareCrossComponent } from './compare-cross.component';
+import { RecommendationService } from '../../services/recommendation.service';
+import { RecommendationResponse, RecommendationCategory } from '../../models/recommendation.model';
+import { CompareMedicareComponent } from './medicare/compare-medicare.component';
+import { CompareLtcComponent } from './ltc/compare-ltc.component';
+import { CompareCrossComponent } from './cross/compare-cross.component';
 
 type ComparisonMode = 'medicare' | 'longterm' | 'cross';
 
@@ -65,14 +65,14 @@ export class RecommendationCompareComponent implements OnInit {
 
   readonly modeBadgeClass = computed<string>(() => {
     switch (this.mode()) {
-      case 'medicare': return 'bg-teal-100 text-teal-800';
+      case 'medicare': return 'bg-cyan-100 text-cyan-900';
       case 'longterm': return 'bg-purple-100 text-purple-800';
       case 'cross': return 'bg-orange-100 text-orange-800';
     }
   });
 
   typeBadgeClass(type: RecommendationCategory): string {
-    return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700';
+    return type === 'longterm' ? 'bg-purple-100 text-purple-700' : 'bg-cyan-100 text-cyan-700';
   }
 
   typeLabel(type: RecommendationCategory): string {
@@ -147,7 +147,7 @@ export class RecommendationCompareComponent implements OnInit {
   planTypeBadgeClass(planType: string): string {
     switch (planType.toLowerCase()) {
       case 'partd':   return 'bg-blue-100 text-blue-700';
-      case 'ma':      return 'bg-teal-100 text-teal-700';
+      case 'ma':      return 'bg-cyan-100 text-cyan-700';
       case 'medigap': return 'bg-indigo-100 text-indigo-700';
       default:        return 'bg-gray-100 text-gray-600';
     }

@@ -9,12 +9,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   RecommendationResponse, YearlyDetailDto, SelectedDrugDto,
-} from '../models/recommendation.model';
+} from '../../../models/recommendation.model';
 import {
   deltaClass, deltaIcon, deltaLabel,
   getTrajectoryIcon, getTrajectoryColor,
   starArray, buildProfileRows, ProfileRow,
-} from './compare-helpers';
+} from '../compare-helpers';
 import {
   Chart, ChartConfiguration,
   LineController, BarController, LineElement, BarElement, PointElement,
