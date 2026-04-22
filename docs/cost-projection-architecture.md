@@ -178,7 +178,7 @@ CostProjectionResult
 
 ## UI Rendering (`CostProjectionsComponent`)
 
-Reads `DrugStateService.costProjection()` signal and renders five Chart.js charts:
+Reads `MedicareStateService.costProjection()` signal and renders five Chart.js charts:
 
 | Chart | Data source |
 |---|---|
@@ -227,7 +227,7 @@ POST /api/plan-recommendation/evaluate-costs
                 └─ Returns: Present value of lifetime expenses
 
         ▼
-CostProjectionResult (combined) → DrugStateService.costProjection signal
+CostProjectionResult (combined) → MedicareStateService.costProjection signal
 ```
 
 ---

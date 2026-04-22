@@ -7,7 +7,7 @@ public class ChatSessionDocument
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    public string Id { get; set; } = null!;
 
     public Guid UserId { get; set; }
 

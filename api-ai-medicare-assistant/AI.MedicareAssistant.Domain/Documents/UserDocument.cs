@@ -11,7 +11,7 @@ public class UserDocument
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    public string Id { get; set; } = null!;
 
     /// <summary>Application-level Guid kept for FK compatibility with other collections.</summary>
     public Guid UserId { get; set; } = Guid.NewGuid();

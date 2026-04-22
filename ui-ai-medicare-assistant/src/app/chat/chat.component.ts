@@ -1,6 +1,7 @@
 import {
   Component, ChangeDetectionStrategy, computed, inject, viewChild,
   ElementRef, effect, OnInit, signal, untracked,
+  DestroyRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
@@ -34,6 +35,7 @@ import {
 } from './chat-send-guards';
 
 import { AppRoutes } from '../app-routes.const';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-chat',
@@ -69,6 +71,7 @@ export class ChatComponent implements OnInit {
   private refData       = inject(ReferenceDataService);
   private countyLookup  = inject(CountyLookupService);
   private router      = inject(Router);
+  private destroyRef  = inject(DestroyRef);
 
   /**
    * True while any known async work is in progress — chat input/send must stay disabled.
@@ -212,7 +215,7 @@ export class ChatComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.router.events.subscribe((event) => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.removeCostProjectionResetWarningsIfIrrelevant(this.router.url);
         this.removeAnalysisRefreshNoiseIfNeeded(this.router.url);

@@ -25,9 +25,9 @@ ChatGPT-style Medicare healthcare assistant where users paste prescription lists
 - **Clean Architecture** (4-layer: API → Application → Domain ← Infrastructure)
 - **ASP.NET Core SignalR** (persistent WebSocket hub at `/hubs/chat` for chat session sync)
 - **Microsoft.Extensions.AI** (IChatClient abstraction)
-- **OpenAI GPT-4.1** integration (primary AI model)
-- **Anthropic Claude Sonnet 4** integration (secondary AI model via `IAiChatClient`)
-- **Google Gemini** integration (tertiary AI model via `IChatClient`)
+- **OpenAI GPT-4.1** integration (AI model, selectable via `"AiProvider"` config switch)
+- **Anthropic Claude Sonnet 4** integration (AI model via `IChatClient`, selectable via config)
+- **Google Gemini** integration (AI model via `IChatClient`, selectable via config)
 - **MongoDB.Driver 3.4** (single database for all data — users, profiles, sessions, prescriptions, plans)
 - **JWT Authentication** (sign up, sign in, forgot/reset password; hub auth via `access_token` query param)
 - **BCrypt** password hashing
@@ -57,7 +57,7 @@ Angular Router (lazy-loaded routes)
       │    └── /long-term-care/projection → LtcProjectionStepComponent (LTC projection results + per-care-type charts)
       └── Right Panel: Chat
            ↓
-     DrugStateService (signal-based shared state)
+     MedicareStateService (signal-based shared state)
       ├── Message mutations → ChatSignalRService.syncMessages() [WebSocket]
       └── Session hydration ← ChatHub.OnConnectedAsync() push [WebSocket]
            ↓
@@ -68,15 +68,15 @@ Angular Router (lazy-loaded routes)
      Step 2: POST /api/drug/analyze { prescription }
            ↓
      API Layer
-      ├── DrugController
-      ├── PharmacyController
-      ├── PlanRecommendationController
-      ├── PrescriptionController [Authorize]
+      ├── DrugController [Authorize] (POST suggest-names)
+      ├── PharmacyController [Authorize] (GET lookup)
+      ├── PlanRecommendationController [Authorize] (POST evaluate-costs)
+      ├── PrescriptionController [Authorize] (POST/PUT/GET current selections)
       ├── RecommendationController [Authorize] (MongoDB recommendation CRUD)
       ├── ChatSessionController [Authorize] (MongoDB chat sessions — HTTP fallback for ui-state)
       ├── ChatHub [Authorize] (SignalR /hubs/chat — real-time message sync + session push)
       ├── CountyLookupController (ZIP-based county lookup + MAGI tiers)
-      ├── AuthController
+      ├── AuthController (signup, signin, forgot/reset-password, verify-email, resend-verification, change-password)
       ├── ReferenceDataController (public — master data for forms)
       ├── ProfileController [Authorize] (consolidated GET/POST)
       ├── LongTermCareController [Authorize] (POST /api/long-term-care — LTC projection)

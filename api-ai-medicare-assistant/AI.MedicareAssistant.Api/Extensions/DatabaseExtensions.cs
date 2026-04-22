@@ -15,7 +15,7 @@ internal static class DatabaseExtensions
     {
         var camelCasePack = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCasePack, _ => true);
-
+        
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
         // ------- MongoDB client & database -------

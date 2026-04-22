@@ -16,9 +16,9 @@ All application data lives in a single MongoDB database (`ai_medicare_assistant`
 
 | Collection | Document | Index | Purpose |
 |------------|----------|-------|---------|
-| `users` | `UserDocument` | unique `Email`, unique `Phone`, unique `UserId` | Merged user + profile data (email, phone, passwordHash, isEmailVerified, firstName, lastName, coverageYear, healthCondition, taxFilingStatus, magiTier, gender, tobaccoStatus, dateOfBirth, concierge, conciergeAmount, lifeExpectancy, address fields, currentPrescriptionDocumentId, isProfileComplete, timestamps) |
+| `users` | `UserDocument` | unique sparse `Email`, unique sparse `Phone`, unique sparse `UserId` | Merged user + profile data (email, phone, passwordHash, isEmailVerified, firstName, lastName, coverageYear, healthCondition, taxFilingStatus, magiTier, gender, tobaccoStatus, dateOfBirth, concierge, conciergeAmount, lifeExpectancy, address fields, currentPrescriptionDocumentId, isProfileComplete, timestamps) |
 | `prescriptions` | `PrescriptionDocument` | `(userId ASC, createdAt DESC)` | Named prescriptions with embedded drug list |
-| `chat_sessions` | `ChatSessionDocument` | `(userId ASC, createdAt DESC)` | Chat/AI conversation history with rolling 200-message window |
+| `chatSessions` | `ChatSessionDocument` | unique `userId`, `(userId ASC, updatedAt DESC)` | Chat/AI conversation history with rolling 200-message window |
 | `userAnalysisSelections` | `UserAnalysisSelectionsDocument` | `(userId ASC)` unique | Per-user current analysis selections — confirmed drugs, selected pharmacies + plans, activeSection |
 | `recommendations` | `RecommendationDocument` | `(userId ASC, createdAt DESC)` | Full analysis snapshots — profile, drugs, pharmacies, plan selections, cost snapshots |
 | `ltcCurrentSelections` | `LtcCurrentSelectionsDocument` | `(userId ASC)` unique | Per-user LTC care-type inputs (health profile, care-year counts) + last projection result JSON |
@@ -32,7 +32,7 @@ User completes drug wizard         → MongoDB (userAnalysisSelections — drugs
 User selects pharmacies            → MongoDB (userAnalysisSelections — pharmacies)
 User selects plans                 → MongoDB (userAnalysisSelections — plans + activeSection)
 User saves analysis snapshot       → MongoDB (recommendations — full profile+drug+pharmacy+plan+cost doc)
-Chat messages exchanged            → MongoDB (chat_sessions — rolling 200-message window)
+Chat messages exchanged            → MongoDB (chatSessions — rolling 200-message window)
 User saves prescription            → MongoDB (prescriptions — named drug list)
 LTC wizard selections              → MongoDB (ltcCurrentSelections — care-type inputs + last result)
 Application logs                   → MongoDB (logs — Serilog structured BSON logs, 5-sec batch) + File fallback (Logs/log-*.txt)
@@ -54,6 +54,8 @@ Application logs                   → MongoDB (logs — Serilog structured BSON
 | POST | `/api/auth/signin` | `{ email, password }` | Public | Login, returns JWT |
 | POST | `/api/auth/forgot-password` | `{ email }` | Public | Generates reset token, sends email |
 | POST | `/api/auth/reset-password` | `{ token, newPassword, confirmPassword }` | Public | Reset password with token |
+| POST | `/api/auth/verify-email` | `{ token }` | Public | Verify email address with token |
+| POST | `/api/auth/resend-verification` | `{ email }` | Public | Resend email verification link |
 | POST | `/api/auth/change-password` | `{ oldPassword, newPassword, confirmPassword }` | `[Authorize]` JWT | Change password for authenticated user |
 
 ### Security

@@ -34,7 +34,6 @@ export class RecommendationComponent implements OnInit {
 
   readonly recommendations = signal<RecommendationSummaryResponse[]>([]);
   readonly loadingRecommendations = signal(true);
-  readonly topMessage = signal<string | null>(null);
 
   // ── Filter / Sort / Pagination ─────────────────────────────────────────────
   readonly searchQuery = signal('');
@@ -156,12 +155,7 @@ export class RecommendationComponent implements OnInit {
   }
 
   startLongTermAnalysis() {
-    this.clearTopMessage();
     this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
-  }
-
-  clearTopMessage() {
-    this.topMessage.set(null);
   }
 
   viewDetails(id: string) {

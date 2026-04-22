@@ -26,6 +26,6 @@ The codebase follows **Clean Architecture** on the backend (.NET 10) and **signa
 | 8  | [Feature Catalog](ch08-feature-catalog.md) | Story of each implemented enhancement | `ch08-feature-catalog.md` |
 | 9  | [Roadmap](ch09-roadmap.md) | Future enhancements and planned capabilities | `ch09-roadmap.md` |
 | 10 | [Testing Scenarios](ch10-testing-scenarios.md) | Manual test matrix covering all features | `ch10-testing-scenarios.md` |
-| 11 | [Drug Endpoint Test Scenarios](drug-endpoint-test-scenarios.md) | Quick QA checklist for `POST /api/drug/suggest-names` and `POST /api/drug/analyze` with real-world validation references | `drug-endpoint-test-scenarios.md` |
+| 11 | [Drug Endpoint Test Scenarios](drug-endpoint-test-scenarios.md) | Quick QA checklist for `POST /api/drug/suggest-names` with real-world validation references | `drug-endpoint-test-scenarios.md` |
 
 

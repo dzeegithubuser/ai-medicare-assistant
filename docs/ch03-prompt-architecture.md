@@ -10,33 +10,32 @@
 Prompts/
  system/        → pharma-system.txt (system role instructions for drug analysis)
                 → drug-name-suggestion-system.txt (system role for drug name identification)
-                → pharmacy-pricing-system.txt (system role for pharmacy pricing AI)
                 → plan-scoring-system.txt (system role for Medicare plan recommendation AI)
                 → cost-evaluation-system.txt (system role for Medicare cost evaluation AI — financial advisor role, 8 rules)
-                → gap-coverage-system.txt (system role for gap insurance advice AI — 8 rules for JSON output)
-                → orchestrator-intent-system.txt (system role for 19-intent chatbot classifier — NLU for recommendation management)
-                → delta-narrative-system.txt (system role for cost-impact narrative generation — 2-4 sentence plain-English summaries)
+                → ltc-evaluation-system.txt (system role for LTC cost evaluation AI)
+                → chat-intent-system.txt (system role for 20-intent chatbot classifier — NLU for recommendation management)
+                → profile-extract-system.txt (system role for profile field extraction from natural language)
+                → drug-selection-system.txt (system role for drug formulation selection extraction)
+                → pharmacy-selection-system.txt (system role for pharmacy selection extraction)
+                → plan-selection-system.txt (system role for plan selection extraction)
  tasks/         → drug-normalization.txt (task-specific instructions for full analysis)
                 → drug-name-suggestion.txt (task instructions for drug name identification)
-                → pharmacy-pricing.txt (task instructions for pharmacy pricing generation)
                 → plan-scoring.txt (task instructions for Medicare plan scoring)
                 → cost-evaluation.txt (task instructions for cost evaluation)
-                → gap-coverage.txt (task instructions for gap insurance advice)
+                → ltc-evaluation.txt (task instructions for LTC cost evaluation)
  schemas/       → drug-json-schema.txt (JSON output schema for full analysis)
                 → drug-name-suggestion-schema.txt (JSON output schema for name suggestions)
-                → pharmacy-pricing-schema.txt (JSON output schema for pharmacy pricing)
                 → plan-scoring-schema.txt (JSON output schema for plan recommendations)
                 → cost-evaluation-schema.txt (JSON output schema for cost evaluation with output rules)
-                → gap-coverage-schema.txt (JSON output schema for gap insurance recommendations)
+                → ltc-evaluation-schema.txt (JSON output schema for LTC cost evaluation)
  templates/     → prescription-analysis.txt (user prompt template for drug analysis)
                 → drug-name-suggestion.txt (user prompt template for name suggestions)
-                → pharmacy-pricing.txt (user prompt template for AI pricing)
                 → plan-scoring.txt (user prompt template for plan recommendations)
                 → cost-evaluation.txt (user prompt template for cost evaluation)
-                → gap-coverage.txt (user prompt template for gap insurance advice)
+                → ltc-evaluation.txt (user prompt template for LTC cost evaluation)
 ```
 
-> **Note:** The `system/` directory also contains standalone prompt files for AI extraction services: `chat-intent-system.txt`, `profile-extract-system.txt`, `drug-selection-system.txt`, `pharmacy-selection-system.txt`, `plan-selection-system.txt`, `orchestrator-intent-system.txt`, and `delta-narrative-system.txt`.
+> **Note:** The `system/` directory contains 10 prompt files — 5 for core AI features (pharma, drug-name-suggestion, plan-scoring, cost-evaluation, ltc-evaluation) and 5 for chat extraction services (chat-intent, profile-extract, drug-selection, pharmacy-selection, plan-selection).
 
 ## How It Works
 
@@ -46,10 +45,9 @@ Prompts are loaded from files and combined dynamically at runtime:
 |------------|--------------|----------|--------------------------|
 | **Drug Name Suggestion** | `pharma-system.txt` | `drug-name-suggestion.txt` | Combined via `PromptBuilder.BuildDrugNameSuggestion()` (system + task + schema + template). `{{INPUT}}` replaced with user's raw text. |
 | **Drug Analysis** | `pharma-system.txt` | `prescription-analysis.txt` | Combined via `PromptBuilder.Build()` (system + task + schema + template) |
-| **Pharmacy Pricing** | `pharmacy-pricing-system.txt` | `pharmacy-pricing.txt` | `{{PHARMACY_LIST}}`, `{{PHARMACY_COUNT}}`, `{{DRUG_DESCRIPTIONS}}`, `{{ZIP_CODE}}` |
 | **Plan Scoring** | `plan-scoring-system.txt` | `plan-scoring.txt` | `{{AGE}}`, `{{ZIP_CODE}}`, `{{COUNTY_NAME}}`, `{{MAGI_TIER}}`, `{{ANNUAL_INCOME}}`, `{{HOUSEHOLD_SIZE}}`, `{{FILING_STATUS}}`, `{{HAS_EMPLOYER_COVERAGE}}`, `{{DISABILITY_STATUS}}`, `{{HAS_CHRONIC_CONDITION}}`, `{{CHRONIC_DETAILS}}`, `{{LIS_TIER}}`, `{{DRUG_LIST}}`, `{{LIS_INSTRUCTIONS}}` |
 | **Cost Evaluation** | `cost-evaluation-system.txt` | `cost-evaluation.txt` | Combined via `PromptBuilder.BuildCostEvaluation()` (system + task + schema + template). `{{PLAN_NAME}}`, `{{PLAN_BUNDLE_CODE}}`, `{{COVERAGE_YEAR}}`, `{{LIFE_EXPECTANCY}}`, `{{TAX_FILING_STATUS}}`, `{{STATE_NAME}}`, `{{LIFETIME_AB_MA_EXPENSES}}`, `{{LIFETIME_AB_MA_PREMIUM}}`, `{{LIFETIME_AB_MA_OOP}}`, `{{LIFETIME_D_SURCHARGE}}`, `{{LIFETIME_B_SURCHARGE}}`, `{{YEARLY_BREAKDOWN}}` |
-| **Gap Coverage** | `gap-coverage-system.txt` | `gap-coverage.txt` | Combined via `PromptBuilder.BuildGapCoverage()` (system + task + schema + template). `{{PLAN_NAME}}`, `{{PLAN_TYPE}}`, `{{MISSING_COVERAGES}}` |
+| **LTC Evaluation** | `ltc-evaluation-system.txt` | `ltc-evaluation.txt` | Combined via `PromptBuilder.BuildLtcEvaluation()` (system + task + schema + template). Injects LTC projection data for AI-generated cost analysis. |
 | **Chat Intent Classification** | `chat-intent-system.txt` | _(standalone system prompt + dynamic page context)_ | Loaded by `ChatIntentService`. Classifies user messages into 20 intents (navigation, actions, plan switching, save analysis, run analysis, LTC navigation + input + projection) with parameter extraction for 11 profile fields + `prescriptionName` + `analysisName` + 4 LTC fields (`ltcHealthProfile`, `ltcAdultDayYears`, `ltcHomeCareYears`, `ltcNursingCareYears`). **Dynamic context injection:** `PageContextBuilder.Build(currentPage)` appends a page-specific guidance block to the system prompt (e.g., on `/medicare-analysis/drugs` an explicit profile-field phrase like "change my zip" maps to `NAVIGATE_PROFILE`, while a bare number/drug name does not). |
 | **Profile Extraction** | `profile-extract-system.txt` | _(standalone system prompt)_ | Loaded by `ProfileExtractService`. Extracts profile fields (13 supported) from natural language. Receives user message + missing fields list. Returns extracted fields dict + conversational reply. |
 | **Drug Selection Extraction** | `drug-selection-system.txt` | _(standalone system prompt)_ | Loaded by `DrugSelectionExtractService`. Extracts drug formulation selections (type, form, strength, qty) from chat. Supports actions: select, options, confirm_all, remove, edit. Receives user message + available drugs summary. Fuzzy matches drug names, forms, and strengths. |
@@ -61,8 +59,7 @@ Prompts are loaded from files and combined dynamically at runtime:
 - **Drug Name Suggestion:** Instructs the AI to extract drug names from free-text input (ignoring dosages, frequencies, quantities), suggest up to 3 correct candidate names per input, and assign confidence scores. Returns only valid JSON with no fabricated drug names.
 - **Drug Analysis:** System prompt includes strict rules to return `{ "drugs": [] }` for unrecognizable input — preventing hallucinated drug data. Instructs the AI to perform clinical intelligence analysis: drug-drug interactions, dosage validation against FDA ranges, duplicate therapy detection, therapeutic alternatives with cost comparison, generic switch suggestions, contraindication listing, and confidence scoring.  - **Formulations:** Each drug returns a `formulations[]` array of validated `{dosageForm, strength, packaging, ndcCode}` tuples. Every formulation must use real, FDA-listed package sizes — strengths must match the dosage form (e.g., suspension 125 mg/5 mL, not tablet-only strengths) and packaging must be logically consistent (e.g., "Bottle of N mL" for suspensions, "Bottle of N tablets" for tablets). The AI sets `ndcCode` to `null` — NDC codes are resolved by the backend from the authoritative RxNorm API.
   - **Packaging Format:** Descriptive `"<container> of <count>"` format required (e.g., "Bottle of 60 tablets", "Blister pack of 100 tablets", "Tube of 30 g"). Plain formats like "30 tablets" are rejected. Package counts must correspond to actual FDA-listed NDC package sizes (e.g., "Blister pack of 60 tablets" for Eliquis is invalid — the real blister pack is 100 tablets).
-  - **Dosage Form → Container Mapping:** tablet/capsule → Bottle/Blister pack; suspension/solution → Bottle (mL); cream/ointment → Tube (g); injection → Vial/Syringe; inhaler → Canister; patch → Box; suppository → Box.- **Pharmacy Pricing:** System prompt includes 16 numbered rules across 3 categories (Output, Pricing, Safety). Task file details per-pharmacy-type pricing variation (warehouse 15-25% below chain, mail-order 20-30% below, etc.). Schema enforces strict JSON array structure.
-- **Plan Scoring:** System prompt includes 19 numbered rules across 4 categories (Output, Plan Generation, Clinical, Safety). Task file includes pharmacy-aware scoring instructions — plans whose preferred networks include selected pharmacies rank higher. Plan category rules assign each plan one of 4 categories: `MA_ONLY` (MA with PDP included), `PDP_ONLY` (standalone PDP), `PDP_MEDIGAP` (PDP + Medigap like Plan G/N), `MA_PDP` (MA + separate PDP). Extended benefit rules instruct the AI to generate `networkType` (HMO/PPO/PFFS/HMO-POS), benefit flags (`includesDental`, `includesVision`, `includesHearing`, `includesFitness`, `includesOtc`, `mailOrderSavings`, `emergencyCoverage`), `otcAllowancePerQuarter`, `gapCoverage` (None/Some/Full), `providerNetworkSize` (Large/Medium/Small), and `pros`/`cons` bullet lists. Schema enforces exactly 5 plans with per-drug coverage entries and all extended fields.
+  - **Dosage Form → Container Mapping:** tablet/capsule → Bottle/Blister pack; suspension/solution → Bottle (mL); cream/ointment → Tube (g); injection → Vial/Syringe; inhaler → Canister; patch → Box; suppository → Box.- **Plan Scoring:** System prompt includes 19 numbered rules across 4 categories (Output, Plan Generation, Clinical, Safety).", "oldString": "- **Pharmacy Pricing:** System prompt includes 16 numbered rules across 3 categories (Output, Pricing, Safety). Task file details per-pharmacy-type pricing variation (warehouse 15-25% below chain, mail-order 20-30% below, etc.). Schema enforces strict JSON array structure.\n- **Plan Scoring:** System prompt includes 19 numbered rules across 4 categories (Output, Plan Generation, Clinical, Safety). Task file includes pharmacy-aware scoring instructions — plans whose preferred networks include selected pharmacies rank higher. Plan category rules assign each plan one of 4 categories: `MA_ONLY` (MA with PDP included), `PDP_ONLY` (standalone PDP), `PDP_MEDIGAP` (PDP + Medigap like Plan G/N), `MA_PDP` (MA + separate PDP). Extended benefit rules instruct the AI to generate `networkType` (HMO/PPO/PFFS/HMO-POS), benefit flags (`includesDental`, `includesVision`, `includesHearing`, `includesFitness`, `includesOtc`, `mailOrderSavings`, `emergencyCoverage`), `otcAllowancePerQuarter`, `gapCoverage` (None/Some/Full), `providerNetworkSize` (Large/Medium/Small), and `pros`/`cons` bullet lists. Schema enforces exactly 5 plans with per-drug coverage entries and all extended fields.
 - **Cost Evaluation:** System prompt establishes a Medicare financial advisor role with 8 rules for JSON output. Task file describes the evaluation objective: analyze year-by-year Medicare cost data to produce chart-ready insights. Schema enforces structured output with `lifetimeSummary`, `costTrajectory` (Rising/Stable/Declining/Mixed), `yearlyHighlights` (flagged years), `categories` (cost breakdown with percentages and trends), `savingsTips` (actionable recommendations with estimated savings and priority), and `overallAssessment`. Template injects plan details, lifetime totals, and full yearly breakdown data.
 
 ## Chat Intent Prompt Rules

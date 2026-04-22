@@ -254,7 +254,7 @@
   ],
 }
 
-> **Note:** `nearbyPharmacies` is **not** included in the drug analysis response. Pharmacy data is fetched on-demand via the separate `GET /api/pharmacy/search` endpoint.
+> **Note:** `nearbyPharmacies` is **not** included in the drug analysis response. Pharmacy data is fetched on-demand via the separate `GET /api/pharmacy/lookup` endpoint.
 ```
 
 > **Note:** `medicareCostEstimate` is `null` when CMS data is unavailable. `interactions`, `dosageAlerts`, and `duplicateTherapies` may be empty.
@@ -267,9 +267,7 @@
 
 | Method | Route | Query Params | Auth | Description |
 |--------|-------|------|------|-------------|
-| GET | `/api/pharmacy/nearby` | `zip` (optional) | Bearer JWT | Lightweight NPI-only nearby pharmacy lookup (no pricing). Returns `PharmacyResult[]` for multi-select (up to 5). Falls back to user's saved zip. |
 | GET | `/api/pharmacy/lookup` | `page`, `size`, `radius`, `name` (all optional) | Bearer JWT | Paginated pharmacy lookup via Financial Planner API. Uses lat/lng from user profile. Returns `PharmacyLookupResponse` with distance, address, zipcode. Defaults: page=1, size=20, radius=25. |
-| GET | `/api/pharmacy/search` | `zip` (optional), `drugs` (comma-separated RxCUIs) | Bearer JWT | On-demand nearby pharmacies with AI pricing. Falls back to user's saved zip. |
 
 ### `GET api/pharmacy/lookup`
 
@@ -305,53 +303,6 @@
 > - `distance` is in miles from the user's profile coordinates.
 > - `pharmacyNumber` is the Financial Planner pharmacy identifier (not NPI).
 > - Returns 400 if user profile has no latitude/longitude.
-
----
-
-### `GET api/pharmacy/nearby`
-
-**Auth:** `[Authorize]` — JWT required.
-
-**Purpose:** Returns lightweight pharmacy location data. Legacy endpoint — kept for backward compatibility. See `GET api/pharmacy/lookup` for the primary pharmacy lookup.
-
-**Query Parameters:** `zip` (optional) — falls back to user's saved address zip.
-
-**Response:**
-```json
-[
-  {
-    "npi": "1234567890",
-    "name": "CVS PHARMACY",
-    "legalName": "CVS PHARMACY INC",
-    "address": "123 MAIN ST",
-    "addressLine2": "",
-    "city": "BEVERLY HILLS",
-    "state": "CA",
-    "zipCode": "90210",
-    "phone": "3105551234",
-    "fax": "3105551235",
-    "pharmacyType": "Community/Retail Pharmacy",
-    "enumerationDate": "2005-01-15"
-  }
-]
-```
-
-### `GET api/pharmacy/search`
-
-**Response:**
-```json
-[
-  {
-    "pharmacy": { "npi": "1234567890", "name": "CVS PHARMACY", "address": "123 MAIN ST", "city": "BEVERLY HILLS", "state": "CA", "zipCode": "90210", "phone": "3105551234" },
-    "drugs": [
-      { "drugName": "apixaban", "ndc": "00003-0894-21", "rxCui": "1364430", "retailPrice": 285.50, "medicarePrice": null, "genericPrice": null }
-    ],
-    "totalRetailCost": 285.50,
-    "totalMedicareCost": null,
-    "totalGenericCost": null
-  }
-]
-```
 
 ---
 
@@ -802,38 +753,6 @@
 ```
 
 > **Note:** The `yearlyDetails` array contains the raw Financial Planner API result. The `evaluation` object is AI-generated and includes chart-ready data for visualization. `costTrajectory` is one of: `Rising`, `Stable`, `Declining`, `Mixed`. `yearlyHighlights[].flag` is one of: `Highest`, `Lowest`, `Spike`, `Normal`. `categories[].trend` is one of: `Rising`, `Stable`, `Declining`. `savingsTips[].priority` is one of: `High`, `Medium`, `Low`.
-
----
-
-## Plan-Aware Pharmacy Search
-
-### `POST api/pharmacy/plan-search`
-
-**Auth:** `[Authorize]` — JWT required.
-
-**Purpose:** Searches nearby pharmacies and overlays plan-specific copay pricing from the selected plan's formulary data.
-
-**Request:**
-```json
-{
-  "planId": "H1234-001-0",
-  "drugs": [
-    { "rxCui": "1364430", "drugName": "apixaban" }
-  ],
-  "planCoverages": [
-    {
-      "rxCui": "1364430",
-      "drugName": "apixaban",
-      "formularyTier": 3,
-      "monthlyCopay": 47,
-      "isCovered": true,
-      "requiresPriorAuth": false
-    }
-  ]
-}
-```
-
-**Response:** Same structure as `GET /api/pharmacy/search` but with plan-aware fields: `planCopay`, `formularyTier`, `requiresPriorAuth`, `isPreferredPharmacy` per drug, and `totalPlanCopay`, `isPreferredNetwork` per pharmacy.
 
 ---
 

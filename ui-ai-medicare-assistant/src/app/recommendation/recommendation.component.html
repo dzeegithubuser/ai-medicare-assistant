@@ -2,30 +2,21 @@
 
   <!-- ── Welcome Card ───────────────────────────────────────────────────── -->
   <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
-    <p class="text-sm font-medium text-cyan-700 uppercase tracking-wide mb-1">Welcome</p>
-    <h1 class="text-2xl font-bold text-gray-900">What would you like to do today?</h1>
-    <p class="text-sm text-gray-500 mt-1">Choose an action below, then continue in the chat on the right if needed.</p>
-
-    <div class="mt-4 flex flex-wrap gap-2">
-      <button mat-flat-button color="primary" class="!rounded-lg !h-10 !px-4 !gap-1" (click)="startMedicareAnalysis()">
-        <mat-icon>analytics</mat-icon>Medicare Analysis
-      </button>
-      <button mat-stroked-button color="primary" class="!rounded-lg !h-10 !px-4 !gap-1" (click)="startLongTermAnalysis()">
-        <mat-icon>timeline</mat-icon>Long Term Analysis
-      </button>
-      <button mat-stroked-button class="!rounded-lg !h-10 !px-4 !gap-1" (click)="refreshRecommendations()">
-        <mat-icon>refresh</mat-icon>Refresh Saved List
-      </button>
-    </div>
-
-    @if (topMessage()) {
-      <div class="mt-3 flex items-start justify-between gap-2 text-sm rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-900">
-        <span>{{ topMessage() }}</span>
-        <button mat-icon-button class="!w-7 !h-7" (click)="clearTopMessage()">
-          <mat-icon class="!text-base">close</mat-icon>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <p class="text-sm font-medium text-cyan-700 uppercase tracking-wide mb-1">Welcome</p>
+        <h1 class="text-2xl font-bold text-gray-900">What would you like to do today?</h1>
+        <p class="text-sm text-gray-500 mt-1">Choose an action below, then continue in the chat on the right if needed.</p>
+      </div>
+      <div class="flex flex-wrap gap-2 shrink-0">
+        <button mat-flat-button color="primary" class="!rounded-lg !h-10 !px-4 !gap-1" (click)="startMedicareAnalysis()">
+          <mat-icon>analytics</mat-icon>Medicare Analysis
+        </button>
+        <button mat-stroked-button color="primary" class="!rounded-lg !h-10 !px-4 !gap-1" (click)="startLongTermAnalysis()">
+          <mat-icon>timeline</mat-icon>Long Term Analysis
         </button>
       </div>
-    }
+    </div>
   </div>
 
   <!-- ── Compare Ribbon (shown when ≥1 item selected) ───────────────────── -->
@@ -144,7 +135,7 @@
     <div class="flex flex-wrap gap-2 items-center">
 
       <!-- Search -->
-      <mat-form-field appearance="outline" class="!w-44 density-compact" subscriptSizing="dynamic">
+      <mat-form-field appearance="outline" class="!w-64 density-compact" subscriptSizing="dynamic">
         <mat-icon matPrefix>search</mat-icon>
         <input matInput placeholder="Search by name..." [value]="searchQuery()" (input)="setSearch($any($event.target).value)">
       </mat-form-field>

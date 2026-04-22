@@ -1,6 +1,7 @@
 using Domain.Documents;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Infrastructure.Repositories;
@@ -33,6 +34,16 @@ public class MongoUserRepository : IUserRepository
     public async Task UpdateAsync(UserDocument user)
     {
         user.UpdatedAt = DateTime.UtcNow;
+
+        if (string.IsNullOrEmpty(user.Id))
+        {
+            var existingId = await _collection
+                .Find(u => u.UserId == user.UserId)
+                .Project(u => u.Id)
+                .FirstOrDefaultAsync();
+            user.Id = existingId ?? ObjectId.GenerateNewId().ToString();
+        }
+
         await _collection.ReplaceOneAsync(u => u.UserId == user.UserId, user);
     }
 

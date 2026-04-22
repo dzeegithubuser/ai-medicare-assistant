@@ -35,12 +35,12 @@
   - File: `AI.MedicareAssistant.Application/Services/AuthService.cs`
   - Fix: Send token via email only. Never return in API response.
 
-- [ ] **7. AiAnalysisStep — no try/catch on AI JSON deserialization** — Malformed AI JSON crashes the pipeline. Null result silently continues with empty data.
-  - File: `AI.MedicareAssistant.Application/Services/Pipeline/AiAnalysisStep.cs`
+- [x] **7. ~~AiAnalysisStep — no try/catch on AI JSON deserialization~~** — RESOLVED: Pipeline directory and files deleted. Analysis pipeline no longer exists.
+  - File: `AI.MedicareAssistant.Application/Services/Pipeline/AiAnalysisStep.cs` (deleted)
   - Fix: Wrap deserialization in try/catch, return `false` on failure with error message.
 
-- [ ] **8. CmsRxNormEnrichmentStep — one drug failure kills ALL enrichments** — `Task.WhenAll` causes all successful drug enrichments to be lost if a single API call fails.
-  - File: `AI.MedicareAssistant.Application/Services/Pipeline/CmsRxNormEnrichmentStep.cs`
+- [x] **8. ~~CmsRxNormEnrichmentStep — one drug failure kills ALL enrichments~~** — RESOLVED: Pipeline directory and files deleted. Enrichment pipeline no longer exists.
+  - File: `AI.MedicareAssistant.Application/Services/Pipeline/CmsRxNormEnrichmentStep.cs` (deleted)
   - Fix: Per-drug try/catch so other drugs are still enriched.
 
 ---

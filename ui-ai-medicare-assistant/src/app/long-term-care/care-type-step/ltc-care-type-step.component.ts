@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, of, switchMap, EMPTY, debounceTime } from 'rxjs';
+import { catchError, finalize, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LtcStateService } from '../ltc-state.service';
 import { ProfileService } from '../../services/profile.service';

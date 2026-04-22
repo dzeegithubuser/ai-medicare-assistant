@@ -1,6 +1,7 @@
 using Domain.Documents;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Infrastructure.Repositories;
@@ -25,6 +26,7 @@ public class MongoProfileRepository : IProfileRepository
         // Profile creation is an update on the existing user document
         entity.UpdatedAt = DateTime.UtcNow;
         entity.IsProfileComplete = true;
+        await EnsureIdAsync(entity);
         await _collection.ReplaceOneAsync(u => u.UserId == entity.UserId, entity);
         return entity;
     }
@@ -32,7 +34,20 @@ public class MongoProfileRepository : IProfileRepository
     public async Task UpdateAsync(UserDocument entity)
     {
         entity.UpdatedAt = DateTime.UtcNow;
+        await EnsureIdAsync(entity);
         await _collection.ReplaceOneAsync(u => u.UserId == entity.UserId, entity);
+    }
+
+    private async Task EnsureIdAsync(UserDocument entity)
+    {
+        if (string.IsNullOrEmpty(entity.Id))
+        {
+            var existingId = await _collection
+                .Find(u => u.UserId == entity.UserId)
+                .Project(u => u.Id)
+                .FirstOrDefaultAsync();
+            entity.Id = existingId ?? ObjectId.GenerateNewId().ToString();
+        }
     }
 
     public async Task<bool> ExistsByUserIdAsync(Guid userId) =>

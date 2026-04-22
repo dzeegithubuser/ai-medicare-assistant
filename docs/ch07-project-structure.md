@@ -31,7 +31,7 @@ app/
     chat-state.model.ts           → ChatMessage, ChatUiState, ChatSession interfaces
   services/
     drug.service.ts               → HTTP service for /api/drug/suggest-names, /api/drug/analyze, /api/pharmacy/plan-search, /api/pharmacy/lookup
-    drug-state.service.ts         → Signal-based shared state
+    drug-state.service.ts         → Signal-based shared state (class: MedicareStateService)
     auth.service.ts               → Signal-based auth state (JWT token, user, signIn/signUp/signOut)
     profile.service.ts            → Signal-based profile state orchestrator (load + save + updateState)
     county-lookup.service.ts      → ZIP-based county code lookup with caching + MAGI tiers
@@ -84,6 +84,8 @@ app/
       forgot-password.component.ts/html/scss → Forgot password form (email)
     reset-password/
       reset-password.component.ts/html/scss  → Reset password form (reads ?token= from URL, 2 password fields)
+    verify-email/
+      verify-email.component.ts/html/scss    → Email verification page (reads token from URL)
     change-password/
       change-password.component.ts/html/scss → Change password form (old + new + confirm, [Authorize])
   dashboard/
@@ -176,15 +178,15 @@ AI.MedicareAssistant.Api/
   Middleware/
     GlobalExceptionMiddleware.cs   → Global exception handler (AppException → HTTP status + JSON)
   Controllers/
-    DrugController.cs             → Drug name suggestion + analysis REST endpoints
-    PharmacyController.cs         → Nearby pharmacies with pricing + plan-aware search
-    PlanRecommendationController.cs → Medicare plan recommendations + LIS check
-    PrescriptionController.cs     → [Authorize] Save + list prescriptions (MongoDB)
-    AuthController.cs             → Sign up, sign in, forgot/reset password
+    DrugController.cs             → Drug name suggestion REST endpoint
+    PharmacyController.cs         → Pharmacy lookup (Financial Planner API)
+    PlanRecommendationController.cs → Medicare plan cost evaluation
+    PrescriptionController.cs     → [Authorize] Save + update current analysis selections (MongoDB)
+    AuthController.cs             → Sign up, sign in, forgot/reset password, verify email, resend verification, change password
     ReferenceDataController.cs    → Public master data endpoint
     ProfileController.cs         → [Authorize] consolidated profile GET/POST
     CountyLookupController.cs     → ZIP-based county code lookup + MAGI tiers endpoint
-    FinancialPlannerDrugController.cs → [Authorize] Financial Planner drug search/detail/bulk-search with AI interactions
+    FinancialPlannerDrugController.cs → [Authorize] Financial Planner drug bulk-search with AI interactions
     ChatIntentController.cs       → [Authorize] AI-powered chat intent classification (POST api/chat/intent + 4 extract endpoints)
     ChatSessionController.cs      → [Authorize] Chat session start-new endpoint
     RecommendationController.cs   → [Authorize] Recommendation CRUD (GET/POST/PUT profile|drugs|pharmacy|plans|cost-snapshot/DELETE api/recommendation)

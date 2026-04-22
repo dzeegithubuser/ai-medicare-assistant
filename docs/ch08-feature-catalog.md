@@ -9,9 +9,9 @@
 - **Flow:**
   1. **Step 1 — Name Suggestion:** User submits free-text input (e.g. "Eliquis 50mg 3daily, Ibuprofen 800mg") → `POST /api/drug/suggest-names` → AI extracts drug names (ignoring dosage/frequency), returns up to 3 candidates per input with confidence scores and Brand/Generic type.
   2. **Step 2 — User Confirmation:** Chat panel shows interactive selection panel with clickable candidate chips per drug. High-confidence (≥0.95) or single-candidate drugs are auto-selected. User clicks to select correct names, then "Confirm & Analyze".
-  3. **Step 3 — Full Analysis:** Confirmed drug names sent to existing `POST /api/drug/analyze` pipeline (AI analysis → validation → CMS/RxNorm enrichment → interaction merging → pharmacy pricing).
+  3. **Step 3 — Full Analysis:** Confirmed drug names proceed through the analysis pipeline (AI analysis → validation → CMS/RxNorm enrichment → interaction merging).
 - **Backend:** New `DrugNameRequest`/`DrugNameSuggestionResult` models. `IDrugAiService.SuggestDrugNames()` method. `PromptBuilder` assembles prompts from `tasks/drug-name-suggestion.txt`, `schemas/drug-name-suggestion-schema.txt`, `templates/drug-name-suggestion.txt`.
-- **Frontend:** `DrugService.suggestNames()` HTTP method. `DrugStateService` extended with `drugSuggestions`, `isVerifyingNames`, `hasSuggestions` signals. `ChatComponent` rewritten with two-step flow — `send()` calls Step 1, `confirmAndAnalyze()` triggers Step 2. Input disabled during name verification.
+- **Frontend:** `DrugService.suggestNames()` HTTP method. `MedicareStateService` extended with `drugSuggestions`, `isVerifyingNames`, `hasSuggestions` signals. `ChatComponent` rewritten with two-step flow — `send()` calls Step 1, `confirmAndAnalyze()` triggers Step 2. Input disabled during name verification.
 - **UX:** Cancel button clears suggestions and re-enables input. Unrecognizable inputs show empty candidates with error message.
 
 ---
@@ -161,10 +161,10 @@
 
 ---
 
-## ✅ Lightweight Nearby Pharmacy Lookup
-- **What:** Finds nearby pharmacies without pricing — only location data. Legacy endpoint kept for backward compatibility.
-- **Endpoint:** `GET /api/pharmacy/nearby?zip=` — returns `PharmacyResult[]` (name, address, phone, fax, pharmacy type). Falls back to user's saved zip.
-- **Purpose:** Separates pharmacy discovery from pricing. Superseded by Financial Planner Pharmacy Lookup (below) as the primary pharmacy source for step 2.
+## ✅ Pharmacy Lookup
+- **What:** Finds pharmacies via the Financial Planner API.
+- **Endpoint:** `GET /api/pharmacy/lookup` — returns pharmacy results.
+- **Purpose:** Primary pharmacy source for the pharmacy selection step.
 
 ---
 
@@ -179,7 +179,7 @@
 - **Frontend:**
   - **Models:** `PharmacyLookupEntry`, `PharmacyLookupResponse` interfaces in `drug.model.ts`.
   - **Service:** `DrugService.lookupPharmacies({ page?, size?, radius?, name? })` — `GET /api/pharmacy/lookup` with query params.
-  - **State:** `DrugStateService` extended with `pharmacyLookup` (signal), `isPharmacyLookupLoading`, `hasPharmacyLookup` (computed), `selectedLookupPharmacies` (signal, max 5), `hasSelectedLookupPharmacies` (computed). `toggleLookupPharmacy()` and `isLookupPharmacySelected()` methods. Both signals persisted/restored in state cycle.
+  - **State:** `MedicareStateService` extended with `pharmacyLookup` (signal), `isPharmacyLookupLoading`, `hasPharmacyLookup` (computed), `selectedLookupPharmacies` (signal, max 5), `hasSelectedLookupPharmacies` (computed). `toggleLookupPharmacy()` and `isLookupPharmacySelected()` methods. Both signals persisted/restored in state cycle.
   - **UI:** `PharmacyStepComponent` completely rewritten — filter bar (pharmacy name search, radius dropdown 10/25/50/100 mi, page size dropdown 10/20/50, search/clear buttons), pharmacy cards (name, number, distance badge, address, zipcode, checkbox toggle max 5), two Google Maps action buttons per card ("Spot on Map" + "Directions"), pagination controls (prev/next + page number window), selected pharmacies summary panel with remove buttons, loading spinner and empty state.
 - **Config:** `FinancialPlanner:BaseUrl` and `FinancialPlanner:AuthToken` in `appsettings.json` (shared with other Financial Planner services).
 
@@ -195,7 +195,7 @@
 - **Backend:** Plan recommendation orchestrates: county lookup → LIS tier → AI scoring (with pharmacy context) → CMS enrichment → pharmacy cost breakdowns. `PlanScoringAiService` generates 5 ranked plans with `{{PHARMACY_CONTEXT}}` placeholder for selected pharmacies. `CountyLookupService` fetches county data via Financial Planner API. LIS: 2025 FPL thresholds.
 - **AI Extended Fields:** AI generates 12 additional fields per plan: `networkType` (HMO/PPO/PFFS/HMO-POS), benefit flags (`includesDental`, `includesVision`, `includesHearing`, `includesFitness`, `includesOtc`), `otcAllowancePerQuarter`, `gapCoverage` (None/Some/Full), `mailOrderSavings`, `providerNetworkSize` (Large/Medium/Small), `emergencyCoverage`, and `pros`/`cons` bullet lists. Additionally, each plan includes a `planCategory` field (`MA_ONLY`, `PDP_ONLY`, `PDP_MEDIGAP`, `MA_PDP`) indicating the coverage bundling strategy.
 - **Frontend:** `PlanRecommendationComponent` orchestrates plan loading, compare state, LIS banner, and Part D gap fill via `ensurePartDGapLoadForMA()`. Decomposed into child components: `RecommendationCardComponent` (individual plan card), `MedigapCardComponent` (Medigap supplemental plan card), `MedigapGapSectionComponent`, `PartdGapSectionComponent` (Part D gap plan cards with checkboxes), `PlanDetailDialogComponent` (full plan detail dialog), and `SelectedPlansSummaryComponent`. All tooltip data centralized in `data/tooltips.ts`.
-- **Early Summary Panel:** `hasAnyPlanSelected` computed signal in `PlanRecommendationComponent` shows `SelectedPlansSummaryComponent` as soon as _any_ plan is selected in the active section (MA or Part D), even before the selection is complete. The summary is rendered with `[canCalculate]="hasCompleteSelection()"` passed as input — when `false`, the Calculate button is disabled and an amber hint guides the user (e.g., "Select a Part D gap plan below to calculate your total cost."). `hasCompletePlanSelection` in `DrugStateService` remains the gate for enabling the actual cost evaluation.
+- **Early Summary Panel:** `hasAnyPlanSelected` computed signal in `PlanRecommendationComponent` shows `SelectedPlansSummaryComponent` as soon as _any_ plan is selected in the active section (MA or Part D), even before the selection is complete. The summary is rendered with `[canCalculate]="hasCompleteSelection()"` passed as input — when `false`, the Calculate button is disabled and an amber hint guides the user (e.g., "Select a Part D gap plan below to calculate your total cost."). `hasCompletePlanSelection` in `MedicareStateService` remains the gate for enabling the actual cost evaluation.
 - **Design:** AI-first approach — no fragile CMS Plan Finder REST API dependency.
 
 ---
@@ -241,8 +241,8 @@
 - **Flow:** Pharmacy cards in step 2 show toggle checkboxes. Each click toggles selection (check/uncheck). Counter shows "X/5 selected". 6th selection attempt is silently rejected.
 - **Backend:** `PlanRecommendationRequest.SelectedPharmacies` accepts `List<SelectedPharmacy>` (capped at 5 via `.Take(5)` in controller). `PlanScoringAiService.BuildPharmacyContext()` renders a numbered list for AI prompt context.
 - **Frontend:** Two selection models coexist:
-  - **Legacy (NPI):** `DrugStateService.selectedPharmacies` signal. `togglePharmacy(pharmacy)`. `isPharmacySelected(npi)`. `hasSelectedPharmacies` computed.
-  - **Financial Planner:** `DrugStateService.selectedLookupPharmacies` signal. `toggleLookupPharmacy(pharmacy)` (max 5). `isLookupPharmacySelected(pharmacyNumber)`. `hasSelectedLookupPharmacies` computed. Both persisted in state cycle.
+  - **Legacy (NPI):** `MedicareStateService.selectedPharmacies` signal. `togglePharmacy(pharmacy)`. `isPharmacySelected(npi)`. `hasSelectedPharmacies` computed.
+  - **Financial Planner:** `MedicareStateService.selectedLookupPharmacies` signal. `toggleLookupPharmacy(pharmacy)` (max 5). `isLookupPharmacySelected(pharmacyNumber)`. `hasSelectedLookupPharmacies` computed. Both persisted in state cycle.
 - **UI:** Emerald-themed pharmacy cards with custom checkboxes. Selected pharmacies summary panel with remove buttons. "X/5 selected" badge.
 
 ---
@@ -276,11 +276,11 @@
 
 ## ✅ AI Gap Coverage Plans (with Sub-Component & Selection)
 - **What:** PDP plans lack Part A/B/dental/vision/hearing coverage. An AI-powered panel displays actual complementary plans (with carrier, premium range, deductible, coverage highlights) to fill each gap. Users can select gap plans via checkboxes — selecting any gap plan auto-selects the parent PDP plan for comparison.
-- **Flow:** Amber banner on PDP plan cards → click "Find Gap Coverage Plans" → `POST /api/plan-recommendation/gap-advice` → collapsible panel shows structured plan cards organized by coverage category. Each gap plan card has a checkbox for selection.
-- **Backend:** `PlanRecommendationController.GapAdvice()` endpoint. `PromptBuilder` assembles system/task/schema/template prompts with `{{PLAN_NAME}}`, `{{PLAN_TYPE}}`, `{{MISSING_COVERAGES}}` placeholders. AI returns structured JSON (`GapCoverageResult` with `GapPlanDto[]`) — parsed and returned as-is. Schema enforces: category, planName, planType, carrier, monthlyPremiumRange, annualDeductible, coverageHighlights, whyNeeded, enrollmentTip, priority (Essential/Recommended/Optional).
+- **Flow:** Amber banner on PDP plan cards → click "Find Gap Coverage Plans" → AI-generated gap coverage panel shows structured plan cards organized by coverage category. Each gap plan card has a checkbox for selection.
+- **Backend:** `PromptBuilder` assembles system/task/schema/template prompts with `{{PLAN_NAME}}`, `{{PLAN_TYPE}}`, `{{MISSING_COVERAGES}}` placeholders. AI returns structured JSON (`GapCoverageResult` with `GapPlanDto[]`) — parsed and returned as-is. Schema enforces: category, planName, planType, carrier, monthlyPremiumRange, annualDeductible, coverageHighlights, whyNeeded, enrollmentTip, priority (Essential/Recommended/Optional).
 - **Frontend:** Extracted to `PlanGapCoverageComponent` sub-component (standalone, OnPush). Calls `PlanRecommendationService.getGapAdvice()` directly. Response cached per plan — subsequent clicks toggle visibility without re-fetching. Each gap plan rendered as a card with category icon, priority badge, cost row, coverage highlight chips, enrollment tip, and **mat-checkbox**. Selected gap plans tracked in a local `Set` and emitted via `gapPlanSelected` output. `ChangeDetectorRef.markForCheck()` used to ensure OnPush detection works with async subscription callbacks.
 - **Parent Integration:** `PlanCardComponent` handles `gapPlanSelected` via `onGapPlanSelected()` — auto-selects the parent plan for comparison (if not already selected and compare limit not reached) and emits `compareToggled`.
-- **Prompts:** `gap-coverage-system.txt` (8 rules for JSON output), `gap-coverage.txt` (task), `gap-coverage-schema.txt` (JSON schema), `gap-coverage.txt` (template).
+- **Prompts:** Gap coverage prompts integrated into the cost-evaluation prompt chain.
 - **Models:** `GapCoverageResult` (gapPlans, comparisonTip). `GapPlan` (category, planName, planType, carrier, monthlyPremiumRange, annualDeductible, coverageHighlights, whyNeeded, enrollmentTip, priority).
 
 ---
@@ -298,7 +298,7 @@
 ---
 
 ## ✅ Signal-Based Confirmed Drugs (Reactivity Fix)
-- **What:** `DrugStateService.confirmedDrugs` changed from plain `Set<string>` to `signal(new Set<string>())` to fix Angular signal reactivity. Plain `Set.add/delete` mutations are invisible to `computed()` signals — the reference doesn't change, so dependents never recompute.
+- **What:** `MedicareStateService.confirmedDrugs` changed from plain `Set<string>` to `signal(new Set<string>())` to fix Angular signal reactivity. Plain `Set.add/delete` mutations are invisible to `computed()` signals — the reference doesn't change, so dependents never recompute.
 - **Fix:** `confirmDrug(name)` and `unconfirmDrug(name)` helper methods create a new `Set` reference on each call (copy + add/delete + set). `resetAll()` uses `confirmedDrugs.set(new Set())` instead of `.clear()`.
 - **Impact:** Fixed the Continue button not enabling after drug selection (step 1 → step 2 gate uses `hasConfirmedDrugs()` computed signal). All callers updated — `DrugsStepComponent` reads via `confirmedDrugs()` (signal access), mutates via `state.confirmDrug()`/`state.unconfirmDrug()`.
 
@@ -318,7 +318,7 @@
   - **AI Prompts:** 4 prompt files for cost evaluation: `cost-evaluation-system.txt` (Medicare financial advisor role, 8 rules), `cost-evaluation.txt` (task description), `cost-evaluation-schema.txt` (JSON schema with output rules), `cost-evaluation.txt` (template with 15 placeholders including plan details, lifetime totals, Total IRMAA, supplement plan type/premium, and yearly breakdown).
 - **Frontend:**
   - **Plan Card Button:** "Calculate Lifetime Cost" button added to each `PlanCardComponent` via `@Input() isCostLoading` and `@Output() calculateCost`. Shows loading spinner during API call.
-  - **State:** `DrugStateService` extended with `costProjection`, `hasCostProjection` signals and `setCostProjection()` method.
+  - **State:** `MedicareStateService` extended with `costProjection`, `hasCostProjection` signals and `setCostProjection()` method.
   - **Request Model:** `CalculateCostsRequest` includes all Financial Planner fields: `planBundleCode`, `medicareAdvantagePremium`, `maWithPrescriptionBenefit`, `partDOOP`, `partDOOPFullYear`, `partABenefitServiceCost`, `partBBenefitServiceCost`, `planRecommendName`, `recommendationListId`, `supplementDataProvided`, `partDDataProvided`, `reserveDaysUsed`, `dental`, `dentalHealthGrade`, `boughtPlanA`, `medicareAdvantageDataProvided`, `partDPremium`, `calculateForAdjustedMonth`, `supplementPlanType`.
   - **Response Model:** `EvaluateCostsResponse` includes `presentValue` (from FP Present Value API). `LifetimeTotals` includes `totalIrmaa`, `supplementPlanType`, `supplementPlanPremium`, `lifeTimeConciergePremium`, `conciergeIncluded`, and 12 plan-specific lifetime fields (`lifeTimeABGD/ABFD/ABND/ABCDExpenses/Premium/Oop`). `IndividualMedicareDetail` includes `planGPremium`, `planFPremium`, `planNPremium`, `totalABGD/ABFD/ABND/ABCD`. `ExpenseTableRow` interface for expense table data.
   - **Service:** `PlanRecommendationService.evaluateCosts()` calls `POST /api/plan-recommendation/evaluate-costs`.
@@ -349,7 +349,7 @@
     - **`DrugSelectionPanelComponent`** — 4-step guided selection (type→form→strength→qty/month) + confirm/edit. Exports `DrugSelectionState`. Computed signals: `availableTypes`, `availableDosageForms`, `availableStrengths`, `isReadyToConfirm`.
     - **`SelectedDrugsSummaryComponent`** — Confirmed drugs summary with edit/remove actions. Input: `confirmedDrugs`. Outputs: `editDrug`, `removeDrug`.
   - **Persistence:** Formulation selections, step states, quantities, and confirmed drug names persisted to/restored from `sessionStorage` keys `fp-formulation-selections`, `fp-drug-selections`, `fp-drug-quantities`, `fp-confirmed-drugs`.
-  - **State:** `DrugStateService` extended with `drugDetails` (`BulkDrugSearchResponse | null`), `isDrugDetailsLoading`, `hasDrugDetails` signals. Persisted to/restored from sessionStorage. Cleared on `resetAll()`.
+  - **State:** `MedicareStateService` extended with `drugDetails` (`BulkDrugSearchResponse | null`), `isDrugDetailsLoading`, `hasDrugDetails` signals. Persisted to/restored from sessionStorage. Cleared on `resetAll()`.
   - **Service:** `DrugService.searchDrugsBulk(drugNames)` calls `POST /api/FinancialPlannerDrug/search-bulk`.
   - **Models:** `DrugListItem`, `DrugSearchResponse`, `DrugDetailAdvanceItem`, `DrugDetailResponse`, `DrugSearchResult`, `BulkDrugSearchResponse` — all in `drug.model.ts`.
   - **Trigger:** Auto-fetches on `ngOnInit` if confirmed drugs exist and drug details not yet loaded.
@@ -365,18 +365,18 @@
   - **Fresh Flow Reset:** On Medicare mode click, chat clears prior carried flow state (confirmed drugs, selected pharmacies, pharmacy-confirmed flag, and plan selections) before starting.
   - **Wizard Steps:** AWAITING_MODE → PROFILE → DRUGS_PHARMACIES → PLANS → ANALYSIS → COMPLETE. Each step is announced via an assistant message with auto-navigation to the relevant route.
   - **Auto-Advance:** `ChatWizardService.hasNewStep` computed signal detects when completion signals fire (profile saved, drugs confirmed, pharmacy selection confirmed, plan loaded, cost projection done). `ChatComponent` watches via `effect()` and auto-announces the next step. Wizard uses `pharmacySelectionConfirmed` (not `hasSelectedLookupPharmacies`) to prevent auto-advance on first pharmacy checkbox — user must explicitly click "Continue to Plans" or use chat intent.
-  - **Reset:** `DrugStateService.resetAll()` increments `wizardResetTrigger`, which `ChatComponent` watches to call `wizard.reset()` — returning to mode selection.
+  - **Reset:** `MedicareStateService.resetAll()` increments `wizardResetTrigger`, which `ChatComponent` watches to call `wizard.reset()` — returning to mode selection.
 - **Feature B — Free-form Intent Routing:**
   - **AI Classification:** User types naturally → `POST /api/chat/intent` → `ChatIntentService` (backend) classifies into one of 20 intents using Anthropic Claude. System prompt loaded from `Prompts/system/chat-intent-system.txt` (file-based, not inline).
   - **Current intents:** Navigation (profile/drugs/pharmacies/plans/cost/saved/ltc-care-type), section switching, LTC care input, LTC projection, reset/save analysis/run analysis, sign out/help, and drug-input fallback intents.
-  - **Intent Prerequisite Guards:** All navigation intents now enforce a profile-complete gate before proceeding. `NAVIGATE_ANALYSIS_DRUGS` and `NAVIGATE_PHARMACIES` each require profile complete (redirects to `/medicare-analysis/profile` with message if not). `NAVIGATE_PLANS`, `SWITCH_TO_PDP`, `SWITCH_TO_MA` enforce the full chain: (1) profile complete, (2) at least one drug confirmed, (3) at least one pharmacy selected. `NAVIGATE_COST_PROJECTIONS` adds a further gate: complete plan selection (`DrugStateService.hasCompletePlanSelection()`). Each unmet prerequisite shows a descriptive assistant message and redirects to the appropriate step.
+  - **Intent Prerequisite Guards:** All navigation intents now enforce a profile-complete gate before proceeding. `NAVIGATE_ANALYSIS_DRUGS` and `NAVIGATE_PHARMACIES` each require profile complete (redirects to `/medicare-analysis/profile` with message if not). `NAVIGATE_PLANS`, `SWITCH_TO_PDP`, `SWITCH_TO_MA` enforce the full chain: (1) profile complete, (2) at least one drug confirmed, (3) at least one pharmacy selected. `NAVIGATE_COST_PROJECTIONS` adds a further gate: complete plan selection (`MedicareStateService.hasCompletePlanSelection()`). Each unmet prerequisite shows a descriptive assistant message and redirects to the appropriate step.
   - **Plan Section Switching:** `SWITCH_TO_PDP` / `SWITCH_TO_MA` intents (after passing prerequisites) set `activeSection` via `state.setActiveSection()`, set `pharmacySelectionConfirmed`, and navigate to `/medicare-analysis/plans`. If already on the requested section, shows "already viewing" message.
-  - **Cross-Page Drug Search:** When a drug name (e.g. "add metformin") is typed on the pharmacy page, the `DRUG_INPUT` intent is detected and reclassified as `NAVIGATE_ANALYSIS_DRUGS`. `DrugStateService.pendingCrossPageDrugSearch` is set to the original text before navigation. On `NavigationEnd` to `/medicare-analysis/drugs`, `ChatComponent` fires `runDrugFlow(text)` automatically — the user sees suggestion chips appear within 50 ms of page load. Pure navigation phrases ("go to drug") produce `NAVIGATE_ANALYSIS_DRUGS` directly — `pendingCrossPageDrugSearch` is NOT set, so the page opens blank with no search.
+  - **Cross-Page Drug Search:** When a drug name (e.g. "add metformin") is typed on the pharmacy page, the `DRUG_INPUT` intent is detected and reclassified as `NAVIGATE_ANALYSIS_DRUGS`. `MedicareStateService.pendingCrossPageDrugSearch` is set to the original text before navigation. On `NavigationEnd` to `/medicare-analysis/drugs`, `ChatComponent` fires `runDrugFlow(text)` automatically — the user sees suggestion chips appear within 50 ms of page load. Pure navigation phrases ("go to drug") produce `NAVIGATE_ANALYSIS_DRUGS` directly — `pendingCrossPageDrugSearch` is NOT set, so the page opens blank with no search.
   - **Pharmacy-Save on Profile Redirect:** When `NAVIGATE_PROFILE` fires from the pharmacies page and the user has selected pharmacies, `recState.savePharmacySelection()` is called before navigation. The chat message prefixes a "Your N selected pharmacies have been saved." confirmation so the user knows their picks are preserved.
   - **Parameter Extraction:** AI extracts profile fields for chat-driven profile updates and analysis-save metadata.
   - **Confirmation Messages:** AI generates short, friendly confirmation text (max ~15 words) shown in chat.
   - **Fallback:** On classification error, falls back to drug name suggestion flow.
-- **Return Route:** When navigating away from analysis (e.g., to profile), `ChatComponent.saveReturnRoute()` captures the current `/medicare-analysis/*` URL in `DrugStateService.returnRoute`. Header-initiated profile edit from analysis also stores the same return route. `UserProfileComponent` reads this on save/close and navigates back to the saved route instead of the default `/medicare-analysis`.
+- **Return Route:** When navigating away from analysis (e.g., to profile), `ChatComponent.saveReturnRoute()` captures the current `/medicare-analysis/*` URL in `MedicareStateService.returnRoute`. Header-initiated profile edit from analysis also stores the same return route. `UserProfileComponent` reads this on save/close and navigates back to the saved route instead of the default `/medicare-analysis`.
 - **Impact-aware profile change handling:** If profile changes affect analysis assumptions (demographic/tax/location/coverage inputs), downstream state is invalidated after save (pharmacy/plans/cost), while confirmed drugs are retained.
 - **Pharmacy Selection Gating:** `pharmacySelectionConfirmed` signal prevents the wizard from auto-advancing to plans when the first pharmacy is selected. User must explicitly click "Continue to Plans" in the analysis shell or use a chat intent to proceed.
 - **Backend:**
@@ -389,10 +389,10 @@
   - **`ChatWizardService`** (`services/chat-wizard.service.ts`) — Reactive wizard state. `WizardMode` (`NONE`/`MEDICARE_ANALYSIS`/`LONG_TERM_ANALYSIS`). `WizardStep` (6 Medicare + 3 LTC values). Computed `currentStep` derived from mode-specific signals. For `LONG_TERM_ANALYSIS`: checks `isProfileComplete()` → `ltcProfileIntroComplete` → returns `LTC_PROFILE`/`LTC_PROFILE_REVIEW`/`LTC_CARE_TYPE`. For `MEDICARE_ANALYSIS`: checks profile, drugs, pharmacy, plans, cost. `startLtcAnalysis()` / `resumeLtcAnalysis()` for LTC mode. `hasNewStep` triggers auto-advance for both modes. `markStepAnnounced()` prevents duplicate messages.
   - **`ChatComponent` / `ChatRouterService`** — `ChatRouterService` handles all message routing. `send()` delegates to `route()` which dispatches through contextual branches: pending confirmations, orchestrator (guarded by route), profile extraction, plan/drug/pharmacy selection handlers, then intent classifier. **Action bypass:** app-level commands (save/run/reset analysis, sign out, help, show saved) bypass page-specific handlers and go directly to intent routing. **LTC routing:** detects `onLtc` via URL prefix, dispatches targeted steps to `resolveLtcStepKeyword()` + `handleLtcStepNavigation()`, back to `handleLtcBackNavigation()`, and 3 new intents to `ChatLtcCareTypeFlowService`.
   - **`ChatLtcCareTypeFlowService`** (`services/chat-ltc-care-type-flow.service.ts`) — Handles chat-driven care-type form population and projection. `handleCareTypeInput()` uses `pendingChatCareType` signal on care-type page or direct state update + navigate if off-page. `handleRunProjection()` validates profile + careTypeVisited, builds LTC payload, calls API, saves, navigates to projection.
-  - **`DrugStateService`** — Maintains wizard/session signals including `wizardResetTrigger`, `pharmacySelectionConfirmed`, `returnRoute`, `pendingDrugSelection`, `pendingPharmacySelection`, and `pendingCrossPageDrugSearch` (drug text stored for cross-page auto-search after navigation to drugs).
+  - **`MedicareStateService`** — Maintains wizard/session signals including `wizardResetTrigger`, `pharmacySelectionConfirmed`, `returnRoute`, `pendingDrugSelection`, `pendingPharmacySelection`, and `pendingCrossPageDrugSearch` (drug text stored for cross-page auto-search after navigation to drugs).
   - **`AnalysisShellComponent`** — Four-step shell (Profile → Drugs → Pharmacies → Plans). `goNext()` sets `pharmacySelectionConfirmed` when advancing from Pharmacies to Plans. Default child route is `profile`. Emits system messages: "Navigated to {step}" on `goNext()`, "Started a new analysis" on `startNewAnalysis()` (resets state and navigates to `/medicare-analysis/profile`).
   - **`ProfileService`** — Added `pendingPrefill` signal (`Record<string, unknown> | null`) for chat-driven profile pre-fill, `pendingChatProfileData` signal for confirmed chat profile extraction, `missingRequiredFields` signal published by `UserProfileComponent`. Consumed by `UserProfileComponent` on init.
-  - **`UserProfileComponent`** — Injects `DrugStateService`. `save()` emits "Profile saved" system message, navigates to `returnRoute`. `effect()` watches `pendingChatProfileData` → patches form + triggers cascading lookups (ZIP→county, DOB→age, taxFiling→MAGI). `updateMissingFields()` publishes to `missingRequiredFields` signal. Prefill consumer handles all profile fields via `Record<string, unknown>`.
+  - **`UserProfileComponent`** — Injects `MedicareStateService`. `save()` emits "Profile saved" system message, navigates to `returnRoute`. `effect()` watches `pendingChatProfileData` → patches form + triggers cascading lookups (ZIP→county, DOB→age, taxFiling→MAGI). `updateMissingFields()` publishes to `missingRequiredFields` signal. Prefill consumer handles all profile fields via `Record<string, unknown>`.
   - **`DrugsStepComponent`** — Watches `pendingDrugSelection` and applies chat-driven selection commands with fuzzy matching for drug names/forms/strengths. Supports select, confirm_all, remove, and edit actions.
   - **`PlanRecommendationComponent`** — Plan page redesigned: no default section on landing. Shows two choice buttons (PDP / MA). Single full-width section after selection. "Switch to..." button with warning popup only when a plan is already selected in the current section. Emits system messages on: plan selection (Part D, Medigap, MA), section switching, cost calculation.
 - **UI Action Tracking (System Messages):**
@@ -450,7 +450,7 @@
 - **Frontend:**
   - **`ChatDrugSelectionService`** — HTTP service.
   - **`ChatComponent`** — Routes to drug selection when on `/medicare-analysis/drugs` with loaded drug details. `buildAvailableDrugSummaries()` prepares data for AI. Remove/edit actions diverted to confirmation flow.
-  - **`DrugStateService`** — `pendingDrugSelection` signal + `ChatDrugSelectionCommand` interface.
+  - **`MedicareStateService`** — `pendingDrugSelection` signal + `ChatDrugSelectionCommand` interface.
   - **`DrugsStepComponent`** — `effect()` watches signal, `applyChatDrugSelection()` with `findMatchingDrugName()` (partial match), `fuzzyMatchForm()`, `fuzzyMatchStrength()`, `confirmAllReadyDrugs()`.
 
 ## ✅ Chat-Based Pharmacy Selection
@@ -465,14 +465,14 @@
 - **Frontend:**
   - **`ChatPharmacySelectionService`** — HTTP service.
   - **`ChatComponent`** — Routes to pharmacy selection when on `/medicare-analysis/pharmacies` with loaded lookup. `buildPharmacySummaries()` prepares data for AI. Remove actions diverted to confirmation flow. Search actions set `pendingPharmacySelection` with searchTerm.
-  - **`DrugStateService`** — `pendingPharmacySelection` signal + `ChatPharmacySelectionCommand` interface.
+  - **`MedicareStateService`** — `pendingPharmacySelection` signal + `ChatPharmacySelectionCommand` interface.
   - **`PharmacyStepComponent`** — `effect()` watches signal, `applyChatPharmacySelection()` with `findPharmacyByName()` (exact then partial match, prefers closest).
 
 ## ✅ Session State Leak Fix on Sign-Out
 
 - **What:** Fixed critical bug where User A's drugs, pharmacies, chat messages, plans, and cost projections leaked to User B after sign-out/sign-in.
 - **Root Cause:** `signOut()` was only clearing 3 auth keys from sessionStorage.
-- **Fix:** `sessionStorage.clear()` + reset all in-memory signals: `DrugStateService` (25+ signals), `ProfileService` (6 signals), `RecommendationStateService.clear()`. Uses `Injector.get()` for lazy service resolution to avoid circular dependencies.
+- **Fix:** `sessionStorage.clear()` + reset all in-memory signals: `MedicareStateService` (25+ signals), `ProfileService` (6 signals), `RecommendationStateService.clear()`. Uses `Injector.get()` for lazy service resolution to avoid circular dependencies.
 
 ## ✅ Financial Disclaimers
 
@@ -614,7 +614,7 @@
   - `handleLtcForwardNavigation()` — on step 2 shows "last step" message; on step 1 saves and advances.
   - `saveLtcReturnRoute()` — captures current LTC URL in `LtcStateService.returnRoute` for later return.
   - `saveLtcCurrentStepAndNavigate()` — saves care-type to DB when leaving step 2.
-  - `handleReturnNavigation()` — checks both `DrugStateService.returnRoute()` and `LtcStateService.returnRoute()`.
+  - `handleReturnNavigation()` — checks both `MedicareStateService.returnRoute()` and `LtcStateService.returnRoute()`.
   - `TARGETED_STEP_PATTERN` regex updated to include `care[\s-]?type`.
 - **Chat Intent Routing:**
   - `ChatRouterService.route()` — detects `onLtc = router.url.startsWith(AppRoutes.abs.LTC)`. Targeted step matches dispatch to `resolveLtcStepKeyword()` + `handleLtcStepNavigation()`. Back pattern dispatches to `handleLtcBackNavigation()`.
@@ -659,7 +659,7 @@
   - **Medicare Advantage card enrichment:** Same as Part D plus combined surcharges (Part B + Part D), healthcare OOP (`partAandBBenefitServiceCost`), `hasPrescriptionDrug` flag for conditional Rx OOP display.
   - **Medigap card enrichment:** Insurance carrier (from `contractIdCarrierMap[naic]`), premium cents→dollars conversion (`rate.month/100`, `rate.annual/100`), Part B surcharge, healthcare OOP (`partBServiceOOP`), remaining months count. Gap section component (`MedigapGapSectionComponent`) also injects `PlanCardEnrichmentService` directly.
   - **Part D gap section enrichment:** `PartDGapSectionComponent` injects `PlanCardEnrichmentService` and passes enriched data to recommendation cards displayed in the MA gap section.
-- **State:** `DrugStateService` signals: `partDPlans`, `medigapQuotes`, `maPlans`, `selectedPartDPlan`, `selectedMedigapPlan`, `selectedMAPlan`, `selectedMAGapPartDPlan`, `activeSection`.
+- **State:** `MedicareStateService` signals: `partDPlans`, `medigapQuotes`, `maPlans`, `selectedPartDPlan`, `selectedMedigapPlan`, `selectedMAPlan`, `selectedMAGapPartDPlan`, `activeSection`.
 
 ---
 

@@ -12,7 +12,7 @@ public class UserAnalysisSelectionsDocument
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+    public string Id { get; set; } = null!;
 
     [BsonElement("userId")]
     public Guid UserId { get; set; }

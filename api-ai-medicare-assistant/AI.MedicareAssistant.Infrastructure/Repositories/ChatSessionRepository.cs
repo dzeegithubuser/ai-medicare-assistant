@@ -41,6 +41,16 @@ public class ChatSessionRepository : IChatSessionRepository
     public async Task UpsertAsync(ChatSessionDocument document)
     {
         var filter = Builders<ChatSessionDocument>.Filter.Eq(d => d.UserId, document.UserId);
+
+        if (string.IsNullOrEmpty(document.Id))
+        {
+            var existingId = await _context.ChatSessions
+                .Find(filter)
+                .Project(d => d.Id)
+                .FirstOrDefaultAsync();
+            document.Id = existingId ?? ObjectId.GenerateNewId().ToString();
+        }
+
         var options = new ReplaceOptions { IsUpsert = true };
         await _context.ChatSessions.ReplaceOneAsync(filter, document, options);
     }

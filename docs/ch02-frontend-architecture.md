@@ -12,6 +12,7 @@ App (root) → <router-outlet />
  ├── SignupComponent (/signup)
  ├── ForgotPasswordComponent (/forgot-password)
  ├── ResetPasswordComponent (/reset-password)
+ ├── VerifyEmailComponent (/verify-email)
  └── DashboardComponent (/ — guarded by authGuard)
       ├── Header (gradient toolbar with app branding, user menu dropdown, footer)
       └── Main Split Layout
@@ -55,7 +56,7 @@ App (root) → <router-outlet />
 - **State:** Injects `AuthService`, `ProfileService`, `Router`, `ChatSignalRService`. Local `bootstrapReady` signal.
 - **Imports:** `RouterOutlet`, `ChatComponent`, Material modules (`MatIconModule`, `MatButtonModule`, `MatTooltipModule`, `MatMenuModule`). Does **not** import `DrugCardsComponent` or `UserProfileComponent` — these are loaded via child routes.
 - **Bootstrap (`ngOnInit`):** `bootstrapDashboardState()` runs a `forkJoin` of three parallel operations: `profileService.loadProfile()`, `recommendationState.loadActiveRecommendation$()`, and `hydrateChatSession$()`. Then chains `selectionHydrator.hydrateAllFromActiveRecommendationSelectionForBootstrap$()`. Sets `bootstrapReady` once all complete.
-- **`hydrateChatSession$()`:** Calls `chatSignalR.connect(token)` to open the WebSocket hub connection, then subscribes to `chatSignalR.session$` with `take(1)` and a 5 s timeout. When the hub fires `ReceiveSession` (on `OnConnectedAsync`), hydrates `DrugStateService.messages` from the pushed payload. Replaces the previous `GET /api/chat/session` HTTP call. The `ReplaySubject(1)` inside `ChatSignalRService` ensures that if the session push arrived before the dashboard subscribed (sign-in path), the value is replayed immediately.
+- **`hydrateChatSession$()`:** Calls `chatSignalR.connect(token)` to open the WebSocket hub connection, then subscribes to `chatSignalR.session$` with `take(1)` and a 5 s timeout. When the hub fires `ReceiveSession` (on `OnConnectedAsync`), hydrates `MedicareStateService.messages` from the pushed payload. Replaces the previous `GET /api/chat/session` HTTP call. The `ReplaySubject(1)` inside `ChatSignalRService` ensures that if the session push arrived before the dashboard subscribed (sign-in path), the value is replayed immediately.
 - **Left Panel:** Renders `<router-outlet>` (shown after `profileLoaded()` is true). Child routes determine which component appears — no `@if` show/hide logic.
 - **Template:** Gradient header with pharmacy icon, "AI Medicare Assistant" branding, **folder_open icon button** (navigates to `/saved` — always visible), and user menu dropdown button (account_circle icon). Dropdown shows "Welcome, {displayName}" header, **Saved Data** item (navigates to `/saved`, shown when profile complete), Edit Profile (if profile complete), Change Password, and Logout items. Below header: `<router-outlet>` left panel + chat. Footer bar at bottom shows "Powered by OpenAI".
 - **`openRecommendations()`:** Navigates to `/saved`.
@@ -92,8 +93,12 @@ App (root) → <router-outlet />
 - **Flow:** Calls `authService.changePassword({ oldPassword, newPassword, confirmPassword })`. Backend verifies old password via BCrypt before updating. Auth interceptor automatically attaches Bearer token — no manual header needed.
 - **Styling:** Cyan gradient background, indigo lock icon (visually distinct from the orange reset icon).
 
+### `VerifyEmailComponent` (`auth/verify-email/verify-email.component.ts`, `.html`, `.scss`)
+- **Role:** Public page at `/verify-email` where email verification links land. Verifies the user's email address token.
+- **Flow:** Calls `authService.verifyEmail()` or `authService.resendVerification()` via `POST /api/auth/verify-email` and `POST /api/auth/resend-verification`.
+
 ### `UserProfileComponent` (`user-profile/user-profile.component.ts`, `.html`, `.scss`)
-- **Role:** Consolidated single-form profile. Routed at **`/profile`** (dashboard, full-width profile) and **`/medicare-analysis/profile`** (same component embedded in `AnalysisShellComponent` as analysis step 1). When the URL contains `/medicare-analysis/profile`, `DrugStateService.currentStep` is set to `1`.
+- **Role:** Consolidated single-form profile. Routed at **`/profile`** (dashboard, full-width profile) and **`/medicare-analysis/profile`** (same component embedded in `AnalysisShellComponent` as analysis step 1). When the URL contains `/medicare-analysis/profile`, `MedicareStateService.currentStep` is set to `1`.
 - **Landing Modes:**
   - **View mode (profile complete):** Opened by default after login when profile is complete. Form is read-only and shows a **Modify Profile** button.
   - **Create mode (profile incomplete):** Opened by default after login when profile is incomplete. Form is editable and focused on completing required onboarding fields.
@@ -108,7 +113,7 @@ App (root) → <router-outlet />
 
 ### `ChatComponent` (`chat/chat.component.ts`, `.html`, `.scss`)
 - **Role:** Right-side chat panel (420px fixed width, full height). Implements `OnInit`.
-- **State:** Injects `DrugStateService`, `ProfileService`, `AuthService`, `ChatIntentService`, `ChatWizardService`, `ChatRouterService`, `ChatNavigationFlowService`, `ChatDrugFlowService`, `ChatProfileService`, `ChatDrugSelectionService`, `ChatPharmacySelectionService`, `RecommendationStateService`, `Router`.
+- **State:** Injects `MedicareStateService`, `ProfileService`, `AuthService`, `ChatIntentService`, `ChatWizardService`, `ChatRouterService`, `ChatNavigationFlowService`, `ChatDrugFlowService`, `ChatProfileService`, `ChatDrugSelectionService`, `ChatPharmacySelectionService`, `RecommendationStateService`, `Router`.
 - **Features:**
   - Chat header with AI Assistant branding, icon, and **wizard step indicator** (Profile › Drugs & Pharmacy › Plans › Analysis) — visible when wizard mode is `MEDICARE_ANALYSIS`. Current step highlighted cyan, completed steps green with check icon.
   - Startup greeting on first load ("Hello! I'm your AI Medicare Assistant. What would you like to do today?").
@@ -148,7 +153,7 @@ App (root) → <router-outlet />
       - `ACTION_HELP` — shows formatted help menu with navigation, actions, and drug input guidance.
       - `DRUG_INPUT` / `UNKNOWN` — falls through to `runDrugFlow()`.
     - On classify error, falls back to `runDrugFlow()` (drug name suggestion pipeline).
-  - **Return Route:** `saveReturnRoute()` helper captures `router.url` when navigating away from a `/medicare-analysis/*` route (e.g., to profile). Stored in `DrugStateService.returnRoute`. Profile component reads it on save/close to return the user to their previous analysis step instead of the default `/medicare-analysis`.
+  - **Return Route:** `saveReturnRoute()` helper captures `router.url` when navigating away from a `/medicare-analysis/*` route (e.g., to profile). Stored in `MedicareStateService.returnRoute`. Profile component reads it on save/close to return the user to their previous analysis step instead of the default `/medicare-analysis`.
   - **Drug Analysis Flow (`runDrugFlow`):**
     - Profile gate: checks `profileService.isProfileComplete()`, redirects to `/profile` if incomplete.
     - Calls `DrugService.suggestNames()` → AI returns candidates → interactive selection panel with clickable chips. High-confidence (≥0.95) or single-candidate drugs auto-selected.
@@ -174,12 +179,12 @@ App (root) → <router-outlet />
 - **Layout:** Vertical flex — step indicator (top), `<router-outlet>` (scrollable middle), Back/Continue navigation bar (bottom).
 - **Step Indicator:** Horizontal numbered badges (1·Profile → 2·Drugs → 3·Pharmacies → 4·Plans) connected by lines. Current step highlighted in cyan, completed steps show a check icon, future steps are grey. Forward navigation to a later step is blocked until prior prerequisites are met (e.g. cannot jump to Pharmacies before drugs are confirmed — `canNavigateToStep()`). `/medicare-analysis/cost-projections` is a fifth child route (cost dashboard) and does not add a stepper step.
 - **Navigation Bar:** Back button (left, hidden on step 1) and Continue button (right, hidden on step 4 — Plans). Continue on step 1 (Profile) is always enabled when the guard allows analysis (profile complete). Continue on step 2 requires `hasDrugDetails()` and `hasConfirmedDrugs()`; step 3 requires selected lookup or legacy pharmacies. `goNext()` sets `pharmacySelectionConfirmed` when advancing from Pharmacies to Plans. Emits system messages on navigation and new analysis.
-- **Step Tracking:** Reads/writes `DrugStateService.currentStep` (`1 | 2 | 3 | 4`). Persisted snapshots include `analysisStepSchemaVersion: 2`; older session data without that field migrates legacy steps 1–3 to new steps 2–4. Child step components set `currentStep` on init (`profile` → 1, `drugs` → 2, `pharmacies` → 3, `plans` → 4).
-- **State:** Injects `DrugStateService`, `Router`. No local state beyond step definitions.
+- **Step Tracking:** Reads/writes `MedicareStateService.currentStep` (`1 | 2 | 3 | 4`). Persisted snapshots include `analysisStepSchemaVersion: 2`; older session data without that field migrates legacy steps 1–3 to new steps 2–4. Child step components set `currentStep` on init (`profile` → 1, `drugs` → 2, `pharmacies` → 3, `plans` → 4).
+- **State:** Injects `MedicareStateService`, `Router`. No local state beyond step definitions.
 
 ### `DrugsStepComponent` (`medicare-analysis/drug-step/drug-step.component.ts`, `.html`)
 - **Role:** Drugs step (shell step 2) for the Financial Planner analysis wizard — supports both direct page-based drug search and detailed formulation selection workflow.
-- **State:** Injects `DrugStateService`, `DrugService`, `PrescriptionService`, `MatSnackBar`, `MatDialog`. Local signals: `formulationSelections`, `drugSelections`, `drugQuantities`. Shared: `confirmedDrugNames` (delegated to `DrugStateService.confirmedDrugNames`).
+- **State:** Injects `MedicareStateService`, `DrugService`, `PrescriptionService`, `MatSnackBar`, `MatDialog`. Local signals: `formulationSelections`, `drugSelections`, `drugQuantities`. Shared: `confirmedDrugNames` (delegated to `MedicareStateService.confirmedDrugNames`).
 - **OnInit:** Sets `currentStep` to `2`. Auto-fetches drug details if needed. Restores all selections from `sessionStorage`.
 - **Direct Drug Search (drugs page):** Includes an input area in the Drugs page that reuses the same name-suggestion and confirm flow as chat (`ChatDrugFlowService`). Users can type drugs on the left panel, verify candidates, and run bulk search without using chat.
 - **Sub-components:**
@@ -205,7 +210,7 @@ App (root) → <router-outlet />
 
 ### `PharmacyStepComponent` (`medicare-analysis/pharmacy-step/pharmacy-step.component.ts`, `.html`, `.scss`)
 - **Role:** Step 3 of the analysis wizard — Financial Planner pharmacy lookup with filters, pagination, and multi-selection.
-- **State:** Injects `DrugStateService`, `DrugService`. Local signals: `nameFilter`, `radiusFilter` (default '25'), `pageSize` (default 20), `currentPage` (default 1). Readonly arrays: `radiusOptions` ['10', '25', '50', '100'], `pageSizeOptions` [10, 20, 50].
+- **State:** Injects `MedicareStateService`, `DrugService`. Local signals: `nameFilter`, `radiusFilter` (default '25'), `pageSize` (default 20), `currentPage` (default 1). Readonly arrays: `radiusOptions` ['10', '25', '50', '100'], `pageSizeOptions` [10, 20, 50].
 - **OnInit:** Sets `currentStep` to `3`. Auto-loads pharmacies via `DrugService.lookupPharmacies()` if not already loaded.
 - **Imports:** `FormsModule`, `MatButtonModule`, `MatFormFieldModule`, `MatInputModule`, `MatSelectModule`, `MatIconModule`, `MatTooltipModule`.
 - **Features:**
@@ -222,7 +227,7 @@ App (root) → <router-outlet />
 
 ### `PlansStepComponent` (`medicare-analysis/plans-step/plans-step.component.ts`, `.html`, `.scss`)
 - **Role:** Step 4 of the analysis wizard — Financial Planner Medicare plan recommendations (Part D + Medigap vs Medicare Advantage).
-- **State:** Injects `DrugStateService`. Embeds only **`PlanRecommendationComponent`** via `<app-plan-recommendation>`.
+- **State:** Injects `MedicareStateService`. Embeds only **`PlanRecommendationComponent`** via `<app-plan-recommendation>`.
 - **OnInit:** Sets `currentStep` to `4`.
 - **Features:**
   - Header with health icon and "Medicare Plan Recommendations" title (Part D + Medigap vs MA subtitle).
@@ -237,7 +242,7 @@ App (root) → <router-outlet />
 
 ### `PlanRecommendationComponent` (`plan-recommendation/plan-recommendation.component.ts`, `.html`, `.scss`)
 - **Role:** Medicare plan recommendations panel. Loaded on-demand.
-- **State:** Injects `DrugStateService`, `PlanRecommendationService`, `DrugService`.
+- **State:** Injects `MedicareStateService`, `PlanRecommendationService`, `DrugService`.
 - **Local State:** `expandedFeatures` Set and `expandedCostBreakup` Set track which plan cards have their detail sections expanded.
 - **Features:**
   - `loadPlans()` builds `DrugSummaryInput[]` from current drugs, collects `selectedPharmacies` from state (up to 5), and calls `PlanRecommendationService.recommend()` with both.
@@ -269,11 +274,11 @@ App (root) → <router-outlet />
   - `PlanGapCoverageComponent` calls `PlanRecommendationService.getGapAdvice()` directly and manages its own gap plan state, selection tracking (checkbox Set), and change detection (`ChangeDetectorRef.markForCheck()` for OnPush). Emits `gapPlanSelected` output with selected gap plans.
   - `PlanCardComponent` handles `gapPlanSelected` via `onGapPlanSelected()` — auto-selects the parent plan for comparison when any gap plan checkbox is checked.
   - Parent helpers: `parsePrice()`, `formatPlanType()`, `getPlanTypeBadgeClass()`, `getPlanTypeDescription()`.
-  - **Calculate Lifetime Cost:** Each plan card has a "Calculate Lifetime Cost" button at the bottom. `@Input() isCostLoading` shows a spinner during calculation. `@Output() calculateCost` emits the plan to the parent. Parent `PlanRecommendationComponent` handles the call to `PlanRecommendationService.evaluateCosts()`, stores result in `DrugStateService.costProjection`, and navigates to `/medicare-analysis/cost-projections`.
+  - **Calculate Lifetime Cost:** Each plan card has a "Calculate Lifetime Cost" button at the bottom. `@Input() isCostLoading` shows a spinner during calculation. `@Output() calculateCost` emits the plan to the parent. Parent `PlanRecommendationComponent` handles the call to `PlanRecommendationService.evaluateCosts()`, stores result in `MedicareStateService.costProjection`, and navigates to `/medicare-analysis/cost-projections`.
 
 ### `CostProjectionsComponent` (`cost-projections/cost-projections.component.ts`, `.html`, `.scss`)
 - **Role:** Full-page cost projections dashboard with Chart.js visualizations and AI-generated insights. Routed at `/medicare-analysis/cost-projections`.
-- **State:** Injects `DrugStateService` (reads `costProjection` signal), `Router`.
+- **State:** Injects `MedicareStateService` (reads `costProjection` signal), `Router`.
 - **Chart.js Integration:** Chart.js 4.x with manual controller registration (`LineController`, `BarController`, `DoughnutController`, `ArcElement`, `LineElement`, `BarElement`, `PointElement`, `CategoryScale`, `LinearScale`, `Tooltip`, `Legend`, `Filler`). Charts built in `afterNextRender()` lifecycle hook.
 - **5 Charts:**
   1. **Line Chart:** Total annual cost trajectory over projection period (filled area).
@@ -421,7 +426,7 @@ App (root) → <router-outlet />
   - `POST ${environment.apiUrl}/api/drug/analyze` with `{ prescription }` body.
 - **Note:** Zipcode is no longer sent from the frontend — the backend retrieves it from the user's saved address profile.
 
-### `DrugStateService` (`services/drug-state.service.ts`)
+### `MedicareStateService` (`services/drug-state.service.ts`)
 - **Role:** Shared signal-based state management between chat and drug cards.
 - **Message sync:** Injects `ChatSignalRService`. Every message mutation (`addUserMessage`, `addAssistantMessage`, `replaceLastAssistantMessage`, etc.) schedules a debounced SignalR sync via a 500 ms `setTimeout`. Rapid bursts (e.g. Medicare startup: greeting + profile review + mode buttons in < 200 ms) collapse into a single `ChatSignalRService.syncMessages()` WebSocket invoke. No HTTP call is made for message syncing.
 - **Signals:** `drugs`, `interactions`, `dosageAlerts`, `duplicateTherapies`, `nearbyPharmacies`, `selectedPharmacies` (array, up to 5), `hasSelectedPharmacies` (computed), `messages` (`ChatMessage[]` with `'user' | 'assistant' | 'system'` role), `isLoading`, `currentStep` (`1 | 2 | 3 | 4` — analysis shell: Profile, Drugs, Pharmacies, Plans), `planRecommendation`, `selectedPlan`, `isPlanLoading`, `hasPlanRecommendation` (computed), `isLisEligible` (computed), `planAwarePharmacies`, `isPlanPharmacyLoading`, `hasPlanPharmacies` (computed), `drugSuggestions`, `hasSuggestions` (computed), `isVerifyingNames`, `confirmedDrugs` (signal wrapping `Set<string>`), `hasConfirmedDrugs` (computed), `prescriptionName`, `costProjection` (`EvaluateCostsResponse | null`), `hasCostProjection` (computed), `drugDetails` (`BulkDrugSearchResponse | null`), `isDrugDetailsLoading`, `hasDrugDetails` (computed), `wizardResetTrigger`, `pharmacySelectionConfirmed`, `returnRoute`, `pharmacyLookup`, `isPharmacyLookupLoading`, `hasPharmacyLookup` (computed), `selectedLookupPharmacies`, `hasSelectedLookupPharmacies` (computed), `confirmedDrugNames` (`Set<string>` signal), `hasConfirmedDrugs` (computed), `partDPlans`, `isPartDLoading`, `hasPartDPlans` (computed), `medigapQuotes`, `isMedigapLoading`, `hasMedigapQuotes` (computed), `maPlans`, `isMALoading`, `hasMAPlans` (computed), `selectedPartDPlan`, `selectedMedigapPlan`, `selectedMAPlan`, `selectedMAGapPartDPlan`, `activeSection`, `hasCompletePlanSelection` (computed — true when PDP+Medigap or MA(+gap PDP if needed) selected), `pendingDrugSelection` (`ChatDrugSelectionCommand | null` — chat-driven drug formulation command, watched by `DrugsStepComponent`), `pendingPharmacySelection` (`ChatPharmacySelectionCommand | null` — chat-driven pharmacy command, watched by `PharmacyStepComponent`), `pendingCrossPageDrugSearch` (`string | null` — drug search text stored when a drug input is typed on a non-drugs page, e.g. "add metformin" on pharmacies; picked up by `ChatComponent` on `NavigationEnd` to `/medicare-analysis/drugs` and cleared after `runDrugFlow()` fires).
@@ -431,7 +436,7 @@ App (root) → <router-outlet />
 ### `AuthService` (`services/auth.service.ts`)
 - **Signals:** `currentUser`, `isAuthenticated` (computed).
 - **Methods:** `signUp()`, `signIn()`, `forgotPassword()`, `resetPassword()`, `handleAuthSuccess()`, `signOut()`, `getToken()`.
-- **Sign-out Cleanup:** `signOut()` calls `sessionStorage.clear()` (clears all keys) then resets all in-memory signals: `DrugStateService` (25+ signals via `resetAll()` + explicit signal resets), `ProfileService` (profile, isProfileComplete, editMode, pendingPrefill, pendingChatProfileData, missingRequiredFields), `RecommendationStateService.clear()`, `ChatSignalRService.disconnect()` (closes the WebSocket so the next user gets a fresh connection). Uses `Injector.get()` for lazy service resolution to avoid circular dependencies.
+- **Sign-out Cleanup:** `signOut()` calls `sessionStorage.clear()` (clears all keys) then resets all in-memory signals: `MedicareStateService` (25+ signals via `resetAll()` + explicit signal resets), `ProfileService` (profile, isProfileComplete, editMode, pendingPrefill, pendingChatProfileData, missingRequiredFields), `RecommendationStateService.clear()`, `ChatSignalRService.disconnect()` (closes the WebSocket so the next user gets a fresh connection). Uses `Injector.get()` for lazy service resolution to avoid circular dependencies.
 - **Persistence:** Token and user JSON stored in `sessionStorage` keys `auth_token` and `auth_user` (not localStorage — session ends on tab close). Token timestamp stored in `auth_token_ts`.
 - **Session Expiration:** 1-hour token expiry (`TOKEN_MAX_AGE_MS = 3,600,000`). `getToken()` checks timestamp age — if expired, calls `signOut()` and returns null. If valid, refreshes timestamp (auto-extending the session on activity). `loadUser()` also validates token age on startup.
 
@@ -526,7 +531,7 @@ App (root) → <router-outlet />
   - **`checkDrugPharmacyPrereqs()`** — same drug/pharmacy rules; **short-circuits to `true`** when **`router.url`** starts with **`/medicare-analysis/plans`** and profile is complete (enables `SWITCH_TO_PDP` / `SWITCH_TO_MA` on the plans page without false "add drugs" errors when in-memory state lags saved analysis).
 
 ### `ChatAnalysisSelectionHydrationService` (`services/chat-analysis-selection-hydration.service.ts`)
-- **Role:** Restores drugs (async bulk search), pharmacy, and **plan selections** from **`RecommendationStateService.activeRecommendation()`** into **`DrugStateService`**.
+- **Role:** Restores drugs (async bulk search), pharmacy, and **plan selections** from **`RecommendationStateService.activeRecommendation()`** into **`MedicareStateService`**.
 - **Plan hydration:** **`hydratePlansFromActiveRecommendationSelection(silent?)`** matches saved **`planSelections`** to live Part D / Medigap / MA lists when available; otherwise **`hydratePlansFallbackFromSavedSelection`** applies stubs and posts **`SAVED_PLANS_PENDING`**. Successful partial/full restores post **`RESTORE_ALL_MATCHED`** or **`RESTORE_PARTIAL_DETAIL`** with explicit **Part D / Medigap / Medicare Advantage** bullet lines. Fingerprint guards reduce duplicate identical assistant messages when hydration runs more than once.
 
 ### `AnalysisSnapshotService` (`services/analysis-snapshot.service.ts`)
@@ -535,7 +540,7 @@ App (root) → <router-outlet />
   - `canSave()` → `boolean` — checks 5 prerequisites: profile complete, drugs confirmed, pharmacies selected, plan selected, cost projection available.
   - `save(name: string, force?: boolean)` → `Observable<any>` — builds the full snapshot request and calls `create()`. `force=true` overwrites existing.
 - **Helpers:** `buildPlans()` maps selected plans with expanded fields (deductible, starRating, totalPrescriptionCost, planExpenses, unavailableDrugs) from `PharmacyWiseRecommendation`. `buildCostSnapshot()` maps yearly details + full AI evaluation object.
-- **Injection:** Injects `DrugStateService`, `ProfileService`, `RecommendationService`.
+- **Injection:** Injects `MedicareStateService`, `ProfileService`, `RecommendationService`.
 
 ---
 
