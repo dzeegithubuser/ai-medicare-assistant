@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { RecommendationResponse, UpdateDrugsRequest, UpdatePharmacyRequest } from '../models/recommendation.model';
 import { RecommendationService } from './recommendation.service';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { buildCurrentPrescriptionDrugsFromState } from '../medicare-analysis/current-prescription.mapper';
 import { Observable, of, tap, catchError, map } from 'rxjs';
 
@@ -12,7 +12,7 @@ export class RecommendationStateService {
   readonly isLoading = signal(false);
 
   private readonly recommendationService = inject(RecommendationService);
-  private readonly state = inject(DrugStateService);
+  private readonly state = inject(MedicareStateService);
 
   loadActiveRecommendation$(): Observable<RecommendationResponse> {
     this.isLoading.set(true);

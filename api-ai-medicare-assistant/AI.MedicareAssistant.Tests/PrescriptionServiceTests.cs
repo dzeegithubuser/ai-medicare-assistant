@@ -1,7 +1,6 @@
 using Application.DTOs;
 using Application.Services;
 using Domain.Documents;
-using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -89,7 +88,7 @@ public class PrescriptionServiceTests
             .ReturnsAsync((UserAnalysisSelectionsDocument?)null);
         _selectionsMock.Setup(r => r.ReplaceCurrentForUserAsync(It.IsAny<UserAnalysisSelectionsDocument>()))
             .ReturnsAsync((UserAnalysisSelectionsDocument d) => d);
-        _profileMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Profile?)null);
+        _profileMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((UserDocument?)null);
 
         var request = new SaveCurrentDrugsRequest
         {

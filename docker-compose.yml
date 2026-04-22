@@ -11,7 +11,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5024
       # Override connection strings via env vars
-      - ConnectionStrings__DefaultConnection=${MYSQL_CONNECTION}
       - ConnectionStrings__MongoDb=${MONGO_CONNECTION}
       - MongoDb__DatabaseName=${MONGO_DB_NAME}
       # JWT

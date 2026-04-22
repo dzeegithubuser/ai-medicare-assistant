@@ -10,12 +10,13 @@ import {
   getTrajectoryIcon, getTrajectoryColor, getPriorityColor,
   buildProfileRows, ProfileRow,
 } from '../compare-helpers';
+import { TabProfileComponent } from '../tab-profile/tab-profile.component';
 
 @Component({
   selector: 'app-compare-ltc',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule],
+  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent],
   templateUrl: './compare-ltc.component.html',
 })
 export class CompareLtcComponent {

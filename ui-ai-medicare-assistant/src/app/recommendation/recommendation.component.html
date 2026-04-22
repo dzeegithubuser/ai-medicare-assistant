@@ -144,7 +144,7 @@
     <div class="flex flex-wrap gap-2 items-center">
 
       <!-- Search -->
-      <mat-form-field appearance="outline" class="!w-44 density-compact">
+      <mat-form-field appearance="outline" class="!w-44 density-compact" subscriptSizing="dynamic">
         <mat-icon matPrefix>search</mat-icon>
         <input matInput placeholder="Search by name..." [value]="searchQuery()" (input)="setSearch($any($event.target).value)">
       </mat-form-field>
@@ -159,7 +159,7 @@
       <span class="flex-1"></span>
 
       <!-- Sort -->
-      <mat-form-field appearance="outline" class="!w-44 density-compact">
+      <mat-form-field appearance="outline" class="!w-44 density-compact" subscriptSizing="dynamic">
         <mat-select [value]="sortBy()" (selectionChange)="setSortBy($event.value)">
           <mat-option value="newest">Newest first</mat-option>
           <mat-option value="oldest">Oldest first</mat-option>
@@ -332,7 +332,7 @@
             Showing {{ pageStart() }}–{{ pageEnd() }} of {{ totalItems() }}
           </p>
           <div class="flex items-center gap-1">
-            <mat-form-field appearance="outline" class="!w-28 density-compact mr-2">
+            <mat-form-field appearance="outline" class="!w-28 density-compact mr-2" subscriptSizing="dynamic">
               <mat-select [value]="pageSize()" (selectionChange)="setPageSize($event.value)">
                 <mat-option [value]="6">6 / page</mat-option>
                 <mat-option [value]="12">12 / page</mat-option>

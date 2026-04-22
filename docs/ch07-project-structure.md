@@ -172,7 +172,7 @@ environments/
 
 ```
 AI.MedicareAssistant.Api/
-  Program.cs                      → App builder, DI, CORS, JWT, EF Core, Serilog, middleware pipeline
+  Program.cs                      → App builder, DI, CORS, JWT, MongoDB, Serilog, middleware pipeline
   Middleware/
     GlobalExceptionMiddleware.cs   → Global exception handler (AppException → HTTP status + JSON)
   Controllers/
@@ -180,14 +180,13 @@ AI.MedicareAssistant.Api/
     PharmacyController.cs         → Nearby pharmacies with pricing + plan-aware search
     PlanRecommendationController.cs → Medicare plan recommendations + LIS check
     PrescriptionController.cs     → [Authorize] Save + list prescriptions (MongoDB)
-    MigrationController.cs        → [AllowAnonymous] EF Core migration management
     AuthController.cs             → Sign up, sign in, forgot/reset password
     ReferenceDataController.cs    → Public master data endpoint
     ProfileController.cs         → [Authorize] consolidated profile GET/POST
     CountyLookupController.cs     → ZIP-based county code lookup + MAGI tiers endpoint
     FinancialPlannerDrugController.cs → [Authorize] Financial Planner drug search/detail/bulk-search with AI interactions
     ChatIntentController.cs       → [Authorize] AI-powered chat intent classification (POST api/chat/intent + 4 extract endpoints)
-    ChatOrchestratorController.cs → [Authorize] Main chatbot FSM endpoint (POST api/chat/orchestrate)
+    ChatSessionController.cs      → [Authorize] Chat session start-new endpoint
     RecommendationController.cs   → [Authorize] Recommendation CRUD (GET/POST/PUT profile|drugs|pharmacy|plans|cost-snapshot/DELETE api/recommendation)
     LongTermCareController.cs     → [Authorize] LTC cost projection (POST api/long-term-care)
     LtcSelectionsController.cs    → [Authorize] LTC care-type selections persistence (PUT/GET api/ltc/current)
@@ -195,20 +194,16 @@ AI.MedicareAssistant.Api/
     MedigapPlanController.cs      → [Authorize] Medigap plan quotes (POST api/MedigapPlan/quotes)
     PartDPlanController.cs        → [Authorize] Part D plan recommendations (POST api/PartDPlan/recommend)
   Prompts/                        → File-based prompt system (4 folders: system, tasks, schemas, templates)
-    system/                       → System role prompts (chat-intent-system, cost-evaluation-system, delta-narrative-system, drug-name-suggestion-system, drug-selection-system, gap-coverage-system, ltc-evaluation-system, pharma-system, pharmacy-pricing-system, pharmacy-selection-system, plan-scoring-system, plan-selection-system, profile-extract-system)
-    tasks/                        → Task instructions (cost-evaluation, drug-name-suggestion, drug-normalization, gap-coverage, ltc-evaluation, pharmacy-pricing, plan-scoring)
-    schemas/                      → JSON output schemas (cost-evaluation-schema, drug-json-schema, drug-name-suggestion-schema, gap-coverage-schema, ltc-evaluation-schema, pharmacy-pricing-schema, plan-scoring-schema)
-    templates/                    → User prompt templates with {{placeholders}} (cost-evaluation, drug-name-suggestion, gap-coverage, ltc-evaluation, pharmacy-pricing, plan-scoring, prescription-analysis)
+    system/                       → System role prompts (chat-intent-system, cost-evaluation-system, drug-name-suggestion-system, drug-selection-system, ltc-evaluation-system, pharma-system, pharmacy-selection-system, plan-scoring-system, plan-selection-system, profile-extract-system)
+    tasks/                        → Task instructions (cost-evaluation, drug-name-suggestion, drug-normalization, ltc-evaluation, plan-scoring)
+    schemas/                      → JSON output schemas (cost-evaluation-schema, drug-json-schema, drug-name-suggestion-schema, ltc-evaluation-schema, plan-scoring-schema)
+    templates/                    → User prompt templates with {{placeholders}} (cost-evaluation, drug-name-suggestion, ltc-evaluation, plan-scoring, prescription-analysis)
   Logs/                           → Daily rolling log files (30 day retention)
-  appsettings.json                → OpenAI + CMS + JWT + MySQL configuration
+  appsettings.json                → OpenAI + CMS + JWT + MongoDB configuration
 
 AI.MedicareAssistant.Domain/
-  Entities/
-    BaseEntity.cs                 → Abstract base (Id, CreatedDate, ModifiedDate, CreatedBy, ModifiedBy)
-    Prescription.cs               → Prescription entity (EF Core)
-    Profile.cs                    → CoverageYear, HealthCondition, TaxFilingStatus, MagiTier, Gender, TobaccoStatus, DateOfBirth, Concierge, ConciergeAmount, AlternateEmail, AlternateMobile, LifeExpectancy + Address fields
-    User.cs                       → Email, Phone, PasswordHash + Profile navigation prop
   Documents/
+    UserDocument.cs               → MongoDB: merged user + profile document (email, phone, passwordHash, isEmailVerified, profile fields, isProfileComplete, timestamps)
     ChatSessionDocument.cs        → MongoDB: chat session messages + UI state
     LtcCurrentSelectionsDocument.cs → MongoDB: per-user LTC care-type inputs + last projection result (collection ltcCurrentSelections)
     PrescriptionDocument.cs       → MongoDB: named prescription with embedded drug list
@@ -253,9 +248,8 @@ AI.MedicareAssistant.Domain/
     IPharmacyLookupService.cs     → Financial Planner pharmacy lookup contract + request/response models
     IPlanScoringAiService.cs      → AI plan scoring + explanation contract
     IPresentValueService.cs       → Financial Planner expensesPresentValue API contract (CalculateAsync)
-    IProfileRepositories.cs       → IProfileRepository marker interface
-    IRepository.cs                → Generic repository contract
-    IUserRepository.cs            → User data access contract
+    IProfileRepositories.cs       → IProfileRepository interface (operates on UserDocument)
+    IUserRepository.cs            → User data access contract (operates on UserDocument)
 
 AI.MedicareAssistant.Application/
   DTOs/
@@ -322,17 +316,13 @@ AI.MedicareAssistant.Infrastructure/
     EmailService.cs               → Email delivery service (IEmailService)
     EmailSettings.cs              → Email configuration model
   Data/
-    AppDbContext.cs               → EF Core DbContext (MySQL)
-    AppDbContextFactory.cs        → Design-time factory for migrations
-    MongoDbContext.cs             → MongoDB typed collection accessor (prescriptions, chatSessions, userAnalysisSelections, recommendations, ltcCurrentSelections + indexes)
-    Migrations/                   → EF Core migration files
+    MongoDbContext.cs             → MongoDB typed collection accessor (users, prescriptions, chatSessions, userAnalysisSelections, recommendations, ltcCurrentSelections + indexes)
   Repositories/
     ChatSessionRepository.cs      → MongoDB: chat session CRUD (IChatSessionRepository)
     MongoRepositories.cs          → MongoDB repository implementations (prescriptions, userAnalysisSelections, ltcSelections)
-    ProfileRepositories.cs        → ProfileRepository
+    MongoProfileRepository.cs     → MongoDB: profile CRUD on users collection (IProfileRepository)
+    MongoUserRepository.cs        → MongoDB: user CRUD on users collection (IUserRepository)
     RecommendationRepository.cs   → MongoDB: recommendation CRUD (get/create/replace/delete) + unique userId index
-    Repository.cs                 → Generic EF Core repository base
-    UserRepository.cs             → User repository (no eager loading)
 ```
 
 ---

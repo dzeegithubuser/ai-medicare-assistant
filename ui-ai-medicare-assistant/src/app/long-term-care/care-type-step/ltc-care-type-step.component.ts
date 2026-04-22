@@ -117,18 +117,6 @@ export class LtcCareTypeStepComponent {
         nursingCareYears: current.numberOfNursingCareYears,
       }, { emitEvent: false });
     });
-
-    // Auto-save care-type selections on value change (mirrors Medicare step-save behaviour)
-    this.form.valueChanges.pipe(
-      debounceTime(1000),
-      switchMap(() => this.ltcService.saveCurrent({
-        healthProfile: this.state.healthProfile(),
-        numberOfAdultDayHealthCareYears: this.state.adultDayYears(),
-        numberOfHomeCareYears: this.state.homeCareYears(),
-        numberOfNursingCareYears: this.state.nursingCareYears(),
-      }).pipe(catchError(() => of(void 0)))),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe();
   }
 
   runProjection(): void {

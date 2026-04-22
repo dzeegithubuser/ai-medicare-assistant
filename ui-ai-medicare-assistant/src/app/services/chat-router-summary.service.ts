@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { AvailableDrugSummary, PendingDrugChatCards } from './chat-drug-selection.service';
 import {
   AvailableMedigapSummary,
@@ -13,7 +13,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class ChatRouterSummaryService {
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
 
   resolveSummaryForDrug(
     drugName: string | null,

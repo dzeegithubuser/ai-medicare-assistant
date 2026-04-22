@@ -1,1 +1,0 @@
-Analyze the beneficiary's current Medicare plan and identify coverage gaps. For each gap, recommend a specific complementary plan they can purchase — with a real plan type, typical carrier, premium range, and coverage details. Return the recommendations as structured JSON matching the provided schema.

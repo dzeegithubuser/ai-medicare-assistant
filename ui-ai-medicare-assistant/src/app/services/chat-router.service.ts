@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { DrugStateService, ChatDrugSelectionCommand, ChatPharmacySelectionCommand, ChatPlanSelectionCommand } from './drug-state.service';
+import { MedicareStateService, ChatDrugSelectionCommand, ChatPharmacySelectionCommand, ChatPlanSelectionCommand } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { AuthService } from './auth.service';
 import { ChatIntentService, ChatIntentResponse } from './chat-intent.service';
@@ -50,7 +50,7 @@ import {
  */
 @Injectable({ providedIn: 'root' })
 export class ChatRouterService {
-  private state            = inject(DrugStateService);
+  private state            = inject(MedicareStateService);
   private profileService   = inject(ProfileService);
   private authService      = inject(AuthService);
   private chatIntentSvc    = inject(ChatIntentService);

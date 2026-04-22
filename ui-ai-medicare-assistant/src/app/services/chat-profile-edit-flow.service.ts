@@ -3,7 +3,7 @@ import { ChatProfileService } from './chat-profile.service';
 import { ProfileService } from './profile.service';
 import { CountyLookupService } from './county-lookup.service';
 import { ChatIntentService } from './chat-intent.service';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { Router } from '@angular/router';
 import { LabelValuePair } from '../models/profile.model';
 import { APP_MESSAGES, PROFILE_MESSAGES } from '../constants/chat-messages';
@@ -11,7 +11,7 @@ import { AppRoutes } from '../app-routes.const';
 
 @Injectable({ providedIn: 'root' })
 export class ChatProfileEditFlowService {
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
   private profileService = inject(ProfileService);
   private countyLookup = inject(CountyLookupService);
   private chatIntentSvc = inject(ChatIntentService);

@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { CommonModule } from '@angular/common';
-import { DrugStateService } from '../services/drug-state.service';
+import { MedicareStateService } from '../services/drug-state.service';
 import { ProfileService } from '../services/profile.service';
 import { ReferenceDataService } from '../services/reference-data.service';
 import { CountyLookupService } from '../services/county-lookup.service';
@@ -57,7 +57,7 @@ export class ChatComponent implements OnInit {
     'Analysis reset. You can start a new prescription analysis',
   ] as const;
 
-  protected state     = inject(DrugStateService);
+  protected state     = inject(MedicareStateService);
   protected wizard    = inject(ChatWizardService);
   protected recState  = inject(RecommendationStateService);
   protected chatRouter = inject(ChatRouterService);
@@ -144,6 +144,10 @@ export class ChatComponent implements OnInit {
     effect(() => {
       const trigger = this.state.wizardResetTrigger();
       if (trigger > 0) {
+        // Remember the current mode before reset so we can restore it.
+        const onMedicare = this.router.url.startsWith(AppRoutes.abs.MEDICARE_ANALYSIS);
+        const onLtc = this.router.url.startsWith(AppRoutes.abs.LTC);
+
         this.wizard.reset();
         // Clear session-storage gate keys so the next analysis run can re-hydrate
         // drugs, pharmacy and plans from the saved selection document.
@@ -155,8 +159,13 @@ export class ChatComponent implements OnInit {
         this.storedDrugsAutoHydrateInFlight = false;
         this.storedPharmacyAutoHydrateInFlight = false;
         this.requestedActiveRecommendationForStoredPharmacy = false;
-        if (this.router.url.startsWith(AppRoutes.abs.MEDICARE_ANALYSIS)) {
+
+        // Restore wizard mode so the user stays in the current analysis flow.
+        if (onMedicare) {
+          this.wizard.startMedicareAnalysis();
           this.removeAnalysisRefreshNoiseIfNeeded(this.router.url);
+        } else if (onLtc) {
+          this.wizard.startLtcAnalysis();
         }
       }
     });
@@ -398,6 +407,35 @@ export class ChatComponent implements OnInit {
     });
   }
 
+  private postLtcProfileReviewMessage(): void {
+    const p = this.profileService.profile()?.profile;
+    if (!p) {
+      this.state.addAssistantMessage(
+        `${LTC_MESSAGES.PROFILE_REVIEW_INTRO}\n\n${PROFILE_MESSAGES.REVIEW_LOADING}\n\n${LTC_MESSAGES.PROFILE_REVIEW_QUESTION}`
+      );
+      this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
+      return;
+    }
+    this.countyLookup.getMagiTiers(p.taxFilingStatus, p.coverageYear).subscribe({
+      next: (tiers) => {
+        const match = tiers.find((t) => String(t.value) === String(p.magiTier));
+        const magiLabel = match?.label ?? p.magiTier;
+        const summary = this.buildMedicareProfileSummaryMarkdown(magiLabel);
+        this.state.addAssistantMessage(
+          `${LTC_MESSAGES.PROFILE_REVIEW_INTRO}\n\n${summary}\n\n${LTC_MESSAGES.PROFILE_REVIEW_QUESTION}`
+        );
+        this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
+      },
+      error: () => {
+        const summary = this.buildMedicareProfileSummaryMarkdown();
+        this.state.addAssistantMessage(
+          `${LTC_MESSAGES.PROFILE_REVIEW_INTRO}\n\n${summary}\n\n${LTC_MESSAGES.PROFILE_REVIEW_QUESTION}`
+        );
+        this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
+      },
+    });
+  }
+
   private buildAnalysisResumeMessage(url: string): string {
     if (url.startsWith(AppRoutes.abs.PROFILE)) {
       return 'Resumed the Profile step. Review your details on the left, then use **Continue to Drugs** in the footer when ready.';
@@ -606,8 +644,7 @@ export class ChatComponent implements OnInit {
         break;
       }
       case 'LTC_PROFILE_REVIEW': {
-        this.state.addAssistantMessage(LTC_MESSAGES.PROFILE_REVIEW);
-        this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
+        this.postLtcProfileReviewMessage();
         break;
       }
       case 'LTC_CARE_TYPE': {

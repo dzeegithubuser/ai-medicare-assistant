@@ -28,7 +28,7 @@ ChatGPT-style Medicare healthcare assistant where users paste prescription lists
 - **OpenAI GPT-4.1** integration (primary AI model)
 - **Anthropic Claude Sonnet 4** integration (secondary AI model via `IAiChatClient`)
 - **Google Gemini** integration (tertiary AI model via `IChatClient`)
-- **Entity Framework Core** (Code First with MySQL via Pomelo)
+- **MongoDB.Driver 3.4** (single database for all data — users, profiles, sessions, prescriptions, plans)
 - **JWT Authentication** (sign up, sign in, forgot/reset password; hub auth via `access_token` query param)
 - **BCrypt** password hashing
 - **Serilog** structured logging (MongoDB primary sink via Serilog.Sinks.MongoDB v6 + console + daily rolling file fallback)
@@ -84,7 +84,7 @@ Angular Router (lazy-loaded routes)
       ├── MedicareAdvantagePlanController [Authorize] (POST /api/MedicareAdvantagePlan/recommend)
       ├── MedigapPlanController [Authorize] (POST /api/MedigapPlan/quotes)
       ├── PartDPlanController [Authorize] (POST /api/PartDPlan/recommend)
-      └── MigrationController [AllowAnonymous]
+
            ↓
      Application Layer
       ├── AuthService
@@ -98,12 +98,10 @@ Angular Router (lazy-loaded routes)
       ├── DrugSelectionExtractService
       ├── PharmacySelectionExtractService
       └── PlanSelectionExtractService
-      ├── ChatOrchestratorService (FSM router)
-      └── DeltaCalculationService
            ↓  uses interfaces from
      Domain Layer (models + interfaces)
-      ├── IRepository<T> (generic)
       ├── IProfileRepository
+      ├── IUserRepository
       ├── IDrugAiService, IChatClient, IMedicareCostService
       ├── IFdaNdcService
       ├── ICmsPlanDataService, ICountyLookupService, IConstantsService
@@ -113,9 +111,8 @@ Angular Router (lazy-loaded routes)
       ├── IMongoRepositories (Prescription, ChatSession, UserAnalysisSelections, Recommendation, LtcSelections)
            ↑  implements interfaces
      Infrastructure Layer
-      ├── Repository<T> (generic base)
-      ├── ProfileRepository
-      ├── UserRepository
+      ├── MongoProfileRepository
+      ├── MongoUserRepository
       ├── DrugAiService, AnthropicMeaiChatClient, GeminiChatClient
       ├── CmsMedicareCostService
       ├── FdaNdcService

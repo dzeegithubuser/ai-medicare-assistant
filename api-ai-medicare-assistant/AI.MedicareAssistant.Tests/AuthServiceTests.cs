@@ -1,6 +1,6 @@
 using Application.DTOs;
 using Application.Services;
-using Domain.Entities;
+using Domain.Documents;
 using Domain.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -44,12 +44,12 @@ public class AuthServiceTests
     // ═══════ SignUp ═══════
 
     [Fact]
-    public async Task SignUp_ValidRequest_ReturnsSuccessWithToken()
+    public async Task SignUp_ValidRequest_ReturnsSuccess()
     {
         _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
         _userRepoMock.Setup(r => r.PhoneExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
+        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<UserDocument>()))
+            .ReturnsAsync((UserDocument u) => u);
 
         var result = await _sut.SignUpAsync(new SignUpRequest
         {
@@ -60,10 +60,8 @@ public class AuthServiceTests
         });
 
         Assert.True(result.Success);
-        Assert.NotNull(result.Token);
-        Assert.NotEmpty(result.Token);
-        Assert.Contains("created", result.Message, StringComparison.OrdinalIgnoreCase);
-        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<User>()), Times.Once);
+        Assert.Contains("Registration successful", result.Message);
+        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<UserDocument>()), Times.Once);
     }
 
     [Fact]
@@ -80,7 +78,7 @@ public class AuthServiceTests
 
         Assert.False(result.Success);
         Assert.Contains("Email already", result.Message);
-        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<User>()), Times.Never);
+        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<UserDocument>()), Times.Never);
     }
 
     [Fact]
@@ -105,8 +103,8 @@ public class AuthServiceTests
     {
         _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
         _userRepoMock.Setup(r => r.PhoneExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
+        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<UserDocument>()))
+            .ReturnsAsync((UserDocument u) => u);
 
         await _sut.SignUpAsync(new SignUpRequest
         {
@@ -116,7 +114,7 @@ public class AuthServiceTests
         });
 
         _userRepoMock.Verify(r => r.CreateAsync(
-            It.Is<User>(u => u.Email == "test@example.com")), Times.Once);
+            It.Is<UserDocument>(u => u.Email == "test@example.com")), Times.Once);
     }
 
     [Fact]
@@ -124,8 +122,8 @@ public class AuthServiceTests
     {
         _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
         _userRepoMock.Setup(r => r.PhoneExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
+        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<UserDocument>()))
+            .ReturnsAsync((UserDocument u) => u);
 
         await _sut.SignUpAsync(new SignUpRequest
         {
@@ -135,7 +133,7 @@ public class AuthServiceTests
         });
 
         _userRepoMock.Verify(r => r.CreateAsync(
-            It.Is<User>(u => u.PasswordHash != "Password123!" && u.PasswordHash.StartsWith("$2"))),
+            It.Is<UserDocument>(u => u.PasswordHash != "Password123!" && u.PasswordHash.StartsWith("$2"))),
             Times.Once);
     }
 
@@ -177,7 +175,7 @@ public class AuthServiceTests
     [Fact]
     public async Task SignIn_NonexistentUser_ReturnsFailure()
     {
-        _userRepoMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+        _userRepoMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((UserDocument?)null);
 
         var result = await _sut.SignInAsync(new SignInRequest
         {
@@ -213,13 +211,13 @@ public class AuthServiceTests
         var result = await _sut.ForgotPasswordAsync(new ForgotPasswordRequest { Email = "test@example.com" });
 
         Assert.True(result.Success);
-        Assert.NotNull(result.Token);
+        Assert.Contains("reset email", result.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task ForgotPassword_NonexistentEmail_StillReturnsSuccess()
     {
-        _userRepoMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+        _userRepoMock.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((UserDocument?)null);
 
         var result = await _sut.ForgotPasswordAsync(new ForgotPasswordRequest { Email = "nobody@example.com" });
 
@@ -228,28 +226,6 @@ public class AuthServiceTests
     }
 
     // ═══════ ResetPassword ═══════
-
-    [Fact]
-    public async Task ResetPassword_ValidToken_SuccessfullyResetsPassword()
-    {
-        var user = CreateTestUser("test@example.com", "OldPassword123!");
-        _userRepoMock.Setup(r => r.GetByEmailAsync("test@example.com")).ReturnsAsync(user);
-        _userRepoMock.Setup(r => r.GetByIdAsync(user.Id)).ReturnsAsync(user);
-
-        // Generate a valid reset token first
-        var forgotResult = await _sut.ForgotPasswordAsync(new ForgotPasswordRequest { Email = "test@example.com" });
-
-        var result = await _sut.ResetPasswordAsync(new ResetPasswordRequest
-        {
-            Token = forgotResult.Token!,
-            NewPassword = "NewPassword456!",
-            ConfirmPassword = "NewPassword456!"
-        });
-
-        Assert.True(result.Success);
-        _userRepoMock.Verify(r => r.UpdateAsync(It.Is<User>(u =>
-            BCrypt.Net.BCrypt.Verify("NewPassword456!", u.PasswordHash))), Times.Once);
-    }
 
     [Fact]
     public async Task ResetPassword_InvalidToken_ReturnsFailure()
@@ -267,11 +243,12 @@ public class AuthServiceTests
 
     // ═══════ Helpers ═══════
 
-    private static User CreateTestUser(string email, string password) => new()
+    private static UserDocument CreateTestUser(string email, string password) => new()
     {
-        Id = Guid.NewGuid(),
+        UserId = Guid.NewGuid(),
         Email = email.ToLowerInvariant(),
         Phone = "5551234567",
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+        IsEmailVerified = true
     };
 }

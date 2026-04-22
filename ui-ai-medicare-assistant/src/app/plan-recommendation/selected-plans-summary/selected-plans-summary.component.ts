@@ -3,7 +3,7 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DrugStateService } from '../../services/drug-state.service';
+import { MedicareStateService } from '../../services/drug-state.service';
 import { RecommendationListItem, PharmacyWiseRecommendation } from '../../models/part-d-plan.model';
 import { MedigapPlan } from '../../models/medigap-plan.model';
 
@@ -15,7 +15,7 @@ import { MedigapPlan } from '../../models/medigap-plan.model';
   imports: [CommonModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, CurrencyPipe],
 })
 export class SelectedPlansSummaryComponent {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
 
   costLoading = input(false);
   maIncludesPartD = input(false);

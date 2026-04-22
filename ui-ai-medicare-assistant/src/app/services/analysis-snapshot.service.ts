@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { RecommendationService } from './recommendation.service';
 import {
@@ -23,7 +23,7 @@ import { PharmacyWiseRecommendation } from '../models/part-d-plan.model';
  */
 @Injectable({ providedIn: 'root' })
 export class AnalysisSnapshotService {
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
   private profileService = inject(ProfileService);
   private recommendationService = inject(RecommendationService);
 

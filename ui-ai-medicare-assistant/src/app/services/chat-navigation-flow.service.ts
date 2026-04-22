@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { catchError, of } from 'rxjs';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { PrescriptionService } from './prescription.service';
 import { LtcStateService } from '../long-term-care/ltc-state.service';
@@ -61,7 +61,7 @@ const LTC_STEP_ROUTES: Record<1 | 2, string> = {
 
 @Injectable({ providedIn: 'root' })
 export class ChatNavigationFlowService {
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
   private profileService = inject(ProfileService);
   private prescriptionService = inject(PrescriptionService);
   private ltcState = inject(LtcStateService);

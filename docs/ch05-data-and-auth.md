@@ -1,45 +1,22 @@
 # Chapter 5 — Data & Authentication
 
-> Database schema (MySQL / EF Core Code First + MongoDB document store) and JWT authentication flow.
+> MongoDB database schema and JWT authentication flow.
 
 ---
 
-## Database Schema
+## Database — MongoDB (Single Store)
 
-### Base Entity
-All tables inherit: `Id` (GUID PK), `CreatedDate`, `ModifiedDate`, `CreatedBy`, `ModifiedBy`.
+All application data lives in a single MongoDB database (`ai_medicare_assistant`). There is no MySQL or EF Core dependency.
 
-### Tables & Relationships
+**Driver:** `MongoDB.Driver` 3.4.0 (Infrastructure project), `MongoDB.Bson` 3.4.0 (Domain project for BSON attributes).
 
-```
-users (1) ──── (1) profiles
-```
-
-| Table | Key Columns | Constraints |
-|-------|-------------|-------------|
-| `users` | Email, Phone, PasswordHash | Email UNIQUE, Phone UNIQUE |
-| `profiles` | UserId (FK), FirstName, LastName, CoverageYear, HealthCondition, TaxFilingStatus, MagiTier, Gender, TobaccoStatus, DateOfBirth, Concierge, ConciergeAmount, AlternateEmail, AlternateMobile, LifeExpectancy, AddressLine1, AddressLine2, Street, City, State, ZipCode, County, CountyCode, Latitude, Longitude | 1:1 with users, CASCADE delete |
-
-### Provider
-`Pomelo.EntityFrameworkCore.MySql` with EF Core. Connection string configured in `appsettings.json` → `ConnectionStrings:DefaultConnection`. Uses `ServerVersion.AutoDetect`.
-
-### Design-Time Factory
-`AppDbContextFactory` enables migration generation without a running MySQL instance.
-
----
-
-## MongoDB (Document Store)
-
-### Purpose
-Stores AI-generated results, session snapshots, chat history, and prescriptions — data that is deeply nested and evolves with AI prompt changes. MongoDB handles schema-flexible documents while MySQL retains relational integrity for user/profile data.
-
-### Connection
-Connection string configured in `appsettings.json` → `ConnectionStrings:MongoDb`. Database name configured via `MongoDb:DatabaseName` (default: `ai_medicare_assistant`).
+**Connection:** Connection string configured in `appsettings.json` → `ConnectionStrings:MongoDb`. Database name configured via `MongoDb:DatabaseName` (default: `ai_medicare_assistant`).
 
 ### Collections & Indexes
 
 | Collection | Document | Index | Purpose |
 |------------|----------|-------|---------|
+| `users` | `UserDocument` | unique `Email`, unique `Phone`, unique `UserId` | Merged user + profile data (email, phone, passwordHash, isEmailVerified, firstName, lastName, coverageYear, healthCondition, taxFilingStatus, magiTier, gender, tobaccoStatus, dateOfBirth, concierge, conciergeAmount, lifeExpectancy, address fields, currentPrescriptionDocumentId, isProfileComplete, timestamps) |
 | `prescriptions` | `PrescriptionDocument` | `(userId ASC, createdAt DESC)` | Named prescriptions with embedded drug list |
 | `chat_sessions` | `ChatSessionDocument` | `(userId ASC, createdAt DESC)` | Chat/AI conversation history with rolling 200-message window |
 | `userAnalysisSelections` | `UserAnalysisSelectionsDocument` | `(userId ASC)` unique | Per-user current analysis selections — confirmed drugs, selected pharmacies + plans, activeSection |
@@ -50,8 +27,8 @@ Connection string configured in `appsettings.json` → `ConnectionStrings:MongoD
 ### Data Flow
 
 ```
-User signs up / logs in            → MySQL (users, profiles)
-User completes drug wizard      → MongoDB (userAnalysisSelections — drugs)
+User signs up / logs in            → MongoDB (users — UserDocument created at signup, profile fields updated later)
+User completes drug wizard         → MongoDB (userAnalysisSelections — drugs)
 User selects pharmacies            → MongoDB (userAnalysisSelections — pharmacies)
 User selects plans                 → MongoDB (userAnalysisSelections — plans + activeSection)
 User saves analysis snapshot       → MongoDB (recommendations — full profile+drug+pharmacy+plan+cost doc)
@@ -62,17 +39,8 @@ Application logs                   → MongoDB (logs — Serilog structured BSON
 ```
 
 ### .NET Integration
-- **Driver:** `MongoDB.Driver` 3.4.0 (Infrastructure project), `MongoDB.Bson` 3.4.0 (Domain project for BSON attributes)
 - **DI:** `IMongoClient` (singleton), `IMongoDatabase` (singleton), `MongoDbContext` (singleton with index creation on startup)
-- **Repositories (all scoped):** `IPrescriptionDocRepository`, `IChatSessionRepository`, `IUserAnalysisSelectionsRepository`, `IRecommendationRepository`, `ILtcSelectionsRepository`
-
-### Migrations
-
-```bash
-cd api-ai-medicare-assistant
-dotnet ef migrations add <Name> --project AI.MedicareAssistant.Infrastructure --startup-project AI.MedicareAssistant.Api --context AppDbContext --output-dir Data/Migrations
-dotnet ef database update --project AI.MedicareAssistant.Infrastructure --startup-project AI.MedicareAssistant.Api
-```
+- **Repositories (all scoped):** `IUserRepository`/`MongoUserRepository`, `IProfileRepository`/`MongoProfileRepository`, `IPrescriptionDocRepository`, `IChatSessionRepository`, `IUserAnalysisSelectionsRepository`, `IRecommendationRepository`, `ILtcSelectionsRepository`
 
 ---
 

@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { DrugStateService, ChatPharmacySelectionCommand } from '../../services/drug-state.service';
+import { MedicareStateService, ChatPharmacySelectionCommand } from '../../services/drug-state.service';
 import { DrugService } from '../../services/drug.service';
 import { PharmacyLookupEntry } from '../../models/drug.model';
 
@@ -24,7 +24,7 @@ import { PharmacyLookupEntry } from '../../models/drug.model';
   ],
 })
 export class PharmacyStepComponent implements OnInit {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private drugService = inject(DrugService);
 
   // Filter/pagination state

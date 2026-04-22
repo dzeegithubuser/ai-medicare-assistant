@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { finalize, map, Observable, of, shareReplay, switchMap, tap, catchError } from 'rxjs';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { DrugService } from './drug.service';
 import { ProfileService } from './profile.service';
 import {
@@ -18,7 +18,7 @@ import { DRUG_MESSAGES, PHARMACY_MESSAGES, PLAN_MESSAGES } from '../constants/ch
  */
 @Injectable({ providedIn: 'root' })
 export class ChatAnalysisSelectionHydrationService {
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
   private drugService = inject(DrugService);
   private profileService = inject(ProfileService);
   private prescriptionService = inject(PrescriptionService);
@@ -86,7 +86,7 @@ export class ChatAnalysisSelectionHydrationService {
 
         this.state.confirmedDrugNames.set(new Set(names));
         try {
-          sessionStorage.setItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY, JSON.stringify(names));
+          sessionStorage.setItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY, JSON.stringify(names));
         } catch {
           // non-blocking: in-memory selection is already updated
         }
@@ -100,7 +100,7 @@ export class ChatAnalysisSelectionHydrationService {
               this.state.confirmedDrugNames.set(new Set(resolvedNames));
               try {
                 sessionStorage.setItem(
-                  DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY,
+                  MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY,
                   JSON.stringify(resolvedNames),
                 );
               } catch {

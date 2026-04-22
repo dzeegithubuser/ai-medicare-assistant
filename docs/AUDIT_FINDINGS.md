@@ -7,7 +7,7 @@
 
 ## CRITICAL (Fix Immediately)
 
-- [ ] **1. Secrets in source control** — `appsettings.json` and `appsettings.Development.json` contain plaintext OpenAI key, Anthropic key, MySQL/MongoDB credentials, JWT secret, Financial Planner auth token. `.gitignore` does not exclude them.
+- [ ] **1. Secrets in source control** — `appsettings.json` and `appsettings.Development.json` contain plaintext OpenAI key, Anthropic key, MongoDB credentials, JWT secret, Financial Planner auth token. `.gitignore` does not exclude them.
   - Files: `api-ai-medicare-assistant/AI.MedicareAssistant.Api/appsettings.json`, `appsettings.Development.json`
   - Fix: Move to User Secrets / env vars / Key Vault. Add to `.gitignore`. Rotate all keys.
 
@@ -27,9 +27,9 @@
   - File: `appsettings.json` → `Jwt:Secret`
   - Fix: Use a cryptographically random 256-bit+ key from a secret store.
 
-- [ ] **5. MigrationController is [AllowAnonymous]** — Anyone can apply DB migrations in production via `POST /api/migration/apply`.
-  - File: `AI.MedicareAssistant.Api/Controllers/MigrationController.cs`
-  - Fix: Add `[Authorize]` with admin role/policy, or remove from non-dev environments.
+- [x] **5. ~~MigrationController is [AllowAnonymous]~~** — **RESOLVED:** `MigrationController` has been deleted. MySQL and EF Core have been fully removed; all data is now in MongoDB.
+  - ~~File: `AI.MedicareAssistant.Api/Controllers/MigrationController.cs`~~
+  - ~~Fix: Add `[Authorize]` with admin role/policy, or remove from non-dev environments.~~
 
 - [ ] **6. Reset token returned in HTTP response** — Forgot-password returns the reset token in the response body instead of sending via email.
   - File: `AI.MedicareAssistant.Application/Services/AuthService.cs`
@@ -95,9 +95,9 @@
   - File: `ui-ai-medicare-assistant/src/app/chat/chat.component.ts`
   - Fix: Add `takeUntilDestroyed(this.destroyRef)`.
 
-- [ ] **21. Generic Repository.UpdateAsync doesn't call Update()** — Silent no-op if entity is detached.
-  - File: `AI.MedicareAssistant.Infrastructure/Repositories/Repository.cs`
-  - Fix: Add `DbSet.Update(entity)` before `SaveChangesAsync`.
+- [x] **21. ~~Generic Repository.UpdateAsync doesn't call Update()~~** — **RESOLVED:** `Repository<T>` (generic EF Core base) has been deleted. All repositories are now MongoDB-based.
+  - ~~File: `AI.MedicareAssistant.Infrastructure/Repositories/Repository.cs`~~
+  - ~~Fix: Add `DbSet.Update(entity)` before `SaveChangesAsync`.~~
 
 - [ ] **22. profileCompleteGuard treats API errors as "profile incomplete"** — Network failures redirect user to profile page.
   - File: `ui-ai-medicare-assistant/src/app/guards/profile-complete.guard.ts`
@@ -148,7 +148,7 @@
 ## PRODUCTION READINESS GAPS
 
 - [ ] **32. No Dockerfile / docker-compose** — No container build support.
-- [ ] **33. No health check endpoints** — No `/health`, no MongoDB/MySQL liveness probes.
+- [ ] **33. No health check endpoints** — No `/health`, no MongoDB liveness probes.
 - [ ] **34. No HTTPS redirection** — `app.UseHttpsRedirection()` absent.
 - [ ] **35. CORS hardcoded** — Origins not configurable per environment.
 - [ ] **36. Production environment.ts identical to dev** — Points to `localhost:5024`.

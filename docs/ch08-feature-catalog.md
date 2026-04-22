@@ -39,13 +39,11 @@
 
 ---
 
-## ✅ MySQL Database with EF Core Code First
-- **Provider:** `Pomelo.EntityFrameworkCore.MySql` with EF Core.
-- **Base Entity:** All tables inherit Id (GUID), CreatedDate, ModifiedDate, CreatedBy, ModifiedBy.
-- **Tables:** `users` (email/phone unique, bcrypt hash), `profiles` (consolidated: first name, last name, coverage year, health condition, tax filing, MAGI tier, gender, tobacco, DOB, concierge, life expectancy, address fields).
-- **Relationships:** `profiles` has 1:1 relationship with `users` via UserId FK with CASCADE delete.
-- **Design-Time Factory:** `AppDbContextFactory` enables migrations without a running MySQL instance.
-- **Migration Controller:** `MigrationController` provides `[AllowAnonymous]` endpoints to list applied/pending migrations and apply pending ones.
+## ✅ MongoDB (Single Database)
+- **Driver:** `MongoDB.Driver` 3.4.0 with `MongoDB.Bson` 3.4.0.
+- **User Document:** `UserDocument` merges user credentials and profile fields into a single document in the `users` collection. Unique indexes on `Email`, `Phone`, and `UserId`.
+- **Collections:** `users`, `prescriptions`, `chat_sessions`, `userAnalysisSelections`, `recommendations`, `ltcCurrentSelections`, `logs`.
+- **Repositories:** `MongoUserRepository`, `MongoProfileRepository` (both operate on `users` collection), plus `PrescriptionDocRepository`, `ChatSessionRepository`, `UserAnalysisSelectionsRepository`, `RecommendationRepository`, `LtcSelectionsRepository`.
 
 ---
 
@@ -156,7 +154,7 @@
 ## ✅ Nearby Pharmacy Search & AI-Powered Per-Pharmacy Pricing (On-Demand)
 - **What:** Finds nearby pharmacies and generates per-pharmacy, per-drug pricing via AI. Triggered on-demand when user clicks "Find Nearby Pharmacies" button below drug cards.
 - **APIs:** IChatClient for pharmacy-specific AI pricing.
-- **Backend:** `Pharmacy/` directory contains pharmacy pricing infrastructure. `PharmacyPricingStep` exists but is not registered in the DI pipeline — pharmacy data is fetched via the standalone `GET /api/pharmacy/search` endpoint.
+- **Backend:** `Pharmacy/` directory contains `FinancialPlannerPharmacyService`. Pharmacy data is fetched via the `GET /api/pharmacy/lookup` endpoint (Financial Planner getPharmacies API).
 - **Graceful degradation chain:** AI pricing → fallback prices → `null` ("—").
 - **Frontend:** Pharmacy selection is handled within the `PharmaciesStepComponent` in the Medicare analysis wizard.
 - **Design Principles:** All changes additive. No database migrations. Optional fields. Graceful degradation. On-demand loading reduces initial analysis time.
@@ -194,7 +192,7 @@
   2. **Drug Selection** — Analyze prescriptions, confirm drug selections (no costing).
   3. **Pharmacy Selection** — Click "Find Nearby Pharmacies" to get lightweight NPI list. Toggle-select up to 5 pharmacies.
   4. **Plan Recommendation** — Click "Load Medicare Plan Recommendations" (only shown after ≥1 pharmacy selected). Plans include per-pharmacy cost breakdowns.
-- **Backend:** Plan recommendation orchestrates: county FIPS → LIS tier → AI scoring (with pharmacy context) → CMS enrichment → pharmacy cost breakdowns. `PlanScoringAiService` generates 5 ranked plans with `{{PHARMACY_CONTEXT}}` placeholder for selected pharmacies. `FipsLookupService` — static in-memory ZIP-to-FIPS (legacy). LIS: 2025 FPL thresholds.
+- **Backend:** Plan recommendation orchestrates: county lookup → LIS tier → AI scoring (with pharmacy context) → CMS enrichment → pharmacy cost breakdowns. `PlanScoringAiService` generates 5 ranked plans with `{{PHARMACY_CONTEXT}}` placeholder for selected pharmacies. `CountyLookupService` fetches county data via Financial Planner API. LIS: 2025 FPL thresholds.
 - **AI Extended Fields:** AI generates 12 additional fields per plan: `networkType` (HMO/PPO/PFFS/HMO-POS), benefit flags (`includesDental`, `includesVision`, `includesHearing`, `includesFitness`, `includesOtc`), `otcAllowancePerQuarter`, `gapCoverage` (None/Some/Full), `mailOrderSavings`, `providerNetworkSize` (Large/Medium/Small), `emergencyCoverage`, and `pros`/`cons` bullet lists. Additionally, each plan includes a `planCategory` field (`MA_ONLY`, `PDP_ONLY`, `PDP_MEDIGAP`, `MA_PDP`) indicating the coverage bundling strategy.
 - **Frontend:** `PlanRecommendationComponent` orchestrates plan loading, compare state, LIS banner, and Part D gap fill via `ensurePartDGapLoadForMA()`. Decomposed into child components: `RecommendationCardComponent` (individual plan card), `MedigapCardComponent` (Medigap supplemental plan card), `MedigapGapSectionComponent`, `PartdGapSectionComponent` (Part D gap plan cards with checkboxes), `PlanDetailDialogComponent` (full plan detail dialog), and `SelectedPlansSummaryComponent`. All tooltip data centralized in `data/tooltips.ts`.
 - **Early Summary Panel:** `hasAnyPlanSelected` computed signal in `PlanRecommendationComponent` shows `SelectedPlansSummaryComponent` as soon as _any_ plan is selected in the active section (MA or Part D), even before the selection is complete. The summary is rendered with `[canCalculate]="hasCompleteSelection()"` passed as input — when `false`, the Calculate button is disabled and an amber hint guides the user (e.g., "Select a Part D gap plan below to calculate your total cost."). `hasCompletePlanSelection` in `DrugStateService` remains the gate for enabling the actual cost evaluation.
@@ -564,7 +562,9 @@
 - **Fix:** `ACTION_PATTERNS` — a regex array in `ChatRouterService` that matches app-level action phrases. All three page-specific selection handlers (`routeToDrugSelection`, `routeToPharmacySelection`, `routeToPlanSelection`) check this pattern first and return `false` to let matching messages fall through to `routeToIntentClassifier()`.
 - **Patterns matched:** save analysis, run analysis, calculate cost, reset analysis, sign out, log out, show saved, help.
 
-## ✅ Orchestrator URL Guard
+## ~~Orchestrator URL Guard~~ (Removed)
+
+> **Note:** The chatbot orchestrator (`ChatOrchestratorService`, `ChatOrchestratorController`, `ConvStateService`, `DeltaCalculationService`) has been fully removed. Chat coordination is now handled by `ChatRouterService` with `ChatIntentService` (20 intents), page-specific extraction services, and `ChatNavigationFlowService`. This feature section is retained for historical reference only.
 
 - **What:** The orchestrator handler now skips routing when the user is on wizard step pages, allowing page-specific drug/pharmacy/plan selection handlers to process messages correctly.
 - **Problem:** `routeToOrchestrator()` had no URL guard and ran before all page-specific handlers. When a saved recommendation existed, _all_ messages were captured by the orchestrator, preventing chat-based pharmacy selection, drug selection, and plan selection from working.

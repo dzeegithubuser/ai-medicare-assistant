@@ -15,7 +15,7 @@ POST /api/plan-recommendation/evaluate-costs  (PlanRecommendationController.Eval
 
 `BuildMedicareRequestWithProfileAsync()` assembles the `IndividualMedicareRequest`.
 
-### From MySQL Profile (user-specific)
+### From MongoDB Profile (user-specific)
 
 | Field | Source |
 |---|---|
@@ -211,7 +211,7 @@ User clicks "Run Analysis"
         ▼
 POST /api/plan-recommendation/evaluate-costs
         │
-        ├─ 1. GET Profile from MySQL
+        ├─ 1. GET Profile from MongoDB
         │       └─ Extract: DOB, state, zip, life expectancy,
         │                   health grade, MAGI tier, tobacco,
         │                   concierge, coverage year
@@ -249,7 +249,7 @@ LTC cost projection estimates long-term care expenses across four care types ove
 Identical to Medicare's profile step. On "Continue":
 - `LtcShellComponent.goNext()` → `profileService.requestSaveFromChat()` (increments `chatSaveRequestId` signal)
 - `UserProfileComponent` effect watches `chatSaveRequestId` → calls `save()`
-- `save()` → `POST /api/profile` → **MySQL `user_profiles` table**
+- `save()` → `POST /api/profile` → **MongoDB `users` collection**
 - On success: sets `ltcProfileIntroComplete = true` → shell advances to Step 2
 
 **Profile fields used in LTC projection:**
@@ -516,7 +516,7 @@ readonly evaluation = computed(() => this.result()?.evaluation ?? null);
 
 | Step | Medicare | LTC |
 |---|---|---|
-| Profile | `POST /api/profile` → MySQL (on Continue) | Same — `POST /api/profile` → MySQL (on Continue) |
+| Profile | `POST /api/profile` → MongoDB (on Continue) | Same — `POST /api/profile` → MongoDB (on Continue) |
 | Drugs | `PUT /api/prescription/current` → MongoDB on step leave | N/A |
 | Pharmacy | `PUT /api/prescription/pharmacy` → MongoDB on step leave | N/A |
 | Plans | `PUT /api/prescription/plans` → MongoDB on step leave | N/A |

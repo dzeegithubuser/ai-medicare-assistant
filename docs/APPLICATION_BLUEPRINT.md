@@ -20,7 +20,7 @@ The codebase follows **Clean Architecture** on the backend (.NET 10) and **signa
 | 2  | [Frontend Architecture](ch02-frontend-architecture.md) | Component tree, components, services, guards, models, styling, and UI flow | `ch02-frontend-architecture.md` |
 | 3  | [Prompt Architecture](ch03-prompt-architecture.md) | File-based prompt system for AI interactions | `ch03-prompt-architecture.md` |
 | 4  | [Backend Architecture](ch04-backend-architecture.md) | API, Domain, Application, and Infrastructure layers | `ch04-backend-architecture.md` |
-| 5  | [Data & Authentication](ch05-data-and-auth.md) | Database schema (MySQL/EF Core) and JWT authentication | `ch05-data-and-auth.md` |
+| 5  | [Data & Authentication](ch05-data-and-auth.md) | MongoDB database schema and JWT authentication | `ch05-data-and-auth.md` |
 | 6  | [API Contract](ch06-api-contract.md) | Endpoints, request/response schemas, and examples | `ch06-api-contract.md` |
 | 7  | [Project Structure](ch07-project-structure.md) | Full directory tree for frontend and backend | `ch07-project-structure.md` |
 | 8  | [Feature Catalog](ch08-feature-catalog.md) | Story of each implemented enhancement | `ch08-feature-catalog.md` |

@@ -28,14 +28,12 @@ public class UserAnalysisSelectionsRepository : IUserAnalysisSelectionsRepositor
             Builders<UserAnalysisSelectionsDocument>.Filter.Eq(d => d.UserId, document.UserId),
             Builders<UserAnalysisSelectionsDocument>.Filter.Eq(d => d.Name, CurrentSelectionsName));
 
-        if (string.IsNullOrEmpty(document.Id))
-        {
-            var existing = await _context.UserAnalysisSelections
-                .Find(filter)
-                .Project(d => d.Id)
-                .FirstOrDefaultAsync();
-            document.Id = existing ?? ObjectId.GenerateNewId().ToString();
-        }
+        var existingId = await _context.UserAnalysisSelections
+            .Find(filter)
+            .Project(d => d.Id)
+            .FirstOrDefaultAsync();
+        if (existingId != null)
+            document.Id = existingId;
 
         await _context.UserAnalysisSelections.ReplaceOneAsync(filter, document,
             new ReplaceOptions { IsUpsert = true });
@@ -115,14 +113,12 @@ public class LtcSelectionsRepository : ILtcSelectionsRepository
 
         var filter = CurrentFilter(document.UserId);
 
-        if (string.IsNullOrEmpty(document.Id))
-        {
-            var existing = await _context.LtcCurrentSelections
-                .Find(filter)
-                .Project(d => d.Id)
-                .FirstOrDefaultAsync();
-            document.Id = existing ?? MongoDB.Bson.ObjectId.GenerateNewId().ToString();
-        }
+        var existingId = await _context.LtcCurrentSelections
+            .Find(filter)
+            .Project(d => d.Id)
+            .FirstOrDefaultAsync();
+        if (existingId != null)
+            document.Id = existingId;
 
         await _context.LtcCurrentSelections.ReplaceOneAsync(filter, document,
             new ReplaceOptions { IsUpsert = true });

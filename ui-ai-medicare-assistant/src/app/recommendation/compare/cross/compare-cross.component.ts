@@ -10,12 +10,13 @@ import {
   getTrajectoryIcon, getTrajectoryColor,
   typeBadgeClass, typeLabel, buildProfileRows,
 } from '../compare-helpers';
+import { TabProfileComponent } from '../tab-profile/tab-profile.component';
 
 @Component({
   selector: 'app-compare-cross',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule],
+  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent],
   templateUrl: './compare-cross.component.html',
 })
 export class CompareCrossComponent {

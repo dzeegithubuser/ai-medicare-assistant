@@ -1,6 +1,6 @@
 using Application.DTOs;
 using Application.Services;
-using Domain.Entities;
+using Domain.Documents;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -27,7 +27,7 @@ public class ProfileServiceTests
     public async Task GetProfile_ExistingProfile_ReturnsComplete()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestProfile(userId));
+        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
 
         var result = await _sut.GetProfileAsync(userId);
 
@@ -41,7 +41,7 @@ public class ProfileServiceTests
     public async Task GetProfile_NoProfile_ReturnsIncomplete()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Profile?)null);
+        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((UserDocument?)null);
 
         var result = await _sut.GetProfileAsync(userId);
 
@@ -61,36 +61,31 @@ public class ProfileServiceTests
     // ═══════ SaveAsync ═══════
 
     [Fact]
-    public async Task Save_NewProfile_CallsCreate()
+    public async Task Save_ExistingUser_CallsUpdate()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Profile?)null);
+        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
 
         await _sut.SaveAsync(userId, CreateTestDto());
 
-        _repoMock.Verify(r => r.CreateAsync(It.Is<Profile>(p =>
+        _repoMock.Verify(r => r.UpdateAsync(It.Is<UserDocument>(p =>
             p.UserId == userId && p.FirstName == "John")), Times.Once);
-        _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Profile>()), Times.Never);
     }
 
     [Fact]
-    public async Task Save_ExistingProfile_CallsUpdate()
+    public async Task Save_NoUserDocument_ThrowsInvalidOperation()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestProfile(userId));
+        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((UserDocument?)null);
 
-        await _sut.SaveAsync(userId, CreateTestDto());
-
-        _repoMock.Verify(r => r.UpdateAsync(It.Is<Profile>(p =>
-            p.UserId == userId)), Times.Once);
-        _repoMock.Verify(r => r.CreateAsync(It.IsAny<Profile>()), Times.Never);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.SaveAsync(userId, CreateTestDto()));
     }
 
     [Fact]
     public async Task Save_ReturnsMappedDto()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Profile?)null);
+        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
 
         var result = await _sut.SaveAsync(userId, CreateTestDto());
 
@@ -100,27 +95,15 @@ public class ProfileServiceTests
     }
 
     [Fact]
-    public async Task Save_ParsesDateOfBirth()
+    public async Task Save_SetsDateOfBirth()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Profile?)null);
+        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
 
         await _sut.SaveAsync(userId, CreateTestDto());
 
-        _repoMock.Verify(r => r.CreateAsync(It.Is<Profile>(p =>
-            p.DateOfBirth == new DateOnly(1958, 1, 15))), Times.Once);
-    }
-
-    [Fact]
-    public async Task Save_InvalidDateOfBirth_ThrowsFormatException()
-    {
-        var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Profile?)null);
-
-        var dto = CreateTestDto();
-        dto.DateOfBirth = "not-a-date";
-
-        await Assert.ThrowsAsync<FormatException>(() => _sut.SaveAsync(userId, dto));
+        _repoMock.Verify(r => r.UpdateAsync(It.Is<UserDocument>(p =>
+            p.DateOfBirth == "1958-01-15")), Times.Once);
     }
 
     // ═══════ MapToDto ═══════
@@ -128,7 +111,8 @@ public class ProfileServiceTests
     [Fact]
     public void MapToDto_MapsAllFields()
     {
-        var entity = CreateTestProfile(Guid.NewGuid());
+        var entity = CreateTestUserDocument(Guid.NewGuid());
+        entity.IsProfileComplete = true;
         var dto = ProfileService.MapToDto(entity);
 
         Assert.Equal(entity.FirstName, dto.FirstName);
@@ -137,7 +121,7 @@ public class ProfileServiceTests
         Assert.Equal(entity.Gender, dto.Gender);
         Assert.Equal(entity.ZipCode, dto.ZipCode);
         Assert.Equal(entity.County, dto.County);
-        Assert.Equal(entity.DateOfBirth.ToString("yyyy-MM-dd"), dto.DateOfBirth);
+        Assert.Equal(entity.DateOfBirth, dto.DateOfBirth);
     }
 
     // ═══════ Helpers ═══════
@@ -165,10 +149,13 @@ public class ProfileServiceTests
         Longitude = -104.9878
     };
 
-    private static Profile CreateTestProfile(Guid userId) => new()
+    private static UserDocument CreateTestUserDocument(Guid userId) => new()
     {
-        Id = Guid.NewGuid(),
         UserId = userId,
+        Email = "test@example.com",
+        Phone = "5551234567",
+        PasswordHash = "hashed",
+        IsProfileComplete = true,
         FirstName = "John",
         LastName = "Doe",
         CoverageYear = 2026,
@@ -177,7 +164,7 @@ public class ProfileServiceTests
         MagiTier = "Tier 3",
         Gender = "M",
         TobaccoStatus = 0,
-        DateOfBirth = new DateOnly(1958, 1, 15),
+        DateOfBirth = "1958-01-15",
         Concierge = 0,
         LifeExpectancy = 95,
         AddressLine1 = "123 Main St",

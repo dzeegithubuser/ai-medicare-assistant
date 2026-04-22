@@ -1,9 +1,9 @@
 using Domain.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
@@ -13,12 +13,10 @@ internal static class DatabaseExtensions
 {
     internal static IServiceCollection AddDatabaseServices(this IServiceCollection services, IConfiguration configuration)
     {
-        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+        var camelCasePack = new ConventionPack { new CamelCaseElementNameConvention() };
+        ConventionRegistry.Register("CamelCase", camelCasePack, _ => true);
 
-        // ------- MySQL + EF Core -------
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContextPool<AppDbContext>(options =>
-            options.UseMySql(connectionString, Microsoft.EntityFrameworkCore.ServerVersion.AutoDetect(connectionString)));
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
         // ------- MongoDB client & database -------
         var mongoConnectionString = configuration.GetConnectionString("MongoDb")!;

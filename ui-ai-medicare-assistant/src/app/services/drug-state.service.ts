@@ -9,7 +9,7 @@ import { EvaluateCostsResponse } from '../models/cost-projection.model';
 import { PartDPlanRecommendationResponse, RecommendationListItem } from '../models/part-d-plan.model';
 import { MedigapPlanQuotesResponse, MedigapPlan } from '../models/medigap-plan.model';
 import { MedicareAdvantagePlanResponse } from '../models/medicare-advantage-plan.model';
-import { ChatSignalRService } from './chat-signal-r.service';
+import { ChatStateService } from './chat-state.service';
 import {
   ChatDrugSelectionCommand,
   ChatMessage,
@@ -27,9 +27,15 @@ export type {
   PendingDrugFollowupPrompt,
 } from '../models/chat-state.model';
 
+/**
+ * @deprecated Use {@link MedicareStateService} instead. This alias exists only
+ * for backward-compatibility during the migration period.
+ */
+export { MedicareStateService as DrugStateService };
+
 @Injectable({ providedIn: 'root' })
-export class DrugStateService {
-  private chatSignalR = inject(ChatSignalRService);
+export class MedicareStateService {
+  private chatState = inject(ChatStateService);
   private router = inject(Router);
 
   private static readonly STORAGE_KEY = 'drug-analysis-state';
@@ -37,8 +43,14 @@ export class DrugStateService {
   static readonly FP_CONFIRMED_DRUGS_SESSION_KEY = 'confirmed-drugs';
   private runtimePersistenceStarted = false;
 
-  readonly messages = signal<ChatMessage[]>([]);
-  readonly isLoading = signal(false);
+  // ─── Delegated Chat Accessors (backward-compatible) ───────────
+  /** @deprecated Inject ChatStateService directly instead. */
+  get messages() { return this.chatState.messages; }
+  /** @deprecated Inject ChatStateService directly instead. */
+  get isLoading() { return this.chatState.isLoading; }
+  /** @deprecated Inject ChatStateService directly instead. */
+  get wizardResetTrigger() { return this.chatState.wizardResetTrigger; }
+
   /** True while persisting the FP drug list to the server before opening Pharmacies. */
   readonly isSavingCurrentPrescription = signal(false);
 
@@ -82,12 +94,6 @@ export class DrugStateService {
    * Persisted so refresh mid-flow does not silently drop the name.
    */
   readonly pendingCostRunRecommendationName = signal<string | null>(null);
-
-  /**
-   * Incremented by resetAll(). ChatWizardService watches this via effect()
-   * to reset the wizard state whenever the analysis is cleared.
-   */
-  readonly wizardResetTrigger = signal(0);
 
   /** Route to return to after navigating away from analysis (e.g. to profile) */
   readonly returnRoute = signal<string | null>(null);
@@ -159,9 +165,6 @@ export class DrugStateService {
     return false;
   });
 
-  /** Timer handle for debouncing rapid message bursts before sending over SignalR. */
-  private syncTimer: ReturnType<typeof setTimeout> | null = null;
-
   constructor() {
     // Do not auto-hydrate running-session cache on first load.
     // Initial state should come from explicit flows (e.g., backend hydration),
@@ -180,9 +183,8 @@ export class DrugStateService {
       drugDetails: this.drugDetails(),
       pharmacySelectionConfirmed: this.pharmacySelectionConfirmed(),
       returnRoute: this.returnRoute(),
-      messages: this.messages(),
       currentStep: this.currentStep(),
-      analysisStepSchemaVersion: DrugStateService.ANALYSIS_STEP_SCHEMA_VERSION,
+      analysisStepSchemaVersion: MedicareStateService.ANALYSIS_STEP_SCHEMA_VERSION,
       prescriptionName: this.prescriptionName(),
       partDPlans: this.partDPlans(),
       medigapQuotes: this.medigapQuotes(),
@@ -197,7 +199,7 @@ export class DrugStateService {
       costProjection: this.costProjection(),
     };
     try {
-      sessionStorage.setItem(DrugStateService.STORAGE_KEY, JSON.stringify(snapshot));
+      sessionStorage.setItem(MedicareStateService.STORAGE_KEY, JSON.stringify(snapshot));
     } catch { /* quota exceeded — silently skip */ }
   }
 
@@ -208,7 +210,7 @@ export class DrugStateService {
   hydrateConfirmedFromSessionStorage(): void {
     if (this.confirmedDrugNames().size > 0) return;
     try {
-      const raw = sessionStorage.getItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
+      const raw = sessionStorage.getItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
       if (!raw) return;
       const arr: string[] = JSON.parse(raw);
       if (Array.isArray(arr) && arr.length > 0) {
@@ -217,65 +219,25 @@ export class DrugStateService {
     } catch { /* ignore */ }
   }
 
-  // ─── Messages ──────────────────────────────────────────────────
+  // ─── Messages (delegated to ChatStateService) ─────────────────
 
+  /** @deprecated Inject ChatStateService directly instead. */
   addUserMessage(content: string) {
     this.runtimePersistenceStarted = true;
-    const context = this.router.url;
-    this.messages.update(msgs => [...msgs, { role: 'user', content, timestamp: new Date(), context }]);
-    this.persist();
-    this.syncMessagesToServer();
+    this.chatState.addUserMessage(content);
   }
-
-  addAssistantMessage(content: string) {
-    const context = this.router.url;
-    this.messages.update(msgs => [...msgs, { role: 'assistant', content, timestamp: new Date(), context }]);
-    this.persist();
-    this.syncMessagesToServer();
-  }
-
-  replaceLastAssistantMessage(content: string) {
-    const context = this.router.url;
-    this.messages.update(msgs => {
-      let idx = -1;
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        if (msgs[i].role === 'assistant') { idx = i; break; }
-      }
-      if (idx >= 0) {
-        const updated = [...msgs];
-        updated[idx] = { ...updated[idx], content, timestamp: new Date(), context };
-        return updated;
-      }
-      return [...msgs, { role: 'assistant', content, timestamp: new Date(), context }];
-    });
-    this.persist();
-    this.syncMessagesToServer();
-  }
-
-  addSystemMessage(content: string) {
-    const context = this.router.url;
-    this.messages.update(msgs => [...msgs, { role: 'system', content, timestamp: new Date(), context }]);
-    this.persist();
-    this.syncMessagesToServer();
-  }
-
-  removeAssistantMessagesContaining(text: string) {
-    if (!text?.trim()) return;
-    this.messages.update(msgs =>
-      msgs.filter(m => !(m.role === 'assistant' && m.content.includes(text)))
-    );
-    this.persist();
-    this.syncMessagesToServer();
-  }
-
-  hydrateMessagesFromServer(messages: ChatMessage[]) {
-    this.messages.set(messages);
-    this.persist();
-  }
-
-  setLoading(loading: boolean) {
-    this.isLoading.set(loading);
-  }
+  /** @deprecated Inject ChatStateService directly instead. */
+  addAssistantMessage(content: string) { this.chatState.addAssistantMessage(content); }
+  /** @deprecated Inject ChatStateService directly instead. */
+  replaceLastAssistantMessage(content: string) { this.chatState.replaceLastAssistantMessage(content); }
+  /** @deprecated Inject ChatStateService directly instead. */
+  addSystemMessage(content: string) { this.chatState.addSystemMessage(content); }
+  /** @deprecated Inject ChatStateService directly instead. */
+  removeAssistantMessagesContaining(text: string) { this.chatState.removeAssistantMessagesContaining(text); }
+  /** @deprecated Inject ChatStateService directly instead. */
+  hydrateMessagesFromServer(msgs: ChatMessage[]) { this.chatState.hydrateMessagesFromServer(msgs); }
+  /** @deprecated Inject ChatStateService directly instead. */
+  setLoading(loading: boolean) { this.chatState.setLoading(loading); }
 
   /** Persists recommendation name for the upcoming / in-flight cost run (Mongo auto-save on cost page). */
   setPendingCostRunRecommendationName(name: string | null) {
@@ -316,13 +278,13 @@ export class DrugStateService {
     const idx = current.findIndex(p => String(p.pharmacyNumber) === String(pharmacy.pharmacyNumber));
     if (idx >= 0) {
       this.selectedLookupPharmacies.set(current.filter((_, i) => i !== idx));
-      this.addSystemMessage(`Deselected pharmacy: ${pharmacy.pharmacyName}`);
+      this.chatState.addSystemMessage(`Deselected pharmacy: ${pharmacy.pharmacyName}`);
       this.persist();
       return true;
     }
     if (current.length >= 5) return false;
     this.selectedLookupPharmacies.set([...current, pharmacy]);
-    this.addSystemMessage(`Selected pharmacy: ${pharmacy.pharmacyName}`);
+    this.chatState.addSystemMessage(`Selected pharmacy: ${pharmacy.pharmacyName}`);
     this.persist();
     return true;
   }
@@ -412,15 +374,15 @@ export class DrugStateService {
     sessionStorage.removeItem('formulation-selections');
     sessionStorage.removeItem('fp-drug-selections');
     sessionStorage.removeItem('drug-quantities');
-    sessionStorage.removeItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
+    sessionStorage.removeItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
 
     // Persist the cleared state so stale state is not reused later.
     this.persist();
 
-    this.addAssistantMessage('🔄 Analysis reset. You can start a new prescription analysis — enter your drugs in the chat below.');
+    this.chatState.addAssistantMessage('🔄 Analysis reset. Starting fresh from the profile step.');
 
     // Signal wizard to reset
-    this.wizardResetTrigger.update(v => v + 1);
+    this.chatState.triggerReset();
   }
 
   /**
@@ -465,7 +427,6 @@ export class DrugStateService {
     this.drugDetails.set(null);
     this.isDrugDetailsLoading.set(false);
     this.confirmedDrugNames.set(new Set());
-    this.isLoading.set(false);
     this.isSavingCurrentPrescription.set(false);
     this.currentStep.set(1);
     this.returnRoute.set(null);
@@ -477,7 +438,6 @@ export class DrugStateService {
     this.pendingPlanSelection.set(null);
     this.pendingRunAnalysis.set(null);
     this.pendingCostRunRecommendationName.set(null);
-    this.messages.set([]);
     this.prescriptionName.set(null);
 
     this.partDPlans.set(null);
@@ -492,34 +452,13 @@ export class DrugStateService {
     this.selectedMAGapPartDPlan.set(null);
     this.activeSection.set(null);
 
-    sessionStorage.removeItem(DrugStateService.STORAGE_KEY);
+    sessionStorage.removeItem(MedicareStateService.STORAGE_KEY);
     sessionStorage.removeItem('formulation-selections');
     sessionStorage.removeItem('fp-drug-selections');
     sessionStorage.removeItem('drug-quantities');
-    sessionStorage.removeItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
+    sessionStorage.removeItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
 
-    // Ensure chat wizard mode/step state is reset on next mount after sign-out.
-    this.wizardResetTrigger.update(v => v + 1);
-  }
-
-  /**
-   * Debounced SignalR sync — collapses rapid message bursts (e.g., greeting +
-   * profile review on Medicare startup) into a single WebSocket invoke.
-   * 500 ms is generous enough to absorb any synchronous burst while still
-   * flushing well within one second of the last mutation.
-   */
-  private syncMessagesToServer() {
-    if (!sessionStorage.getItem('auth_token')) return;
-    if (this.syncTimer !== null) clearTimeout(this.syncTimer);
-    this.syncTimer = setTimeout(() => {
-      this.syncTimer = null;
-      const payload = this.messages().map(m => ({
-        role: m.role,
-        content: m.content,
-        timestamp: m.timestamp.toISOString(),
-        context: m.context,
-      }));
-      this.chatSignalR.syncMessages(payload);
-    }, 500);
+    // Delegate chat cleanup to ChatStateService
+    this.chatState.clearMessagesForSignOut();
   }
 }

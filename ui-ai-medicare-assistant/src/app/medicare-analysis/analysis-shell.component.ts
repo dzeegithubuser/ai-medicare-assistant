@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize } from 'rxjs/operators';
-import { DrugStateService } from '../services/drug-state.service';
+import { MedicareStateService } from '../services/drug-state.service';
 import { PrescriptionService } from '../services/prescription.service';
 import { ProfileService } from '../services/profile.service';
 import { buildCurrentPrescriptionDrugsFromState } from './current-prescription.mapper';
@@ -21,7 +21,7 @@ import { AppRoutes } from '../app-routes.const';
   imports: [RouterOutlet, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
 })
 export class AnalysisShellComponent {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private router = inject(Router);
 
   /** Cost projections are terminal for editing prior inputs — hide shell Back/Continue; disable stepper navigation. */

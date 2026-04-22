@@ -1,0 +1,66 @@
+@let l = left();
+@let r = right();
+
+<div class="pt-4 space-y-4">
+
+  <!-- Diff summary banner -->
+  <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl border"
+       [class]="profileDiffs().length ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'">
+    <mat-icon class="!text-lg" [class]="profileDiffs().length ? 'text-amber-600' : 'text-green-600'">
+      {{ profileDiffs().length ? 'difference' : 'check_circle' }}
+    </mat-icon>
+    <p class="text-xs" [class]="profileDiffs().length ? 'text-amber-700' : 'text-green-700'">
+      {{ profileDiffs().length ? profileDiffs().length + ' field(s) differ between analyses — highlighted in amber below' : 'All profile fields are identical between both analyses' }}
+    </p>
+  </div>
+
+  @for (section of [
+    { title: 'Personal Information', icon: 'person', color: 'indigo', rows: personalRows() },
+    { title: 'Location', icon: 'location_on', color: 'emerald', rows: locationRows() },
+    { title: 'Health', icon: 'favorite', color: 'rose', rows: healthRows() },
+    { title: 'Financial', icon: 'account_balance', color: 'amber', rows: financialRows() }
+  ]; track section.title) {
+    <mat-card class="!rounded-xl !shadow-sm">
+      <mat-card-content class="!p-0">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+               [class]="'bg-' + section.color + '-100'">
+            <mat-icon class="!text-base"
+                      [class]="'text-' + section.color + '-600'">{{ section.icon }}</mat-icon>
+          </div>
+          <p class="text-sm font-semibold text-gray-800">{{ section.title }}</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="py-2 px-4 text-left text-gray-500 uppercase font-semibold w-8"></th>
+                <th class="py-2 px-4 text-left text-gray-500 uppercase font-semibold">Field</th>
+                <th class="py-2 px-4 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+                <th class="py-2 px-4 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+                <th class="py-2 px-4 text-center text-gray-500 uppercase font-semibold w-16">Match</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of section.rows; track row.label) {
+                <tr class="border-b border-gray-100" [class.bg-amber-50/50]="row.left !== row.right">
+                  <td class="py-2.5 px-4"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
+                  <td class="py-2.5 px-4 font-medium text-gray-700">{{ row.label }}</td>
+                  <td class="py-2.5 px-4 text-gray-900">{{ row.left }}</td>
+                  <td class="py-2.5 px-4 text-gray-900">{{ row.right }}</td>
+                  <td class="py-2.5 px-4 text-center">
+                    @if (row.left === row.right) {
+                      <mat-icon class="!text-sm text-green-500">check</mat-icon>
+                    } @else {
+                      <mat-icon class="!text-sm text-amber-500">close</mat-icon>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

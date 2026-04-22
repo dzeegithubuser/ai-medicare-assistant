@@ -7,7 +7,7 @@ import {
   ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest,
   VerifyEmailRequest, ResendVerificationRequest
 } from '../models/auth.model';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { RecommendationStateService } from './recommendation-state.service';
 import { ChatWizardService } from './chat-wizard.service';
@@ -95,7 +95,7 @@ export class AuthService {
       this.currentUser.set(null);
 
       // Reset in-memory service state to prevent data leaking to next user.
-      const drugState = this.injector.get(DrugStateService);
+      const drugState = this.injector.get(MedicareStateService);
       drugState.clearForSignOut();
 
       const profile = this.injector.get(ProfileService);

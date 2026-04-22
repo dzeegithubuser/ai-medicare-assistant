@@ -8,9 +8,9 @@ internal static class ApplicationServicesExtensions
 {
     internal static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // ------- SQL repositories -------
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IProfileRepository, ProfileRepository>();
+        // ------- MongoDB repositories -------
+        services.AddScoped<IUserRepository, MongoUserRepository>();
+        services.AddScoped<IProfileRepository, MongoProfileRepository>();
 
         // ------- Core application services -------
         services.AddScoped<Application.Services.AuthService>();

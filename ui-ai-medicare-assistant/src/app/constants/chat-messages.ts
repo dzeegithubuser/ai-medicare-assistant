@@ -1,7 +1,7 @@
 export const PROFILE_MESSAGES = {
   SWITCHED_TO_EDIT: 'Great — I have switched to edit mode. You can edit your profile on the left.',
-  START_PROFILE: "Let's start with your profile. Please complete your profile information to proceed.",
-  REVIEW_INTRO: 'Here is your profile for this analysis:',
+  START_PROFILE: "You are now in **Medicare Analysis**. Let's start with your profile. Please complete your profile information to proceed.",
+  REVIEW_INTRO: 'You are now in **Medicare Analysis**. Here is your profile for this analysis:',
   REVIEW_QUESTION:
     '**Review your information on the left.** When you are ready, click **Continue to Drugs** at the bottom of the page (edit the form first if you need to make changes).',
   /** Shown if the user types "next" in chat on the profile step instead of using the footer button. */
@@ -221,9 +221,11 @@ export const NAV_MESSAGES = {
 
 export const LTC_MESSAGES = {
   START_PROFILE:
-    "Let's start your Long-Term Care analysis. Please complete your profile information to proceed.",
-  PROFILE_REVIEW:
-    'Your profile looks good! Click **Continue to Care Type** in the footer to proceed, or edit the form if needed.',
+    "You are now in **Long-Term Care Analysis**. Let's start with your profile. Please complete your profile information to proceed.",
+  PROFILE_REVIEW_INTRO:
+    'You are now in **Long-Term Care Analysis**. Here is your profile for this analysis:',
+  PROFILE_REVIEW_QUESTION:
+    '**Review your information on the left.** When you are ready, click **Continue to Care Type** at the bottom of the page (edit the form first if you need to make changes).',
   CARE_TYPE_PROMPT:
     'Now configure your long-term care preferences. Set the quality of care and years for each care type, then click **Run Projection** when ready.',
   CARE_TYPE_UPDATED: 'Care type updated in the form.',

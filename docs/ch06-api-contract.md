@@ -837,16 +837,6 @@
 
 ---
 
-## Migration Endpoints
-
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| GET | `/api/migration/applied` | Public | Lists all applied EF Core migrations |
-| GET | `/api/migration/pending` | Public | Lists pending (unapplied) migrations |
-| POST | `/api/migration/apply` | Public | Applies all pending migrations to the database |
-
----
-
 ## County Lookup Endpoints
 
 ### `POST api/county-lookup/getCountycodeList`
@@ -1205,61 +1195,9 @@
 
 ---
 
-## Chat Orchestrator
+## ~~Chat Orchestrator~~ (Removed)
 
-> Conversational endpoint for managing Medicare recommendations through natural language. Uses a finite state machine with 19 domain intents.
-
-### `POST /api/chat/orchestrate`
-
-**Auth:** Bearer JWT required
-
-**Request:**
-```json
-{
-  "message": "change my ZIP code to 33140"
-}
-```
-
-**Response (200):**
-```json
-{
-  "message": "Change **ZIP code** from **90210** to **33140**?\n\n_Note: A full cost recalculation will be performed after confirmation._",
-  "requiresConfirmation": true,
-  "delta": {
-    "previousLifetimeTotal": 485000,
-    "updatedLifetimeTotal": 462000,
-    "previousCurrentYearTotal": 14500,
-    "updatedCurrentYearTotal": 13800,
-    "previousPresentValue": 310000,
-    "updatedPresentValue": 295000,
-    "fieldChanged": "ZIP code",
-    "previousValue": "90210",
-    "newValue": "33140",
-    "narrativeSummary": "Moving to **33140** reduces your lifetime costs by **$23,000**...",
-    "ltcPresentValueDelta": -15000
-  },
-  "displayData": null,
-  "nextIntent": null
-}
-```
-
-**Response fields:**
-| Field | Type | Description |
-|-------|------|-------------|
-| `message` | string | Markdown-formatted assistant response |
-| `requiresConfirmation` | bool | Whether the UI should show yes/no buttons |
-| `delta` | DeltaResult? | Cost impact preview (lifetime, current year, present value) |
-| `displayData` | DisplayData? | Structured UI data — `type` controls rendering (`help_menu`, `projections`, `plan_detail`, `summary`) |
-| `nextIntent` | string? | Hint for follow-up intent routing |
-
-**Confirmation flow:** When `requiresConfirmation=true`, the frontend sends `"yes"` or `"no"` as the next message. The backend either commits the pending change or cancels it.
-
-**Delete flow:** Delete requires two-step confirmation: (1) "Are you sure?" → yes → (2) "Type DELETE MY RECOMMENDATION exactly" → phrase match → deleted.
-
-**Error (400):**
-```json
-{ "error": "Message is required." }
-```
+> The chatbot orchestrator (`ChatOrchestratorController`, `ChatOrchestratorService`, `ConvStateService`, `DeltaCalculationService`) has been fully removed from the codebase. Chat coordination is now handled by `ChatRouterService` with `ChatIntentService`, page-specific extraction services, and `ChatNavigationFlowService`.
 
 ---
 

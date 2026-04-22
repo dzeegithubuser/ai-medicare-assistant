@@ -1,6 +1,5 @@
 using Application.DTOs;
-using Domain.Entities;
-using Domain.Exceptions;
+using Domain.Documents;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -26,8 +25,8 @@ public class ProfileService
 
             return new UserProfileResponse
             {
-                Profile = entity is null ? null : MapToDto(entity),
-                IsProfileComplete = entity is not null,
+                Profile = entity is not null && entity.IsProfileComplete ? MapToDto(entity) : null,
+                IsProfileComplete = entity is not null && entity.IsProfileComplete,
                 CurrentPrescriptionDocumentId = entity?.CurrentPrescriptionDocumentId
             };
         }
@@ -45,14 +44,9 @@ public class ProfileService
             _logger.LogInformation("Saving profile for user {UserId}", userId);
 
             var entity = await _repo.GetByUserIdAsync(userId);
-            var isNew = entity is null;
 
-            entity ??= new Profile
-            {
-                UserId = userId,
-                CreatedBy = userId.ToString(),
-                ModifiedBy = userId.ToString()
-            };
+            if (entity is null)
+                throw new InvalidOperationException($"User document not found for userId {userId}");
 
             entity.FirstName = dto.FirstName;
             entity.LastName = dto.LastName;
@@ -62,7 +56,7 @@ public class ProfileService
             entity.MagiTier = dto.MagiTier;
             entity.Gender = dto.Gender;
             entity.TobaccoStatus = dto.TobaccoStatus;
-            entity.DateOfBirth = DateOnly.Parse(dto.DateOfBirth);
+            entity.DateOfBirth = dto.DateOfBirth;
             entity.Concierge = dto.Concierge;
             entity.ConciergeAmount = dto.ConciergeAmount;
             entity.AlternateEmail = dto.AlternateEmail;
@@ -79,13 +73,11 @@ public class ProfileService
             entity.Latitude = dto.Latitude;
             entity.Longitude = dto.Longitude;
             entity.ModifiedBy = userId.ToString();
+            entity.IsProfileComplete = true;
 
-            if (isNew)
-                await _repo.CreateAsync(entity);
-            else
-                await _repo.UpdateAsync(entity);
+            await _repo.UpdateAsync(entity);
 
-            _logger.LogInformation("Profile {Action} for user {UserId}", isNew ? "created" : "updated", userId);
+            _logger.LogInformation("Profile saved for user {UserId}", userId);
             return MapToDto(entity);
         }
         catch (Exception ex)
@@ -95,7 +87,7 @@ public class ProfileService
         }
     }
 
-    public static ProfileDto MapToDto(Profile e) => new()
+    public static ProfileDto MapToDto(UserDocument e) => new()
     {
         FirstName = e.FirstName,
         LastName = e.LastName,
@@ -105,7 +97,7 @@ public class ProfileService
         MagiTier = e.MagiTier,
         Gender = e.Gender,
         TobaccoStatus = e.TobaccoStatus,
-        DateOfBirth = e.DateOfBirth.ToString("yyyy-MM-dd"),
+        DateOfBirth = e.DateOfBirth ?? "",
         Concierge = e.Concierge,
         ConciergeAmount = e.ConciergeAmount,
         AlternateEmail = e.AlternateEmail,

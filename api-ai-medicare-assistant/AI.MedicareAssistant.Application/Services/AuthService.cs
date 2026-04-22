@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Text;
 using Application.DTOs;
-using Domain.Entities;
+using Domain.Documents;
 using Domain.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -53,7 +53,7 @@ public class AuthService
             return new AuthResponse { Success = false, Message = "Phone number already registered." };
         }
 
-        var user = new User
+        var user = new UserDocument
         {
             Email = request.Email.ToLowerInvariant(),
             Phone = normalizedPhone,
@@ -79,7 +79,7 @@ public class AuthService
             _logger.LogError(ex, "Failed to send verification email to {Email}", user.Email);
         }
 
-        _logger.LogInformation("User registered (pending verification): {UserId} ({Email})", user.Id, user.Email);
+        _logger.LogInformation("User registered (pending verification): {UserId} ({Email})", user.UserId, user.Email);
 
         return new AuthResponse
         {
@@ -125,7 +125,7 @@ public class AuthService
             "Sign-in perf (success) lookupMs={LookupMs} verifyMs={VerifyMs} totalMs={TotalMs}",
             lookupSw.ElapsedMilliseconds, verifySw.ElapsedMilliseconds, totalSw.ElapsedMilliseconds);
 
-        _logger.LogInformation("User signed in: {UserId} ({Email})", user.Id, user.Email);
+        _logger.LogInformation("User signed in: {UserId} ({Email})", user.UserId, user.Email);
 
         return new AuthResponse
         {
@@ -150,7 +150,7 @@ public class AuthService
             return new AuthResponse { Success = true, Message = "If that email is registered, you will receive a password reset email shortly." };
         }
 
-        var resetToken = GeneratePasswordResetToken(user.Id);
+        var resetToken = GeneratePasswordResetToken(user.UserId);
         var frontendBaseUrl = _config["Email:FrontendBaseUrl"] ?? "http://localhost:4200";
         var resetLink = $"{frontendBaseUrl}/reset-password?token={Uri.EscapeDataString(resetToken)}";
 
@@ -204,7 +204,7 @@ public class AuthService
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         user.ModifiedBy = user.Email;
-        user.ModifiedDate = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepo.UpdateAsync(user);
 
@@ -236,7 +236,7 @@ public class AuthService
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         user.ModifiedBy = user.Email;
-        user.ModifiedDate = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepo.UpdateAsync(user);
 
@@ -245,14 +245,14 @@ public class AuthService
         return new AuthResponse { Success = true, Message = "Password changed successfully." };
     }
 
-    private string GenerateJwtToken(User user)
+    private string GenerateJwtToken(UserDocument user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
@@ -306,7 +306,7 @@ public class AuthService
 
         user.IsEmailVerified = true;
         user.ModifiedBy = user.Email;
-        user.ModifiedDate = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
         await _userRepo.UpdateAsync(user);
 
         var tokenExpiry = principal.FindFirst(JwtRegisteredClaimNames.Exp)?.Value;
@@ -400,7 +400,7 @@ public class AuthService
         }
     }
 
-    private string GenerateEmailVerificationToken(User user)
+    private string GenerateEmailVerificationToken(UserDocument user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -408,7 +408,7 @@ public class AuthService
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim("purpose", "email-verification")
         };
 
@@ -466,9 +466,9 @@ public class AuthService
     private int GetTokenExpiryHours() =>
         int.TryParse(_config["Jwt:ExpiryHours"], out var hours) ? hours : 24;
 
-    private static UserDto MapToDto(User user) => new()
+    private static UserDto MapToDto(UserDocument user) => new()
     {
-        Id = user.Id,
+        Id = user.UserId,
         Email = user.Email,
         Phone = user.Phone
     };

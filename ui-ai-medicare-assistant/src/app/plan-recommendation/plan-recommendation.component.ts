@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { DrugStateService, ChatPlanSelectionCommand } from '../services/drug-state.service';
+import { MedicareStateService, ChatPlanSelectionCommand } from '../services/drug-state.service';
 import { PartDPlanService } from '../services/part-d-plan.service';
 import { MedigapPlanService } from '../services/medigap-plan.service';
 import { MedicareAdvantagePlanService } from '../services/medicare-advantage-plan.service';
@@ -51,7 +51,7 @@ import { AppRoutes } from '../app-routes.const';
   ],
 })
 export class PlanRecommendationComponent implements OnInit {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private partDService = inject(PartDPlanService);
   private medigapService = inject(MedigapPlanService);
   private maService = inject(MedicareAdvantagePlanService);

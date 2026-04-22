@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { DrugStateService } from './drug-state.service';
+import { MedicareStateService } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { LtcStateService } from '../long-term-care/ltc-state.service';
 
@@ -21,7 +21,7 @@ export type WizardStep =
 
 @Injectable({ providedIn: 'root' })
 export class ChatWizardService {
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
   private profileService = inject(ProfileService);
   private ltcState = inject(LtcStateService);
 

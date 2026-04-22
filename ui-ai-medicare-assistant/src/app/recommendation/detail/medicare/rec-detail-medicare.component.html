@@ -77,15 +77,15 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">list_alt</mat-icon> Details</span>
     </ng-template>
-    <div class="pt-4 space-y-6">
+    <div class="pt-4 space-y-8">
 
       <!-- Prescriptions panel -->
-      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-cyan-200 !border-l-4 !border-l-cyan-500">
+      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-blue-200 !border-l-4 !border-l-blue-500">
         <mat-expansion-panel-header>
           <mat-panel-title class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-            <mat-icon class="!text-base text-cyan-600">medication</mat-icon>
+            <mat-icon class="!text-base text-blue-600">medication</mat-icon>
             Prescriptions
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ rec().drugList.length }}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{{ rec().drugList.length }}</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
         @if (rec().drugList.length === 0) {
@@ -96,13 +96,13 @@
         } @else {
           <div class="flex flex-wrap gap-3 pb-2">
             @for (drug of rec().drugList; track drug.drugName + drug.dosage) {
-              <div class="bg-white rounded-xl p-3 border border-cyan-100 w-56 shrink-0">
+              <div class="bg-white rounded-xl p-3 border border-blue-100 w-56 shrink-0">
                 <div class="flex items-center gap-2 mb-2">
-                  <mat-icon class="text-cyan-700 !text-base !w-4 !h-4">medication</mat-icon>
+                  <mat-icon class="text-blue-700 !text-base !w-4 !h-4">medication</mat-icon>
                   <span class="text-xs font-bold text-gray-900 truncate">{{ drug.drugName }}</span>
                   @if (drug.drugType) {
                     <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
-                      [class]="drug.drugType === 'Generic' ? 'bg-cyan-100 text-cyan-700' : 'bg-amber-100 text-amber-700'">
+                      [class]="drug.drugType === 'Generic' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'">
                       {{ drug.drugType }}
                     </span>
                   }
@@ -126,12 +126,12 @@
       </mat-expansion-panel>
 
       <!-- Pharmacy panel -->
-      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-cyan-200 !border-l-4 !border-l-cyan-600">
+      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-emerald-200 !border-l-4 !border-l-emerald-500">
         <mat-expansion-panel-header>
           <mat-panel-title class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-            <mat-icon class="!text-base text-cyan-600">local_pharmacy</mat-icon>
+            <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
             Pharmacy
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ rec().pharmacy ? (rec().mailOrderPharmacy ? 2 : 1) : 0 }}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">{{ rec().pharmacy ? (rec().mailOrderPharmacy ? 2 : 1) : 0 }}</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
         @if (!rec().pharmacy) {
@@ -143,13 +143,13 @@
           <div class="flex flex-wrap gap-3 pb-2">
             <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm w-64 shrink-0">
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center shrink-0">
-                  <mat-icon class="!text-base text-cyan-600">storefront</mat-icon>
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                  <mat-icon class="!text-base text-emerald-600">storefront</mat-icon>
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 mb-0.5">
                     <p class="text-xs font-semibold text-gray-900 truncate">{{ rec().pharmacy!.name }}</p>
-                    <span class="text-xs px-1.5 py-0.5 rounded-full font-medium bg-cyan-100 text-cyan-700 shrink-0">{{ rec().pharmacy!.pharmacyType }}</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 shrink-0">{{ rec().pharmacy!.pharmacyType }}</span>
                   </div>
                   <p class="text-xs text-gray-500">{{ rec().pharmacy!.address }}</p>
                   <p class="text-xs text-gray-500">{{ rec().pharmacy!.city }}, {{ rec().pharmacy!.state }} {{ rec().pharmacy!.zipCode }}</p>
@@ -416,7 +416,7 @@
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-              <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60"><mat-icon class="!text-base text-cyan-600">donut_large</mat-icon><p class="text-sm font-semibold text-gray-800">Lifetime Cost Distribution</p></div>
+              <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60"><mat-icon class="!text-base text-indigo-600">donut_large</mat-icon><p class="text-sm font-semibold text-gray-800">Lifetime Cost Distribution</p></div>
               <div class="p-4"><div class="chart-container"><canvas #doughnutChart></canvas></div></div>
             </div>
             <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">

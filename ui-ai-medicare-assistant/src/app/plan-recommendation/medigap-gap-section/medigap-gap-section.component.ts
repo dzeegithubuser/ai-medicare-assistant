@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DrugStateService } from '../../services/drug-state.service';
+import { MedicareStateService } from '../../services/drug-state.service';
 import { ReferenceDataService } from '../../services/reference-data.service';
 import { PlanCardEnrichmentService } from '../../services/plan-card-enrichment.service';
 import { MedigapPlan, EnrichedMedigapCard } from '../../models/medigap-plan.model';
@@ -19,7 +19,7 @@ import { MedigapCardComponent } from '../medigap-card/medigap-card.component';
   imports: [CommonModule, FormsModule, MatIconModule, MatFormFieldModule, MatSelectModule, MatProgressSpinnerModule, MedigapCardComponent],
 })
 export class MedigapGapSectionComponent {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private refData = inject(ReferenceDataService);
   private enrichmentService = inject(PlanCardEnrichmentService);
 

@@ -38,40 +38,12 @@ public class PromptBuilder
         return (system, finalUser);
     }
 
-    public (string system, string user) BuildPharmacyPricing(Dictionary<string, string> substitutions)
-    {
-        var system = Load("system/pharmacy-pricing-system.txt");
-        var task = Load("tasks/pharmacy-pricing.txt");
-        var schema = Load("schemas/pharmacy-pricing-schema.txt");
-        var template = Load("templates/pharmacy-pricing.txt");
-
-        var user = ApplySubstitutions(template, substitutions);
-
-        var finalUser = $"{task}\n{schema}\n{user}";
-
-        return (system, finalUser);
-    }
-
     public (string system, string user) BuildPlanScoring(Dictionary<string, string> substitutions)
     {
         var system = Load("system/plan-scoring-system.txt");
         var task = Load("tasks/plan-scoring.txt");
         var schema = Load("schemas/plan-scoring-schema.txt");
         var template = Load("templates/plan-scoring.txt");
-
-        var user = ApplySubstitutions(template, substitutions);
-
-        var finalUser = $"{task}\n{schema}\n{user}";
-
-        return (system, finalUser);
-    }
-
-    public (string system, string user) BuildGapCoverage(Dictionary<string, string> substitutions)
-    {
-        var system = Load("system/gap-coverage-system.txt");
-        var task = Load("tasks/gap-coverage.txt");
-        var schema = Load("schemas/gap-coverage-schema.txt");
-        var template = Load("templates/gap-coverage.txt");
 
         var user = ApplySubstitutions(template, substitutions);
 

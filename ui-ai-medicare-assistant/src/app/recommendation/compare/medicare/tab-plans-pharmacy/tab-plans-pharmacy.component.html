@@ -1,0 +1,271 @@
+@let l = left();
+@let r = right();
+
+<div class="pt-4 space-y-5">
+
+  <!-- ═══ Pharmacy Section ═══ -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-0">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-emerald-50/60 rounded-t-xl">
+        <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Pharmacy Comparison</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+              [class]="l.pharmacy?.npi === r.pharmacy?.npi ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+          {{ l.pharmacy?.npi === r.pharmacy?.npi ? 'Same Pharmacy' : 'Different Pharmacies' }}
+        </span>
+      </div>
+      <div class="p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Left pharmacy -->
+          <div class="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
+            <p class="text-xs text-indigo-500 uppercase font-semibold mb-2">{{ l.name }}</p>
+            @if (l.pharmacy) {
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <mat-icon class="text-indigo-600">storefront</mat-icon>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">{{ l.pharmacy.name }}</p>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ l.pharmacy.address }}</p>
+                  <p class="text-xs text-gray-500">{{ l.pharmacy.city }}, {{ l.pharmacy.state }} {{ l.pharmacy.zipCode }}</p>
+                  <div class="flex items-center gap-3 mt-2">
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ l.pharmacy.pharmacyType }}</span>
+                    @if (l.pharmacy.distance) {
+                      <span class="text-xs text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">place</mat-icon>{{ l.pharmacy.distance.toFixed(1) }} mi</span>
+                    }
+                    @if (l.pharmacy.phone) {
+                      <span class="text-xs text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">phone</mat-icon>{{ l.pharmacy.phone }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <p class="text-xs text-gray-600 italic">No pharmacy selected</p>
+            }
+          </div>
+          <!-- Right pharmacy -->
+          <div class="rounded-xl border border-cyan-100 bg-cyan-50/30 p-4">
+            <p class="text-xs text-cyan-500 uppercase font-semibold mb-2">{{ r.name }}</p>
+            @if (r.pharmacy) {
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <mat-icon class="text-cyan-600">storefront</mat-icon>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">{{ r.pharmacy.name }}</p>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ r.pharmacy.address }}</p>
+                  <p class="text-xs text-gray-500">{{ r.pharmacy.city }}, {{ r.pharmacy.state }} {{ r.pharmacy.zipCode }}</p>
+                  <div class="flex items-center gap-3 mt-2">
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ r.pharmacy.pharmacyType }}</span>
+                    @if (r.pharmacy.distance) {
+                      <span class="text-xs text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">place</mat-icon>{{ r.pharmacy.distance.toFixed(1) }} mi</span>
+                    }
+                    @if (r.pharmacy.phone) {
+                      <span class="text-xs text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">phone</mat-icon>{{ r.pharmacy.phone }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <p class="text-xs text-gray-600 italic">No pharmacy selected</p>
+            }
+          </div>
+        </div>
+
+        <!-- Mail-order pharmacy if available -->
+        @if (l.mailOrderPharmacy?.enabled || r.mailOrderPharmacy?.enabled) {
+          <div class="mt-4 pt-3 border-t border-gray-100">
+            <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Mail-Order Pharmacy</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="flex items-center gap-2 p-2 rounded-lg" [class]="l.mailOrderPharmacy?.enabled ? 'bg-green-50' : 'bg-gray-50'">
+                <mat-icon class="!text-sm" [class]="l.mailOrderPharmacy?.enabled ? 'text-green-600' : 'text-gray-600'">
+                  {{ l.mailOrderPharmacy?.enabled ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                <span class="text-xs" [class]="l.mailOrderPharmacy?.enabled ? 'text-green-700' : 'text-gray-500'">
+                  {{ l.mailOrderPharmacy?.enabled ? l.mailOrderPharmacy?.name : 'Not enabled' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 p-2 rounded-lg" [class]="r.mailOrderPharmacy?.enabled ? 'bg-green-50' : 'bg-gray-50'">
+                <mat-icon class="!text-sm" [class]="r.mailOrderPharmacy?.enabled ? 'text-green-600' : 'text-gray-600'">
+                  {{ r.mailOrderPharmacy?.enabled ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                <span class="text-xs" [class]="r.mailOrderPharmacy?.enabled ? 'text-green-700' : 'text-gray-500'">
+                  {{ r.mailOrderPharmacy?.enabled ? r.mailOrderPharmacy?.name : 'Not enabled' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ═══ Plans Section ═══ -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <!-- Left plans column -->
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-indigo-600">shield</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">{{ l.name }}</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ l.planSelections.length }} plan(s)</span>
+      </div>
+      <div class="space-y-3">
+        @for (p of l.planSelections; track p.planId + p.planType) {
+          <mat-card class="!rounded-xl !shadow-sm !border-l-4 !border-l-indigo-400">
+            <mat-card-content class="!p-4">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <p class="text-sm font-bold text-gray-900">{{ p.planName }}</p>
+                  <p class="text-xs text-gray-500">{{ p.carrier }}</p>
+                </div>
+                <span class="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">{{ p.planType }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 pt-3 border-t border-gray-100">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Monthly Premium</p>
+                  <p class="text-sm font-bold text-gray-900">{{ p.monthlyPremium | currency:'USD':'symbol':'1.2-2' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Deductible</p>
+                  <p class="text-sm font-bold text-gray-900">{{ p.deductible | currency:'USD':'symbol':'1.0-0' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Star Rating</p>
+                  <div class="flex items-center gap-0.5 mt-0.5">
+                    @for (filled of starArray(p.starRating); track $index) {
+                      <mat-icon class="!text-sm" [class.text-amber-400]="filled" [class.text-gray-500]="!filled">star</mat-icon>
+                    }
+                    <span class="text-xs text-gray-500 ml-1">{{ p.starRating.toFixed(1) }}</span>
+                  </div>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Rx Coverage</p>
+                  <div class="flex items-center gap-1 mt-0.5">
+                    <mat-icon class="!text-sm" [class]="p.prescriptionDrugCovered ? 'text-green-600' : 'text-red-500'">
+                      {{ p.prescriptionDrugCovered ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                    <span class="text-xs" [class]="p.prescriptionDrugCovered ? 'text-green-700' : 'text-red-600'">
+                      {{ p.prescriptionDrugCovered ? 'Covered' : 'Not Covered' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              @if (p.totalPrescriptionCost || p.totalPlanCost) {
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 pt-3 border-t border-gray-100">
+                  @if (p.totalPrescriptionCost) {
+                    <div>
+                      <p class="text-xs text-gray-500 uppercase">Rx Cost (Annual)</p>
+                      <p class="text-sm font-bold text-gray-900">{{ p.totalPrescriptionCost | currency:'USD':'symbol':'1.0-0' }}</p>
+                    </div>
+                  }
+                  @if (p.totalPlanCost) {
+                    <div>
+                      <p class="text-xs text-gray-500 uppercase">Total Plan Cost</p>
+                      <p class="text-sm font-bold text-gray-900">{{ p.totalPlanCost | currency:'USD':'symbol':'1.0-0' }}</p>
+                    </div>
+                  }
+                </div>
+              }
+              @if (p.unavailableDrugs?.length) {
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                  <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Unavailable Drugs</p>
+                  <div class="flex flex-wrap gap-1">
+                    @for (drug of p.unavailableDrugs; track drug) {
+                      <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">{{ drug }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </div>
+
+    <!-- Right plans column -->
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-cyan-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-cyan-600">shield</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">{{ r.name }}</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ r.planSelections.length }} plan(s)</span>
+      </div>
+      <div class="space-y-3">
+        @for (p of r.planSelections; track p.planId + p.planType) {
+          <mat-card class="!rounded-xl !shadow-sm !border-l-4 !border-l-cyan-400">
+            <mat-card-content class="!p-4">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <p class="text-sm font-bold text-gray-900">{{ p.planName }}</p>
+                  <p class="text-xs text-gray-500">{{ p.carrier }}</p>
+                </div>
+                <span class="text-xs px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded-full font-medium">{{ p.planType }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 pt-3 border-t border-gray-100">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Monthly Premium</p>
+                  <p class="text-sm font-bold text-gray-900">{{ p.monthlyPremium | currency:'USD':'symbol':'1.2-2' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Deductible</p>
+                  <p class="text-sm font-bold text-gray-900">{{ p.deductible | currency:'USD':'symbol':'1.0-0' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Star Rating</p>
+                  <div class="flex items-center gap-0.5 mt-0.5">
+                    @for (filled of starArray(p.starRating); track $index) {
+                      <mat-icon class="!text-sm" [class.text-amber-400]="filled" [class.text-gray-500]="!filled">star</mat-icon>
+                    }
+                    <span class="text-xs text-gray-500 ml-1">{{ p.starRating.toFixed(1) }}</span>
+                  </div>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase">Rx Coverage</p>
+                  <div class="flex items-center gap-1 mt-0.5">
+                    <mat-icon class="!text-sm" [class]="p.prescriptionDrugCovered ? 'text-green-600' : 'text-red-500'">
+                      {{ p.prescriptionDrugCovered ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                    <span class="text-xs" [class]="p.prescriptionDrugCovered ? 'text-green-700' : 'text-red-600'">
+                      {{ p.prescriptionDrugCovered ? 'Covered' : 'Not Covered' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              @if (p.totalPrescriptionCost || p.totalPlanCost) {
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 pt-3 border-t border-gray-100">
+                  @if (p.totalPrescriptionCost) {
+                    <div>
+                      <p class="text-xs text-gray-500 uppercase">Rx Cost (Annual)</p>
+                      <p class="text-sm font-bold text-gray-900">{{ p.totalPrescriptionCost | currency:'USD':'symbol':'1.0-0' }}</p>
+                    </div>
+                  }
+                  @if (p.totalPlanCost) {
+                    <div>
+                      <p class="text-xs text-gray-500 uppercase">Total Plan Cost</p>
+                      <p class="text-sm font-bold text-gray-900">{{ p.totalPlanCost | currency:'USD':'symbol':'1.0-0' }}</p>
+                    </div>
+                  }
+                </div>
+              }
+              @if (p.unavailableDrugs?.length) {
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                  <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Unavailable Drugs</p>
+                  <div class="flex flex-wrap gap-1">
+                    @for (drug of p.unavailableDrugs; track drug) {
+                      <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">{{ drug }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+    </div>
+  </div>
+</div>

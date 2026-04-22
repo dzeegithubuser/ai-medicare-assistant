@@ -13,7 +13,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ProfileService } from '../services/profile.service';
 import { ReferenceDataService } from '../services/reference-data.service';
 import { CountyLookupService, CountyCodeEntry } from '../services/county-lookup.service';
-import { DrugStateService } from '../services/drug-state.service';
+import { MedicareStateService } from '../services/drug-state.service';
 import { ChatWizardService } from '../services/chat-wizard.service';
 import { ChatProfileEditFlowService } from '../services/chat-profile-edit-flow.service';
 import { ProfileDto, LabelValuePair } from '../models/profile.model';
@@ -38,7 +38,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   private countyService = inject(CountyLookupService);
   private router = inject(Router);
   readonly refData = inject(ReferenceDataService);
-  private drugState = inject(DrugStateService);
+  private drugState = inject(MedicareStateService);
   private wizard = inject(ChatWizardService);
   private profileEditFlow = inject(ChatProfileEditFlowService);
   private injector = inject(Injector);

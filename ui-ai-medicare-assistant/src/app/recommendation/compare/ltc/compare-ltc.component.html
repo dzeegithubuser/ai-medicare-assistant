@@ -65,9 +65,9 @@
               </tr>
               <tr class="hover:bg-gray-50/50">
                 <td class="py-2.5 px-3 font-medium text-gray-700">Projection Years</td>
-                <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ l.ltcSnapshot?.evaluation?.projectionYears ?? '—' }}</td>
-                <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ r.ltcSnapshot?.evaluation?.projectionYears ?? '—' }}</td>
-                <td class="py-2.5 px-3 text-right text-gray-500">—</td>
+                <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ l.ltcSnapshot?.evaluation?.projectionYears ?? 'ï¿½' }}</td>
+                <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ r.ltcSnapshot?.evaluation?.projectionYears ?? 'ï¿½' }}</td>
+                <td class="py-2.5 px-3 text-right text-gray-500">ï¿½</td>
               </tr>
             </tbody>
           </table>
@@ -219,55 +219,7 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
     </ng-template>
-    <div class="pt-4 space-y-4">
-      @for (section of [
-        { title: 'Personal', icon: 'badge', color: 'indigo', group: 'personal' },
-        { title: 'Location', icon: 'location_on', color: 'blue', group: 'location' },
-        { title: 'Health', icon: 'favorite', color: 'rose', group: 'health' },
-        { title: 'Financial', icon: 'account_balance', color: 'amber', group: 'financial' }
-      ]; track section.group) {
-        @let rows = profileRows().filter(r => r.group === section.group);
-        @if (rows.length) {
-          <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-            <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                   [class]="'bg-' + section.color + '-100'">
-                <mat-icon class="!text-base" [class]="'text-' + section.color + '-600'">{{ section.icon }}</mat-icon>
-              </div>
-              <p class="text-sm font-semibold text-gray-800">{{ section.title }}</p>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-xs">
-                <thead>
-                  <tr class="border-b border-gray-200 bg-gray-50/80">
-                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
-                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
-                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
-                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
-                    <th class="py-2 px-3 text-center text-gray-500 uppercase font-semibold w-12">Match</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (row of rows; track row.label) {
-                    <tr class="border-b border-gray-100" [class.bg-amber-50/40]="row.left !== row.right">
-                      <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
-                      <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
-                      <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
-                      <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
-                      <td class="py-2 px-3 text-center">
-                        <mat-icon class="!text-sm" [class]="row.left === row.right ? 'text-green-500' : 'text-amber-500'">
-                          {{ row.left === row.right ? 'check_circle' : 'warning' }}
-                        </mat-icon>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        }
-      }
-    </div>
+    <app-compare-tab-profile [left]="l" [right]="r" />
   </mat-tab>
 
   <!-- Tab: Care Config -->

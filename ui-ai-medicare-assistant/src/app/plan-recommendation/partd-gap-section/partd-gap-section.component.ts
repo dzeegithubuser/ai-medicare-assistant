@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, input, output } from '@angu
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DrugStateService } from '../../services/drug-state.service';
+import { MedicareStateService } from '../../services/drug-state.service';
 import { PlanCardEnrichmentService } from '../../services/plan-card-enrichment.service';
 import { RecommendationListItem, EnrichedPartDCard } from '../../models/part-d-plan.model';
 import { RecommendationCardComponent } from '../recommendation-card/recommendation-card.component';
@@ -15,7 +15,7 @@ import { RecommendationCardComponent } from '../recommendation-card/recommendati
   imports: [CommonModule, MatIconModule, MatProgressSpinnerModule, RecommendationCardComponent],
 })
 export class PartDGapSectionComponent {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private enrichmentService = inject(PlanCardEnrichmentService);
 
   planSelected = output<RecommendationListItem>();

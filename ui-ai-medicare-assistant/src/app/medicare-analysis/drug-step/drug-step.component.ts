@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { DrugStateService, ChatDrugSelectionCommand } from '../../services/drug-state.service';
+import { MedicareStateService, ChatDrugSelectionCommand } from '../../services/drug-state.service';
 import { ChatRouterService } from '../../services/chat-router.service';
 import { DrugService } from '../../services/drug.service';
 import { ChatDrugFlowService } from '../../services/chat-drug-flow.service';
@@ -44,7 +44,7 @@ export interface ConfirmedDrug {
   ],
 })
 export class DrugsStepComponent implements OnInit {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private drugService = inject(DrugService);
   private chatDrugFlow = inject(ChatDrugFlowService);
   private chatRouter = inject(ChatRouterService);
@@ -163,7 +163,7 @@ export class DrugsStepComponent implements OnInit {
 
     // If confirmed drugs exist in the service signal but not in sessionStorage,
     // persist them so they survive subsequent re-navigations.
-    if (this.confirmedDrugNames().size > 0 && !sessionStorage.getItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY)) {
+    if (this.confirmedDrugNames().size > 0 && !sessionStorage.getItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY)) {
       this.persistSelections();
     }
   }
@@ -442,7 +442,7 @@ export class DrugsStepComponent implements OnInit {
       sessionStorage.setItem('formulation-selections', JSON.stringify(entries));
       sessionStorage.setItem('fp-drug-selections', JSON.stringify(selEntries));
       sessionStorage.setItem('drug-quantities', JSON.stringify(qtyEntries));
-      sessionStorage.setItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY, JSON.stringify(confirmedArr));
+      sessionStorage.setItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY, JSON.stringify(confirmedArr));
     } catch { /* quota exceeded */ }
     this.state.persistSelections();
   }
@@ -483,7 +483,7 @@ export class DrugsStepComponent implements OnInit {
       }
       // Only restore confirmed drugs from sessionStorage if the service signal is empty.
       // When loading from saved data, the signal is already populated — don't overwrite it.
-      const confirmedRaw = sessionStorage.getItem(DrugStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
+      const confirmedRaw = sessionStorage.getItem(MedicareStateService.FP_CONFIRMED_DRUGS_SESSION_KEY);
       if (confirmedRaw && this.confirmedDrugNames().size === 0) {
         const confirmedArr: string[] = JSON.parse(confirmedRaw);
         this.confirmedDrugNames.set(new Set(confirmedArr));

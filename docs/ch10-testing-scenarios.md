@@ -299,17 +299,6 @@
 
 ---
 
-## 11. Migration Endpoints
-
-| # | Scenario | Endpoint | Expected Result |
-|---|----------|----------|-----------------|
-| 11.1 | List applied | `GET /api/migration/applied` | Returns array of applied migration names. |
-| 11.2 | List pending | `GET /api/migration/pending` | Returns array of pending migration names (empty if up-to-date). |
-| 11.3 | Apply pending | `POST /api/migration/apply` | Applies all pending migrations. Returns success message. |
-| 11.4 | No auth required | All migration endpoints without JWT | Returns 200 (AllowAnonymous). |
-
----
-
 ## 12. Chat Intent Routing & Guided Wizard
 
 ### 12a. Guided Wizard — Happy Path

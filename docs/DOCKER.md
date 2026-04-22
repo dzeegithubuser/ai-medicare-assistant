@@ -38,7 +38,6 @@
                               │
                        ┌──────▼──────────┐
                        │  api (.NET 10)  │ :5024
-                       │  ├─ MySQL       │──▶ 169.61.105.110:3306
                        │  ├─ MongoDB     │──▶ 169.61.105.110:27017
                        │  └─ FP API      │──▶ 169.61.105.110:8080
                        └─────────────────┘
@@ -59,7 +58,6 @@
 ### Database
 | Variable              | Description                              |
 |-----------------------|------------------------------------------|
-| `MYSQL_CONNECTION`    | MySQL connection string                  |
 | `MONGO_CONNECTION`    | MongoDB connection string                |
 | `MONGO_DB_NAME`       | MongoDB database name (default: `ai_medicare_assistant`) |
 

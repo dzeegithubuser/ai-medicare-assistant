@@ -1,0 +1,289 @@
+@let l = left();
+@let r = right();
+
+<div class="pt-4 space-y-5">
+
+  <!-- ── Cost Comparison Table ── -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-0">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+        <mat-icon class="!text-base text-gray-600">insights</mat-icon>
+        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost Comparison</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-xs">
+          <thead>
+            <tr class="border-b border-gray-100 bg-gray-50/40">
+              <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-36">Metric</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-indigo-600 uppercase tracking-wide">{{ l.name }}</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-cyan-600 uppercase tracking-wide">{{ r.name }}</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Difference</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of [
+              { label: 'Lifetime Total', left: l.lastCostSnapshot?.lifetimeTotal ?? 0, right: r.lastCostSnapshot?.lifetimeTotal ?? 0, delta: costDelta() },
+              { label: 'Premiums', left: l.lastCostSnapshot?.lifetimePremiums ?? 0, right: r.lastCostSnapshot?.lifetimePremiums ?? 0, delta: premiumDelta() },
+              { label: 'Out-of-Pocket', left: l.lastCostSnapshot?.lifetimeOop ?? 0, right: r.lastCostSnapshot?.lifetimeOop ?? 0, delta: oopDelta() },
+              { label: 'IRMAA Surcharge', left: l.lastCostSnapshot?.lifetimeIrmaa ?? 0, right: r.lastCostSnapshot?.lifetimeIrmaa ?? 0, delta: irmaaDelta() },
+              { label: 'Present Value', left: l.lastCostSnapshot?.presentValue ?? 0, right: r.lastCostSnapshot?.presentValue ?? 0, delta: pvDelta() },
+              { label: 'Current Year', left: l.lastCostSnapshot?.currentYearTotal ?? 0, right: r.lastCostSnapshot?.currentYearTotal ?? 0, delta: currentYearDelta() }
+            ]; track row.label) {
+              <tr class="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
+                <td class="px-4 py-2.5 font-medium text-gray-700">{{ row.label }}</td>
+                <td class="px-4 py-2.5 text-right font-semibold text-indigo-700">{{ row.left | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="px-4 py-2.5 text-right font-semibold text-cyan-700">{{ row.right | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="px-4 py-2.5 text-right">
+                  <span class="inline-flex items-center justify-end gap-1 font-bold"
+                        [class]="row.delta <= 0 ? 'text-green-700' : 'text-red-700'">
+                    <mat-icon class="!text-xs">{{ deltaIcon(row.delta) }}</mat-icon>
+                    {{ row.delta | currency:'USD':'symbol':'1.0-0' }}
+                    <span class="text-xs font-normal">({{ deltaLabel(row.delta) }})</span>
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ── Winner Banner ── -->
+  @if (winner() !== 'tie') {
+    <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+      <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+        <mat-icon class="text-green-600 !text-xl">emoji_events</mat-icon>
+      </div>
+      <div>
+        <p class="text-sm font-semibold text-green-800">
+          {{ winnerName() }} saves {{ winnerSavings() | currency:'USD':'symbol':'1.0-0' }} over the projection period
+        </p>
+        <p class="text-xs text-green-600 mt-0.5">Based on lifetime total cost comparison</p>
+      </div>
+    </div>
+  }
+
+  <!-- ── 1. Profile Differences ── -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-violet-600">person</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Profile Differences</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+              [class]="profileDiffs().length ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+          {{ profileDiffs().length ? profileDiffs().length + ' differ' : 'Identical' }}
+        </span>
+      </div>
+      @if (profileDiffs().length) {
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50/80">
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of profileDiffs(); track row.label) {
+                <tr class="border-b border-gray-100 bg-amber-50/40">
+                  <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
+                  <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
+                  <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
+                  <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="text-xs text-gray-600 italic">Both analyses use identical profile settings.</p>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ── 2. Prescriptions Summary ── -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-blue-600">medication</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Prescriptions</p>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="rounded-lg border border-green-200 bg-green-50/60 p-3 text-center">
+          <p class="text-2xl font-bold text-green-700">{{ commonDrugCount() }}</p>
+          <p class="text-xs text-green-600 uppercase mt-0.5">Common</p>
+        </div>
+        <div class="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-center">
+          <p class="text-2xl font-bold text-indigo-700">{{ uniqueLeftCount() }}</p>
+          <p class="text-xs text-indigo-600 uppercase mt-0.5">Only {{ l.name }}</p>
+        </div>
+        <div class="rounded-lg border border-cyan-200 bg-cyan-50/60 p-3 text-center">
+          <p class="text-2xl font-bold text-cyan-700">{{ uniqueRightCount() }}</p>
+          <p class="text-xs text-cyan-600 uppercase mt-0.5">Only {{ r.name }}</p>
+        </div>
+      </div>
+      @if (uniqueLeftDrugNames().length || uniqueRightDrugNames().length) {
+        <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-1.5">
+          @for (name of uniqueLeftDrugNames(); track name) {
+            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ name }}</span>
+          }
+          @for (name of uniqueRightDrugNames(); track name) {
+            <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ name }}</span>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ── 3. Pharmacy Comparison ── -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Pharmacy</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+              [class]="l.pharmacy?.npi === r.pharmacy?.npi ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+          {{ l.pharmacy?.npi === r.pharmacy?.npi ? 'Same' : 'Different' }}
+        </span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="rounded-lg bg-indigo-50/60 border border-indigo-100 p-3">
+          <p class="text-xs text-gray-500 uppercase mb-1">{{ l.name }}</p>
+          <p class="text-sm font-semibold text-gray-900">{{ l.pharmacy?.name ?? 'Not selected' }}</p>
+          @if (l.pharmacy) {
+            <p class="text-xs text-gray-500 mt-0.5">{{ l.pharmacy.pharmacyType }}{{ l.pharmacy.distance ? ' · ' + l.pharmacy.distance.toFixed(1) + ' mi' : '' }}</p>
+          }
+        </div>
+        <div class="rounded-lg bg-cyan-50/60 border border-cyan-100 p-3">
+          <p class="text-xs text-gray-500 uppercase mb-1">{{ r.name }}</p>
+          <p class="text-sm font-semibold text-gray-900">{{ r.pharmacy?.name ?? 'Not selected' }}</p>
+          @if (r.pharmacy) {
+            <p class="text-xs text-gray-500 mt-0.5">{{ r.pharmacy.pharmacyType }}{{ r.pharmacy.distance ? ' · ' + r.pharmacy.distance.toFixed(1) + ' mi' : '' }}</p>
+          }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ── 4. Plan Comparison ── -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-amber-600">shield</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Plans</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="space-y-2">
+          <p class="text-xs text-gray-500 uppercase font-semibold">{{ l.name }} ({{ leftPlanSummary().length }})</p>
+          @for (p of leftPlanSummary(); track p.name) {
+            <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-2.5 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-900">{{ p.name }}</p>
+                <p class="text-xs text-gray-500">{{ p.carrier }}</p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-medium">{{ p.type }}</span>
+                <p class="text-xs font-bold text-gray-900 mt-0.5">{{ p.premium | currency:'USD':'symbol':'1.0-0' }}/mo</p>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="space-y-2">
+          <p class="text-xs text-gray-500 uppercase font-semibold">{{ r.name }} ({{ rightPlanSummary().length }})</p>
+          @for (p of rightPlanSummary(); track p.name) {
+            <div class="rounded-lg border border-cyan-100 bg-cyan-50/40 p-2.5 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-900">{{ p.name }}</p>
+                <p class="text-xs text-gray-500">{{ p.carrier }}</p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <span class="text-xs px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded font-medium">{{ p.type }}</span>
+                <p class="text-xs font-bold text-gray-900 mt-0.5">{{ p.premium | currency:'USD':'symbol':'1.0-0' }}/mo</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ── 5. Cost Projection Summary ── -->
+  <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card-content class="!p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-rose-600">analytics</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Projection Summary</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-xs">
+          <thead>
+            <tr class="border-b border-gray-200 bg-gray-50/80">
+              <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Metric</th>
+              <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+              <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+              <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of [
+              { label: 'Lifetime Total', lv: l.lastCostSnapshot?.lifetimeTotal ?? 0, rv: r.lastCostSnapshot?.lifetimeTotal ?? 0 },
+              { label: 'Lifetime Premiums', lv: l.lastCostSnapshot?.lifetimePremiums ?? 0, rv: r.lastCostSnapshot?.lifetimePremiums ?? 0 },
+              { label: 'Lifetime OOP', lv: l.lastCostSnapshot?.lifetimeOop ?? 0, rv: r.lastCostSnapshot?.lifetimeOop ?? 0 },
+              { label: 'IRMAA Surcharge', lv: l.lastCostSnapshot?.lifetimeIrmaa ?? 0, rv: r.lastCostSnapshot?.lifetimeIrmaa ?? 0 },
+              { label: 'Present Value (6%)', lv: l.lastCostSnapshot?.presentValue ?? 0, rv: r.lastCostSnapshot?.presentValue ?? 0 },
+              { label: 'Current Year', lv: l.lastCostSnapshot?.currentYearTotal ?? 0, rv: r.lastCostSnapshot?.currentYearTotal ?? 0 }
+            ]; track row.label) {
+              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+                <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
+                <td class="py-2 px-3 text-right text-gray-900">{{ row.lv | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="py-2 px-3 text-right text-gray-900">{{ row.rv | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="py-2 px-3 text-right font-semibold" [class]="(row.lv - row.rv) <= 0 ? 'text-green-700' : 'text-red-700'">
+                  {{ (row.lv - row.rv) | currency:'USD':'symbol':'1.0-0' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (l.lastCostSnapshot?.evaluation || r.lastCostSnapshot?.evaluation) {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-3 border-t border-gray-100">
+          @if (l.lastCostSnapshot?.evaluation; as lev) {
+            <div class="rounded-lg border border-gray-200 p-3">
+              <p class="text-xs text-gray-500 uppercase mb-1.5">{{ l.name }} Trajectory</p>
+              <div class="flex items-center gap-2">
+                <mat-icon [class]="getTrajectoryColor(lev.costTrajectory)">{{ getTrajectoryIcon(lev.costTrajectory) }}</mat-icon>
+                <span class="text-sm font-semibold" [class]="getTrajectoryColor(lev.costTrajectory)">{{ lev.costTrajectory }}</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ lev.trajectoryExplanation }}</p>
+            </div>
+          }
+          @if (r.lastCostSnapshot?.evaluation; as rev) {
+            <div class="rounded-lg border border-gray-200 p-3">
+              <p class="text-xs text-gray-500 uppercase mb-1.5">{{ r.name }} Trajectory</p>
+              <div class="flex items-center gap-2">
+                <mat-icon [class]="getTrajectoryColor(rev.costTrajectory)">{{ getTrajectoryIcon(rev.costTrajectory) }}</mat-icon>
+                <span class="text-sm font-semibold" [class]="getTrajectoryColor(rev.costTrajectory)">{{ rev.costTrajectory }}</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ rev.trajectoryExplanation }}</p>
+            </div>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+
+</div>

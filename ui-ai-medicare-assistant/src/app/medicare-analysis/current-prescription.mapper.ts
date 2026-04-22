@@ -1,4 +1,4 @@
-import { DrugStateService } from '../services/drug-state.service';
+import { MedicareStateService } from '../services/drug-state.service';
 import {
   PrescriptionDrugDto,
   SaveCurrentPrescriptionRequest,
@@ -15,7 +15,7 @@ import { DrugDetailAdvanceItem } from '../models/drug.model';
  * explicit formulation selection in session — ensures the drugs array is never empty
  * when confirmed drugs exist, avoiding backend 400 validation errors.
  */
-export function buildCurrentPrescriptionDrugsFromState(state: DrugStateService): PrescriptionDrugDto[] {
+export function buildCurrentPrescriptionDrugsFromState(state: MedicareStateService): PrescriptionDrugDto[] {
   const details = state.drugDetails();
   const confirmed = state.confirmedDrugNames();
   if (!confirmed.size) return [];
@@ -90,7 +90,7 @@ export function buildCurrentPrescriptionDrugsFromState(state: DrugStateService):
   return drugs;
 }
 
-export function buildSelectedPharmaciesSnapshotFromState(state: DrugStateService): SelectedPharmacySnapshotDto[] {
+export function buildSelectedPharmaciesSnapshotFromState(state: MedicareStateService): SelectedPharmacySnapshotDto[] {
   return state.selectedLookupPharmacies().map((p) => ({
     pharmacyNumber: String(p.pharmacyNumber ?? ''),
     pharmacyName: p.pharmacyName ?? '',
@@ -100,7 +100,7 @@ export function buildSelectedPharmaciesSnapshotFromState(state: DrugStateService
   }));
 }
 
-export function buildSelectedPlansSnapshotFromState(state: DrugStateService): SelectedPlanSnapshotDto[] {
+export function buildSelectedPlansSnapshotFromState(state: MedicareStateService): SelectedPlanSnapshotDto[] {
   const section = state.activeSection();
   const plans: SelectedPlanSnapshotDto[] = [];
 
@@ -151,7 +151,7 @@ export function buildSelectedPlansSnapshotFromState(state: DrugStateService): Se
 }
 
 /** Full payload for POST /api/prescription/current — drugs, selected pharmacies, and selected FP plans. */
-export function buildCurrentPrescriptionSnapshotFromState(state: DrugStateService): SaveCurrentPrescriptionRequest {
+export function buildCurrentPrescriptionSnapshotFromState(state: MedicareStateService): SaveCurrentPrescriptionRequest {
   return {
     drugs: buildCurrentPrescriptionDrugsFromState(state),
     selectedPharmacies: buildSelectedPharmaciesSnapshotFromState(state),

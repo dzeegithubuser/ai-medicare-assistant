@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AppRoutes } from '../app-routes.const';
 import { LtcStateService } from './ltc-state.service';
+import { ChatStateService } from '../services/chat-state.service';
+import { MedicareStateService } from '../services/drug-state.service';
 import { ProfileService } from '../services/profile.service';
 
 @Component({
@@ -19,6 +21,8 @@ import { ProfileService } from '../services/profile.service';
 })
 export class LtcShellComponent {
   readonly state = inject(LtcStateService);
+  private chatState = inject(ChatStateService);
+  private medicareState = inject(MedicareStateService);
   readonly profileService = inject(ProfileService);
   private router = inject(Router);
 
@@ -78,7 +82,9 @@ export class LtcShellComponent {
   }
 
   startNewAnalysis(): void {
+    this.chatState.addSystemMessage('Started a new analysis');
     this.state.resetAll();
+    this.medicareState.resetAll();
     this.router.navigateByUrl(AppRoutes.abs.LTC_PROFILE);
   }
 }

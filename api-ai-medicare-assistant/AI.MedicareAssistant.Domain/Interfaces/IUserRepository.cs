@@ -1,14 +1,14 @@
-using Domain.Entities;
+using Domain.Documents;
 
 namespace Domain.Interfaces;
 
 public interface IUserRepository
 {
-    Task<User?> GetByEmailAsync(string email);
-    Task<User?> GetByPhoneAsync(string phone);
-    Task<User?> GetByIdAsync(Guid id);
-    Task<User> CreateAsync(User user);
-    Task UpdateAsync(User user);
+    Task<UserDocument?> GetByEmailAsync(string email);
+    Task<UserDocument?> GetByPhoneAsync(string phone);
+    Task<UserDocument?> GetByIdAsync(Guid id);
+    Task<UserDocument> CreateAsync(UserDocument user);
+    Task UpdateAsync(UserDocument user);
     Task<bool> EmailExistsAsync(string email);
     Task<bool> PhoneExistsAsync(string phone);
 }

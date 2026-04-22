@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { DrugStateService, ChatDrugSelectionCommand } from './drug-state.service';
+import { MedicareStateService, ChatDrugSelectionCommand } from './drug-state.service';
 import { ProfileService } from './profile.service';
 import { ChatIntentService } from './chat-intent.service';
 import { ChatDrugSelectionService, AvailableDrugSummary, PendingDrugChatCards } from './chat-drug-selection.service';
@@ -15,7 +15,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ChatDrugSelectionFlowService {
   private router = inject(Router);
-  private state = inject(DrugStateService);
+  private state = inject(MedicareStateService);
   private profileService = inject(ProfileService);
   private chatIntentSvc = inject(ChatIntentService);
   private chatDrugSel = inject(ChatDrugSelectionService);

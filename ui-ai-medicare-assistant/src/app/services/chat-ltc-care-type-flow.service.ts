@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, finalize, of } from 'rxjs';
-import { DrugStateService } from './drug-state.service';
+import { ChatStateService } from './chat-state.service';
 import { ProfileService } from './profile.service';
 import { LtcStateService } from '../long-term-care/ltc-state.service';
 import { LtcService } from '../long-term-care/ltc.service';
@@ -15,7 +15,7 @@ import { AppRoutes } from '../app-routes.const';
 
 @Injectable({ providedIn: 'root' })
 export class ChatLtcCareTypeFlowService {
-  private state = inject(DrugStateService);
+  private state = inject(ChatStateService);
   private profileService = inject(ProfileService);
   private ltcState = inject(LtcStateService);
   private ltcService = inject(LtcService);

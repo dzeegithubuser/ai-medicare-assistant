@@ -1,0 +1,136 @@
+@let l = left();
+@let r = right();
+
+<div class="pt-4">
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+    <mat-card class="!rounded-xl !shadow-sm">
+      <mat-card-header><mat-card-title class="!text-sm !font-semibold">Yearly Cost Trend</mat-card-title></mat-card-header>
+      <mat-card-content class="!pt-2">
+        <div class="h-[320px]"><canvas #costLineChart></canvas></div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="!rounded-xl !shadow-sm">
+      <mat-card-header><mat-card-title class="!text-sm !font-semibold">Cost Breakdown Comparison</mat-card-title></mat-card-header>
+      <mat-card-content class="!pt-2">
+        <div class="h-[320px]"><canvas #costBarChart></canvas></div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Year-by-year delta table -->
+  <mat-card class="!rounded-xl !shadow-sm mb-5">
+    <mat-card-header><mat-card-title class="!text-sm !font-semibold">Year-by-Year Comparison</mat-card-title></mat-card-header>
+    <mat-card-content class="!pt-2">
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 bg-gray-50 text-left">
+              <th class="py-2.5 px-3 text-xs text-gray-500 uppercase font-semibold">Year</th>
+              <th class="py-2.5 px-3 text-xs text-gray-500 uppercase font-semibold">{{ l.name }}</th>
+              <th class="py-2.5 px-3 text-xs text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+              <th class="py-2.5 px-3 text-xs text-gray-500 uppercase font-semibold">Delta</th>
+              <th class="py-2.5 px-3 text-xs text-gray-500 uppercase font-semibold">Advantage</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of yearlyRows(); track row.year) {
+              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+                <td class="py-2 px-3 font-medium text-gray-700">{{ row.year }}</td>
+                <td class="py-2 px-3">{{ yearlyTotal(row.left) | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="py-2 px-3">{{ yearlyTotal(row.right) | currency:'USD':'symbol':'1.0-0' }}</td>
+                <td class="py-2 px-3 font-semibold" [class]="deltaClass(yearlyTotal(row.left), yearlyTotal(row.right))">
+                  {{ (yearlyTotal(row.left) - yearlyTotal(row.right)) | currency:'USD':'symbol':'1.0-0' }}
+                </td>
+                <td class="py-2 px-3">
+                  @if (yearlyTotal(row.left) < yearlyTotal(row.right)) {
+                    <span class="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">{{ l.name }}</span>
+                  } @else if (yearlyTotal(row.left) > yearlyTotal(row.right)) {
+                    <span class="text-xs px-2 py-0.5 bg-cyan-100 text-cyan-700 rounded-full font-medium">{{ r.name }}</span>
+                  } @else {
+                    <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">Even</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Category comparison -->
+  @if (l.lastCostSnapshot?.evaluation?.categories?.length && r.lastCostSnapshot?.evaluation?.categories?.length) {
+    <mat-card class="!rounded-xl !shadow-sm mb-5">
+      <mat-card-header><mat-card-title class="!text-sm !font-semibold">Cost Category Comparison</mat-card-title></mat-card-header>
+      <mat-card-content class="!pt-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-semibold mb-2">{{ l.name }}</p>
+            <div class="space-y-2">
+              @for (cat of l.lastCostSnapshot!.evaluation!.categories; track cat.name) {
+                <div class="p-2 rounded-lg bg-gray-50">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-medium text-gray-800">{{ cat.name }}</span>
+                    <span class="text-xs text-gray-600">{{ cat.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-indigo-500 h-1.5 rounded-full" [style.width.%]="cat.percentOfTotal"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-semibold mb-2">{{ r.name }}</p>
+            <div class="space-y-2">
+              @for (cat of r.lastCostSnapshot!.evaluation!.categories; track cat.name) {
+                <div class="p-2 rounded-lg bg-gray-50">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-medium text-gray-800">{{ cat.name }}</span>
+                    <span class="text-xs text-gray-600">{{ cat.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-cyan-500 h-1.5 rounded-full" [style.width.%]="cat.percentOfTotal"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Overall Assessment Comparison -->
+  @if (l.lastCostSnapshot?.evaluation?.overallAssessment || r.lastCostSnapshot?.evaluation?.overallAssessment) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @if (l.lastCostSnapshot?.evaluation?.overallAssessment) {
+        <mat-card class="!rounded-xl !shadow-sm !border-l-4 !border-l-indigo-500">
+          <mat-card-content class="!p-4">
+            <div class="flex items-start gap-2">
+              <mat-icon class="!text-indigo-600 mt-0.5">assessment</mat-icon>
+              <div>
+                <p class="text-xs font-semibold text-gray-800 mb-1">{{ l.name }}</p>
+                <p class="text-xs text-gray-600 leading-relaxed">{{ l.lastCostSnapshot!.evaluation!.overallAssessment }}</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+      @if (r.lastCostSnapshot?.evaluation?.overallAssessment) {
+        <mat-card class="!rounded-xl !shadow-sm !border-l-4 !border-l-cyan-500">
+          <mat-card-content class="!p-4">
+            <div class="flex items-start gap-2">
+              <mat-icon class="!text-cyan-600 mt-0.5">assessment</mat-icon>
+              <div>
+                <p class="text-xs font-semibold text-gray-800 mb-1">{{ r.name }}</p>
+                <p class="text-xs text-gray-600 leading-relaxed">{{ r.lastCostSnapshot!.evaluation!.overallAssessment }}</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

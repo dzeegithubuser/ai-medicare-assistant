@@ -1,0 +1,264 @@
+@let l = left();
+@let r = right();
+
+<div class="pt-4 space-y-4">
+
+  <!-- Drug count strip -->
+  <div class="grid grid-cols-5 gap-3">
+    <div class="rounded-xl border border-blue-200 bg-blue-50/60 p-3 text-center">
+      <p class="text-2xl font-bold text-blue-700">{{ l.drugList.length }}</p>
+      <p class="text-xs text-blue-600 uppercase font-semibold mt-0.5">{{ l.name }}</p>
+    </div>
+    <div class="rounded-xl border border-purple-200 bg-purple-50/60 p-3 text-center">
+      <p class="text-2xl font-bold text-purple-700">{{ r.drugList.length }}</p>
+      <p class="text-xs text-purple-600 uppercase font-semibold mt-0.5">{{ r.name }}</p>
+    </div>
+    <div class="rounded-xl border border-green-200 bg-green-50/60 p-3 text-center">
+      <p class="text-2xl font-bold text-green-700">{{ commonDrugs().length }}</p>
+      <p class="text-xs text-green-600 uppercase font-semibold mt-0.5">Common</p>
+    </div>
+    <div class="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 text-center">
+      <p class="text-2xl font-bold text-indigo-700">{{ uniqueLeftDrugs().length }}</p>
+      <p class="text-xs text-indigo-600 uppercase font-semibold mt-0.5">Only {{ l.name }}</p>
+    </div>
+    <div class="rounded-xl border border-cyan-200 bg-cyan-50/60 p-3 text-center">
+      <p class="text-2xl font-bold text-cyan-700">{{ uniqueRightDrugs().length }}</p>
+      <p class="text-xs text-cyan-600 uppercase font-semibold mt-0.5">Only {{ r.name }}</p>
+    </div>
+  </div>
+
+  <!-- ── All Selected Drugs — side-by-side ── -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <!-- Left plan drugs -->
+    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-blue-400">
+      <mat-card-content class="!p-0">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-blue-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-blue-600">list_alt</mat-icon>
+          <p class="text-sm font-semibold text-blue-800">{{ l.name }} — All Drugs</p>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{{ l.drugList.length }}</span>
+        </div>
+        @if (l.drugList.length) {
+          <div class="p-4 flex flex-wrap gap-3">
+            @for (d of l.drugList; track d.drugName) {
+              <div class="bg-white rounded-xl p-3 border border-blue-100 w-56 shrink-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <mat-icon class="text-blue-700 !text-base !w-4 !h-4">medication</mat-icon>
+                  <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                  @if (d.drugType) {
+                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                      [class]="d.drugType === 'Generic' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'">
+                      {{ d.drugType }}
+                    </span>
+                  }
+                </div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                  @if (d.dosage) {
+                    <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                  }
+                  <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                  @if (d.rxcui) {
+                    <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                  }
+                  @if (d.refillFrequency) {
+                    <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="px-4 py-6 text-center">
+            <mat-icon class="!text-2xl text-gray-500">info</mat-icon>
+            <p class="text-xs text-gray-600 mt-1">No drugs selected</p>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Right plan drugs -->
+    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-purple-400">
+      <mat-card-content class="!p-0">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-purple-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-purple-600">list_alt</mat-icon>
+          <p class="text-sm font-semibold text-purple-800">{{ r.name }} — All Drugs</p>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">{{ r.drugList.length }}</span>
+        </div>
+        @if (r.drugList.length) {
+          <div class="p-4 flex flex-wrap gap-3">
+            @for (d of r.drugList; track d.drugName) {
+              <div class="bg-white rounded-xl p-3 border border-purple-100 w-56 shrink-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <mat-icon class="text-purple-700 !text-base !w-4 !h-4">medication</mat-icon>
+                  <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                  @if (d.drugType) {
+                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                      [class]="d.drugType === 'Generic' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'">
+                      {{ d.drugType }}
+                    </span>
+                  }
+                </div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                  @if (d.dosage) {
+                    <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                  }
+                  <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                  @if (d.rxcui) {
+                    <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                  }
+                  @if (d.refillFrequency) {
+                    <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="px-4 py-6 text-center">
+            <mat-icon class="!text-2xl text-gray-500">info</mat-icon>
+            <p class="text-xs text-gray-600 mt-1">No drugs selected</p>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ── Common Drugs ── -->
+  @if (commonDrugs().length) {
+    <mat-card class="!rounded-xl !shadow-sm">
+      <mat-card-content class="!p-0">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-green-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-green-600">check_circle</mat-icon>
+          <p class="text-sm font-semibold text-green-800">Shared Prescriptions</p>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{{ commonDrugs().length }}</span>
+        </div>
+        <div class="p-4 flex flex-wrap gap-3">
+          @for (d of commonDrugs(); track d.drugName) {
+            <div class="bg-white rounded-xl p-3 border border-green-100 w-56 shrink-0">
+              <div class="flex items-center gap-2 mb-2">
+                <mat-icon class="text-green-700 !text-base !w-4 !h-4">medication</mat-icon>
+                <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                @if (d.drugType) {
+                  <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                    [class]="d.drugType === 'Generic' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+                    {{ d.drugType }}
+                  </span>
+                }
+              </div>
+              <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                @if (d.dosage) {
+                  <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                }
+                <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                @if (d.rxcui) {
+                  <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                }
+                @if (d.refillFrequency) {
+                  <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- ── Unique Drugs — side-by-side ── -->
+  @if (uniqueLeftDrugs().length || uniqueRightDrugs().length) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <!-- Left only -->
+      <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+            <mat-icon class="!text-base text-indigo-600">medication</mat-icon>
+            <p class="text-sm font-semibold text-indigo-700">Only in {{ l.name }}</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftDrugs().length }}</span>
+          </div>
+          @if (uniqueLeftDrugs().length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (d of uniqueLeftDrugs(); track d.drugName) {
+                <div class="bg-white rounded-xl p-3 border border-indigo-100 w-56 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">medication</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                    @if (d.drugType) {
+                      <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                        [class]="d.drugType === 'Generic' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'">
+                        {{ d.drugType }}
+                      </span>
+                    }
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    @if (d.dosage) {
+                      <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                    }
+                    <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                    @if (d.rxcui) {
+                      <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                    }
+                    @if (d.refillFrequency) {
+                      <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No unique drugs</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right only -->
+      <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+            <mat-icon class="!text-base text-cyan-600">medication</mat-icon>
+            <p class="text-sm font-semibold text-cyan-700">Only in {{ r.name }}</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightDrugs().length }}</span>
+          </div>
+          @if (uniqueRightDrugs().length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (d of uniqueRightDrugs(); track d.drugName) {
+                <div class="bg-white rounded-xl p-3 border border-cyan-100 w-56 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-cyan-700 !text-base !w-4 !h-4">medication</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                    @if (d.drugType) {
+                      <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                        [class]="d.drugType === 'Generic' ? 'bg-cyan-100 text-cyan-700' : 'bg-amber-100 text-amber-700'">
+                        {{ d.drugType }}
+                      </span>
+                    }
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    @if (d.dosage) {
+                      <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                    }
+                    <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                    @if (d.rxcui) {
+                      <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                    }
+                    @if (d.refillFrequency) {
+                      <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No unique drugs</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

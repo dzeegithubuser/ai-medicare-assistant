@@ -97,6 +97,15 @@ html[data-theme="teal"] {
   @include mat.button-toggle-density(-3);
 }
 
+.density-compact.mat-mdc-form-field {
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+}
+
+.density-compact.mat-button-toggle-group {
+  --mat-standard-button-toggle-height: 40px;
+}
+
 body {
   color-scheme: light;
   background-color: var(--app-bg, var(--mat-sys-surface));

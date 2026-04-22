@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DrugStateService } from '../services/drug-state.service';
+import { MedicareStateService } from '../services/drug-state.service';
 import { AnalysisSnapshotService } from '../services/analysis-snapshot.service';
 import { EvaluateCostsResponse, IndividualMedicareDetail, CostEvaluation, CostCategory, ExpenseTableRow } from '../models/cost-projection.model';
 import {
@@ -42,7 +42,7 @@ Chart.register(
   ]
 })
 export class CostProjectionsComponent implements OnInit, OnDestroy {
-  protected state = inject(DrugStateService);
+  protected state = inject(MedicareStateService);
   private router = inject(Router);
   private analysisSnapshot = inject(AnalysisSnapshotService);
 

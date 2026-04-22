@@ -33,6 +33,10 @@ public class MongoDbContext
     /// <summary>Current LTC care-type selections + last projection result per user.</summary>
     public IMongoCollection<LtcCurrentSelectionsDocument> LtcCurrentSelections
         => _database.GetCollection<LtcCurrentSelectionsDocument>("ltcCurrentSelections");
+
+    /// <summary>Users (auth + profile combined).</summary>
+    public IMongoCollection<UserDocument> Users
+        => _database.GetCollection<UserDocument>("users");
 }
 
 /// <summary>
@@ -89,6 +93,25 @@ public class MongoIndexInitializer : IHostedService
                     .Ascending(d => d.UserId)
                     .Ascending(d => d.Name),
                 new CreateIndexOptions { Unique = true }),
+            cancellationToken: cancellationToken);
+
+        // Users — unique Email, unique Phone, unique UserId
+        await _context.Users.Indexes.CreateOneAsync(
+            new CreateIndexModel<UserDocument>(
+                Builders<UserDocument>.IndexKeys.Ascending(d => d.Email),
+                new CreateIndexOptions { Unique = true, Sparse = true }),
+            cancellationToken: cancellationToken);
+
+        await _context.Users.Indexes.CreateOneAsync(
+            new CreateIndexModel<UserDocument>(
+                Builders<UserDocument>.IndexKeys.Ascending(d => d.Phone),
+                new CreateIndexOptions { Unique = true, Sparse = true }),
+            cancellationToken: cancellationToken);
+
+        await _context.Users.Indexes.CreateOneAsync(
+            new CreateIndexModel<UserDocument>(
+                Builders<UserDocument>.IndexKeys.Ascending(d => d.UserId),
+                new CreateIndexOptions { Unique = true, Sparse = true }),
             cancellationToken: cancellationToken);
     }
 

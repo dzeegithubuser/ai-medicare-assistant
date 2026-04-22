@@ -32,8 +32,7 @@ A ChatGPT-style Medicare healthcare assistant that helps users understand their 
 |---|---|
 | Framework | .NET 10 Web API — Clean Architecture (4 layers) |
 | AI | OpenAI GPT-4.1 (primary) · Anthropic Claude Sonnet 4 (secondary) via `IChatClient` |
-| ORM | Entity Framework Core 9 (Code First, MySQL via Pomelo) |
-| Document Store | MongoDB 3.4 — sessions, chat history, drug analyses, plans |
+| Database | MongoDB.Driver 3.4 — all data (users, profiles, sessions, prescriptions, plans) |
 | Real-time | ASP.NET Core SignalR (`/hubs/chat`) |
 | Auth | JWT Bearer + BCrypt password hashing |
 | Logging | Serilog (console + daily rolling file) |
@@ -47,8 +46,8 @@ ai-medicare-assistant/
 ├── api-ai-medicare-assistant/          # .NET 10 backend solution
 │   ├── AI.MedicareAssistant.Api/       # Controllers, Hubs, Middleware, Prompts
 │   ├── AI.MedicareAssistant.Application/  # Services, DTOs
-│   ├── AI.MedicareAssistant.Domain/    # Entities, Interfaces, Models, Exceptions
-│   ├── AI.MedicareAssistant.Infrastructure/  # EF Core, MongoDB, AI, Pharmacy, Medicare
+│   ├── AI.MedicareAssistant.Domain/    # Documents, Interfaces, Models, Exceptions
+│   ├── AI.MedicareAssistant.Infrastructure/  # MongoDB, AI, Pharmacy, Medicare
 │   └── AI.MedicareAssistant.Tests/     # Unit tests
 ├── ui-ai-medicare-assistant/           # Angular 21 frontend
 │   └── src/app/                    # Components, services, guards, models
@@ -64,7 +63,6 @@ ai-medicare-assistant/
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 22+](https://nodejs.org/) and npm 10+
-- MySQL 8+ instance
 - MongoDB instance
 - OpenAI or Anthropic API key
 
@@ -75,8 +73,10 @@ Copy `appsettings.json` and fill in your values:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=HOST;Port=3306;Database=ai_medicare_assistant;User=USER;Password=PASSWORD;",
     "MongoDb": "mongodb://USER:PASSWORD@HOST:27017"
+  },
+  "MongoDb": {
+    "DatabaseName": "ai_medicare_assistant"
   },
   "Jwt": {
     "Secret": "YOUR_JWT_SECRET_AT_LEAST_32_CHARACTERS_LONG"
