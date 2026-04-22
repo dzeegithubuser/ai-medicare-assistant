@@ -239,4 +239,20 @@ export const LTC_MESSAGES = {
   RESUME_PROFILE: 'Resumed the Long-Term Care analysis on the Profile step. Review your details, then click **Continue to Care Type** in the footer.',
   RESUME_CARE_TYPE: 'Resumed your Long-Term Care analysis on the Care Type step. Configure your care preferences and click **Run Projection** when ready.',
   RESUME_PROJECTION: 'Resumed your Long-Term Care projection results.',
+  CROSS_FLOW_MEDICARE_FEATURE:
+    'That feature is part of **Medicare Analysis**. You are currently in **Long-Term Care Analysis**. Please switch to Medicare Analysis from the home page if you need it.',
+  LTC_HELP_TEXT:
+    `Here's what I can help you with in Long-Term Care Analysis:\n\n` +
+    `**Navigate**\n` +
+    `• "Go to profile" — edit your profile\n` +
+    `• "Go to care type" — configure care preferences\n` +
+    `• "Go to projection" — view projection results\n\n` +
+    `**Care Type**\n` +
+    `• "Set nursing to 5 years" — set care years\n` +
+    `• "Quality best" / "quality comfortable" — set quality of care\n\n` +
+    `**Actions**\n` +
+    `• "Run projection" — calculate LTC costs\n` +
+    `• "Save analysis as [name]" — save your projection\n` +
+    `• "Reset analysis" — start over\n` +
+    `• "Help" — show this help`,
 } as const;

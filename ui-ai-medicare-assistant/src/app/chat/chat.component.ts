@@ -1,8 +1,8 @@
 import {
   Component, ChangeDetectionStrategy, computed, inject, viewChild,
-  ElementRef, effect, OnInit, signal, untracked,
-  DestroyRef,
+  ElementRef, effect, OnInit, signal, untracked, DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -35,7 +35,6 @@ import {
 } from './chat-send-guards';
 
 import { AppRoutes } from '../app-routes.const';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-chat',

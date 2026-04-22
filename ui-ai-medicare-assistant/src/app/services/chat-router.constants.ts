@@ -36,11 +36,11 @@ export const BACK_PATTERN =
 /**
  * Catches targeted step navigation: "go to profile", "go back to drugs",
  * "switch to pharmacies", "take me to plans", "navigate to drugs", "back to profile",
- * "go to care type" (LTC).
- * Capture group 1 = step keyword (profile|drug(s)|pharmac(y|ies)|plan(s)|care[\s-]?type).
+ * "go to care type" (LTC), "continue to care type", "go to projection" (LTC).
+ * Capture group 1 = step keyword (profile|drug(s)|pharmac(y|ies)|plan(s)|care[\s-]?type|projection).
  */
 export const TARGETED_STEP_PATTERN =
-  /(?:go\s+(?:back\s+)?to|switch\s+to|take\s+me\s+to|navigate\s+to|back\s+to)\s+(profile|drugs?|pharmac(?:y|ies)|plans?|care[\s-]?type)\s*$/i;
+  /(?:go\s+(?:back\s+)?to|switch\s+to|take\s+me\s+to|navigate\s+to|back\s+to|continue\s+to)\s+(profile|drugs?|pharmac(?:y|ies)|plans?|care[\s-]?type|projection)\s*$/i;
 
 /**
  * Catches "return to where I was" / "go to my last step" / "go to step where I came from".

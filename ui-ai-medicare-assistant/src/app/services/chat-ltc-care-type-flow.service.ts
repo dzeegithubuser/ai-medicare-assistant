@@ -37,6 +37,13 @@ export class ChatLtcCareTypeFlowService {
       return;
     }
 
+    if (!this.profileService.isProfileComplete()) {
+      this.state.addAssistantMessage('Please complete your profile first before setting care type values.');
+      this.state.setLoading(false);
+      this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
+      return;
+    }
+
     const updates: Record<string, number> = {};
     if (params.ltcHealthProfile != null) updates['healthProfile'] = params.ltcHealthProfile;
     if (params.ltcAdultDayYears != null) updates['adultDayYears'] = params.ltcAdultDayYears;
@@ -50,21 +57,14 @@ export class ChatLtcCareTypeFlowService {
     }
 
     const onCareType = this.router.url.startsWith(AppRoutes.abs.LTC_CARE_TYPE);
-    if (onCareType) {
-      // On care-type page → update via signal (consumed by effect in component)
-      this.ltcState.pendingChatCareType.set({
-        healthProfile: params.ltcHealthProfile ?? undefined,
-        adultDayYears: params.ltcAdultDayYears ?? undefined,
-        homeCareYears: params.ltcHomeCareYears ?? undefined,
-        nursingCareYears: params.ltcNursingCareYears ?? undefined,
-      });
-    } else {
-      // Not on care-type page → update state directly
-      if (params.ltcHealthProfile != null) this.ltcState.healthProfile.set(params.ltcHealthProfile);
-      if (params.ltcAdultDayYears != null) this.ltcState.adultDayYears.set(params.ltcAdultDayYears);
-      if (params.ltcHomeCareYears != null) this.ltcState.homeCareYears.set(params.ltcHomeCareYears);
-      if (params.ltcNursingCareYears != null) this.ltcState.nursingCareYears.set(params.ltcNursingCareYears);
-    }
+    // Always use pendingChatCareType signal so the care-type component's effect()
+    // applies the values AFTER DB hydration completes (prevents overwrite on mount).
+    this.ltcState.pendingChatCareType.set({
+      healthProfile: params.ltcHealthProfile ?? undefined,
+      adultDayYears: params.ltcAdultDayYears ?? undefined,
+      homeCareYears: params.ltcHomeCareYears ?? undefined,
+      nursingCareYears: params.ltcNursingCareYears ?? undefined,
+    });
 
     this.state.addAssistantMessage(confirmationMessage || 'Care type updated.');
     this.state.setLoading(false);
@@ -88,6 +88,17 @@ export class ChatLtcCareTypeFlowService {
     }
     if (!this.ltcState.careTypeVisited()) {
       this.state.addAssistantMessage(LTC_MESSAGES.REQUIRE_CARE_TYPE);
+      this.state.setLoading(false);
+      this.router.navigate([AppRoutes.abs.LTC_CARE_TYPE]);
+      return;
+    }
+
+    // Guard: if all care-type years are 0 (defaults), direct user to configure first
+    const totalYears = this.ltcState.adultDayYears() + this.ltcState.homeCareYears() + this.ltcState.nursingCareYears();
+    if (totalYears === 0 && !this.router.url.startsWith(AppRoutes.abs.LTC_CARE_TYPE)) {
+      this.state.addAssistantMessage(
+        'All care type years are currently set to 0. Please go to the **Care Type** step and configure your care preferences before running a projection.'
+      );
       this.state.setLoading(false);
       this.router.navigate([AppRoutes.abs.LTC_CARE_TYPE]);
       return;
@@ -152,6 +163,11 @@ export class ChatLtcCareTypeFlowService {
         this.saveRecommendation(analysisName);
       });
     });
+  }
+
+  /** Save an already-run LTC projection as a recommendation (called from chat save flow). */
+  saveRecommendationFromChat(name: string, force = false): void {
+    this.saveRecommendation(name, force);
   }
 
   private saveRecommendation(name: string, force = false): void {

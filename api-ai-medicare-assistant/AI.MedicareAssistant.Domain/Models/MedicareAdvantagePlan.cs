@@ -32,6 +32,7 @@ public class MedicareAdvantagePlanRequest
     public string? PrescriptionCoverageFilter { get; set; }
     public string? ContractIdFilter { get; set; }
     public bool MailOrderPharmacy { get; set; }
+    public int? RetirementYear { get; set; }
 
     /// <summary>Always true for Medicare Advantage requests.</summary>
     public bool MedicareAdvantage { get; set; } = true;

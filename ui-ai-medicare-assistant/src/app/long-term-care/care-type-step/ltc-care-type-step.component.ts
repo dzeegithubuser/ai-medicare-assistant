@@ -116,6 +116,18 @@ export class LtcCareTypeStepComponent {
         homeCareYears: current.numberOfHomeCareYears,
         nursingCareYears: current.numberOfNursingCareYears,
       }, { emitEvent: false });
+
+      // Re-apply any pending chat-driven care-type updates that arrived before DB hydration
+      const pending = this.state.pendingChatCareType();
+      if (pending) {
+        this.state.pendingChatCareType.set(null);
+        this.form.patchValue({
+          ...(pending.healthProfile != null ? { healthProfile: pending.healthProfile } : {}),
+          ...(pending.adultDayYears != null ? { adultDayYears: pending.adultDayYears } : {}),
+          ...(pending.homeCareYears != null ? { homeCareYears: pending.homeCareYears } : {}),
+          ...(pending.nursingCareYears != null ? { nursingCareYears: pending.nursingCareYears } : {}),
+        });
+      }
     });
   }
 

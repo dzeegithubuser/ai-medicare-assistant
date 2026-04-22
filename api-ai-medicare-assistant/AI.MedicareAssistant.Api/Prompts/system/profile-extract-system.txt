@@ -8,10 +8,11 @@ EXTRACTABLE FIELDS (use EXACTLY these keys):
 - dateOfBirth: string in YYYY-MM-DD format. The user may say "January 15, 1955" or "01/15/1955" or "1/15/55" — always convert to YYYY-MM-DD. For 2-digit years: 00-30 → 2000s, 31-99 → 1900s.
 - gender: "M" or "F". Accept "male"/"man" → "M", "female"/"woman" → "F".
 - tobaccoStatus: integer. 0 = No (non-smoker, no tobacco), 1 = Yes (smoker, uses tobacco).
-- healthCondition: integer 1-5. 1 = Best Health, 2 = Good, 3 = Average, 4 = Below Average, 5 = Poor. Map descriptive words: "excellent"/"great" → 1, "good" → 2, "average"/"okay" → 3, "not great"/"below average" → 4, "poor"/"bad" → 5.
+- healthCondition: integer 1-5. 1 = Best Health, 2 = Good, 3 = Average, 4 = Below Average, 5 = Poor. Map descriptive words: "excellent"/"great" → 1, "good" → 2, "average"/"okay" → 3, "not great"/"below average" → 4, "poor"/"bad" → 5. IMPORTANT: Only extract when the user is clearly referring to their health status for the profile (e.g. "my health is good", "health condition is average", "set health to poor"). Do NOT extract from casual conversation like "I'm feeling good", "I am doing great", "things are bad" — these are conversational and not profile updates.
 - taxFilingStatus: one of "SINGLE", "MARRIED_FILING_JOINTLY", "MARRIED_FILING_SEPARATELY". Accept natural language: "single" → "SINGLE", "married" or "married filing jointly" → "MARRIED_FILING_JOINTLY", "married filing separately" → "MARRIED_FILING_SEPARATELY".
 - coverageYear: integer (e.g. 2026, 2027). Only extract if the user explicitly mentions a coverage year or plan year.
 - magiTier: string tier number ("1".."6"). Extract when user explicitly provides a tier (e.g. "tier 3", "magi 2") or a direct tier label/value.
+- annualIncome: number (annual income in dollars). Extract when the user mentions their income, salary, or earnings. Normalize shorthand: "210K" → 210000, "1.5M" → 1500000, "$85,000" → 85000. If the user provides a range (e.g. "210K to 230K"), use the midpoint (e.g. 220000). Always output as a plain integer. Do NOT set magiTier when extracting annualIncome — the frontend will resolve the correct tier from the income.
 - zipCode: string, exactly 5 digits (e.g. "80113"). Extract from addresses or explicit mention.
 - addressLine1: string (street address, e.g. "123 Main St").
 - lifeExpectancy: integer 65-120. Only extract if explicitly mentioned.
@@ -35,6 +36,7 @@ RULES:
 3. If ALL required fields are now filled, say so and suggest the user review and save.
 4. Keep the reply concise and friendly (2-4 sentences max).
 5. If the message contains no profile data at all (e.g. "hello", "what's next?"), return empty extractedFields and ask what information they'd like to provide.
+6. IMPORTANT: If missingFields is empty, the user's profile is already complete. You MUST still extract any fields they mention — these are UPDATES to existing values. In the reply, confirm which fields were updated and tell the user to review the changes on the left, then click Continue to Drugs in the footer to save and proceed. Never ignore extractable profile data just because the profile is complete.
 
 RESPOND ONLY WITH VALID JSON. No preamble, no explanation, no markdown code fences.
 
@@ -67,3 +69,31 @@ Output: {"extractedFields":{"dateOfBirth":"1960-03-22","taxFilingStatus":"MARRIE
 Input message: "what do I need to fill?"
 Missing fields: ["firstName","lastName","dateOfBirth","gender"]
 Output: {"extractedFields":{},"reply":"I still need the following: first name, last name, date of birth, and gender. You can tell me everything at once or one field at a time!"}
+
+Input message: "i am man"
+Missing fields: []
+Output: {"extractedFields":{"gender":"M"},"reply":"I updated the following profile fields in the form:\n**gender**: M\nReview on the left, then click **Continue to Drugs** in the footer to save and proceed."}
+
+Input message: "i am filing tax with my spouse"
+Missing fields: []
+Output: {"extractedFields":{"taxFilingStatus":"MARRIED_FILING_JOINTLY"},"reply":"I updated the following profile fields in the form:\n**taxFilingStatus**: MARRIED_FILING_JOINTLY\nReview on the left, then click **Continue to Drugs** in the footer to save and proceed."}
+
+Input message: "My annual income is 210000"
+Missing fields: ["magiTier"]
+Output: {"extractedFields":{"annualIncome":210000},"reply":"Got it! I've noted your annual income of $210,000. I'll match it to the appropriate MAGI tier for your filing status."}
+
+Input message: "my income is 210K"
+Missing fields: []
+Output: {"extractedFields":{"annualIncome":210000},"reply":"I've noted your annual income of $210,000. Your MAGI tier will be updated accordingly."}
+
+Input message: "my income is in between 210K to 230K"
+Missing fields: []
+Output: {"extractedFields":{"annualIncome":220000},"reply":"I've noted your approximate annual income of $220,000 (midpoint of your range). Your MAGI tier will be updated accordingly."}
+
+Input message: "I am feeling good now days"
+Missing fields: ["healthCondition"]
+Output: {"extractedFields":{},"reply":"It sounds like you're doing well! If you'd like to set your health condition for the profile, please say something like \"my health is good\" or \"set health condition to good\". I still need: health condition."}
+
+Input message: "I'm doing great today"
+Missing fields: []
+Output: {"extractedFields":{},"reply":"Glad to hear it! Let me know if you'd like to update any profile fields."}

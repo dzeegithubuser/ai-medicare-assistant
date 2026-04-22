@@ -871,6 +871,8 @@ export class PlanRecommendationComponent implements OnInit {
     const dob = profile.dateOfBirth;
     const parts = dob.split('-');
     const birthDate = parts.length >= 2 ? `${parts[1]}-${parts[0]}` : dob;
+    const birthYear = parts.length >= 1 ? parseInt(parts[0], 10) : NaN;
+    const retirementYear = !isNaN(birthYear) ? birthYear + 65 : null;
 
     return {
       userId: '',
@@ -908,6 +910,7 @@ export class PlanRecommendationComponent implements OnInit {
       prescriptionCoverageFilter: null,
       contractIdFilter: null,
       mailOrderPharmacy: false,
+      retirementYear: retirementYear
     };
   }
 

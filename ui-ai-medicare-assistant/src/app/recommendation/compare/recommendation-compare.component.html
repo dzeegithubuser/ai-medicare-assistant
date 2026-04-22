@@ -83,20 +83,20 @@
           <!-- Row 3 — Cost Metrics (small side-by-side cards) -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-100">
             @for (m of [
-              { label: 'Lifetime Cost', left: leftLifetime(), right: rightLifetime() },
-              { label: 'Present Value', left: (l.lastCostSnapshot?.presentValue ?? 0), right: (r.lastCostSnapshot?.presentValue ?? 0) },
-              { label: 'IRMAA Surcharge', left: (l.lastCostSnapshot?.lifetimeIrmaa ?? 0), right: (r.lastCostSnapshot?.lifetimeIrmaa ?? 0) }
+              { label: 'Lifetime Cost', left: formatCurrency(leftLifetime()), right: formatCurrency(rightLifetime()) },
+              { label: 'Present Value', left: formatCurrency(l.lastCostSnapshot?.presentValue ?? 0), right: formatCurrency(r.lastCostSnapshot?.presentValue ?? 0) },
+              { label: 'IRMAA Surcharge', left: formatCurrency(l.lastCostSnapshot?.lifetimeIrmaa ?? 0), right: formatCurrency(r.lastCostSnapshot?.lifetimeIrmaa ?? 0) }
             ]; track m.label) {
               <div class="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ m.label }}</p>
                 <div class="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p class="text-[10px] text-gray-400 truncate">{{ l.name }}</p>
-                    <p class="font-bold text-gray-900">{{ m.left | currency:'USD':'symbol':'1.0-0' }}</p>
+                    <p class="font-bold text-gray-900">{{ m.left  }}</p>
                   </div>
                   <div class="text-right">
                     <p class="text-[10px] text-gray-400 truncate">{{ r.name }}</p>
-                    <p class="font-bold text-gray-900">{{ m.right | currency:'USD':'symbol':'1.0-0' }}</p>
+                    <p class="font-bold text-gray-900">{{ m.right }}</p>
                   </div>
                 </div>
               </div>
@@ -106,8 +106,8 @@
           <!-- Row 4 — Profile Metrics (small side-by-side cards) -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
             @for (m of [
-              { label: 'Coverage Year', left: '' + l.profile.coverageYear, right: '' + r.profile.coverageYear },
-              { label: 'Life Expectancy', left: l.profile.lifeExpectancy + ' yrs', right: r.profile.lifeExpectancy + ' yrs' },
+              { label: 'Avg Annual Cost', left: formatCurrency(avgAnnualCost(l), '1.2-2'), right: formatCurrency(avgAnnualCost(r), '1.2-2') },
+              { label: 'Coverage Years', left: formatCoverageYears(l), right: formatCoverageYears(r) },
               { label: 'ZIP Code', left: l.profile.zipCode, right: r.profile.zipCode }
             ]; track m.label) {
               <div class="rounded-lg border border-gray-200 bg-gray-50/60 p-3">

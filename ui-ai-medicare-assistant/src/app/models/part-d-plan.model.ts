@@ -25,6 +25,7 @@ export interface PartDPlanRecommendationRequest {
   prescriptionCoverageFilter: string | null;
   contractIdFilter: string | null;
   mailOrderPharmacy: boolean;
+  retirementYear: number | null;
 }
 
 export interface CountyCodeModel {

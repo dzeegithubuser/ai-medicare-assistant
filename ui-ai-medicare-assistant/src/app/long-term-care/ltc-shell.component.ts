@@ -75,6 +75,7 @@ export class LtcShellComponent {
 
   goToStep(stepNumber: 1 | 2): void {
     if (stepNumber > this.state.currentStep()) return;
+    if (stepNumber === 2 && !this.profileService.isProfileComplete()) return;
     const target = this.steps.find(s => s.number === stepNumber);
     if (!target) return;
     this.state.currentStep.set(stepNumber);

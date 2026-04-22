@@ -30,6 +30,7 @@ public class PartDPlanRecommendationRequest
     public string? PrescriptionCoverageFilter { get; set; }
     public string? ContractIdFilter { get; set; }
     public bool MailOrderPharmacy { get; set; }
+    public int RetirementYear { get; set; }
 }
 
 public class CountyCodeModel
@@ -86,8 +87,8 @@ public class PartDPlanRecommendationResponse
     public int TotalRecommendationPages { get; set; }
     public int TotalRecommendations { get; set; }
     public string SortRecommendations { get; set; } = "";
-    public int RetirementYear { get; set; }
-    public int DataYear { get; set; }
+    public int? RetirementYear { get; set; }
+    public int? DataYear { get; set; }
     public double PartAPremium { get; set; }
     public double PartBPremium { get; set; }
     public double PartBOOP { get; set; }

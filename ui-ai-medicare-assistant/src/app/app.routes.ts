@@ -1,7 +1,19 @@
-import { Routes } from '@angular/router';
+import { Routes, CanActivateFn } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { dashboardRedirectGuard } from './guards/dashboard-redirect.guard';
+import { ProfileService } from './services/profile.service';
 import { AppRoutes } from './app-routes.const';
+
+/** Guard: LTC care-type requires a complete profile. */
+const ltcCareTypeGuard: CanActivateFn = () => {
+  const profileService = inject(ProfileService);
+  const router = inject(Router);
+  if (profileService.isProfileComplete()) return true;
+  router.navigate([AppRoutes.abs.LTC_PROFILE]);
+  return false;
+};
 
 export const routes: Routes = [
   { path: AppRoutes.SIGNIN, loadComponent: () => import('./auth/signin/signin.component').then(m => m.SigninComponent) },
@@ -45,7 +57,7 @@ export const routes: Routes = [
         children: [
           { path: '', redirectTo: AppRoutes.PROFILE, pathMatch: 'full' },
           { path: AppRoutes.PROFILE, loadComponent: () => import('./user-profile/user-profile.component').then(m => m.UserProfileComponent) },
-          { path: AppRoutes.LTC_CARE_TYPE, loadComponent: () => import('./long-term-care/care-type-step/ltc-care-type-step.component').then(m => m.LtcCareTypeStepComponent) },
+          { path: AppRoutes.LTC_CARE_TYPE, canActivate: [ltcCareTypeGuard], loadComponent: () => import('./long-term-care/care-type-step/ltc-care-type-step.component').then(m => m.LtcCareTypeStepComponent) },
           { path: AppRoutes.LTC_PROJECTION, loadComponent: () => import('./long-term-care/projection-step/ltc-projection-step.component').then(m => m.LtcProjectionStepComponent) },
         ]
       },

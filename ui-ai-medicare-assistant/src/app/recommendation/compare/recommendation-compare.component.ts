@@ -26,12 +26,18 @@ type ComparisonMode = 'medicare' | 'longterm' | 'cross';
     MatIconModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatTooltipModule,
     CompareMedicareComponent, CompareLtcComponent, CompareCrossComponent,
   ],
+  providers:[CurrencyPipe],
   templateUrl: './recommendation-compare.component.html',
 })
 export class RecommendationCompareComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private recommendationService = inject(RecommendationService);
+  private currencyPipe = inject(CurrencyPipe);
+ 
+  formatCurrency(value: number, fmt = '1.0-0'): string {
+    return this.currencyPipe.transform(value, 'USD', 'symbol', fmt) ?? '$0';
+  }
 
   readonly left = signal<RecommendationResponse | null>(null);
   readonly right = signal<RecommendationResponse | null>(null);
@@ -133,6 +139,21 @@ export class RecommendationCompareComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/saved']);
+  }
+
+  formatCoverageYears(rec: RecommendationResponse): string {
+    const details = rec.lastCostSnapshot?.yearlyDetails;
+    if (!details?.length) return 'N/A';
+    const startYear = details[0].year;
+    const endYear = details[details.length - 1].year;
+    return `${details.length} (${startYear}\u2013${endYear})`;
+  }
+
+  avgAnnualCost(rec: RecommendationResponse): number {
+    const snapshot = rec.lastCostSnapshot;
+    const years = snapshot?.yearlyDetails?.length;
+    if (!years || !snapshot?.lifetimeTotal) return 0;
+    return snapshot.lifetimeTotal / years;
   }
 
   planTypeLabel(planType: string): string {

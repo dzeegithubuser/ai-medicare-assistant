@@ -83,6 +83,8 @@ export class ChatNavigationFlowService {
     const url = this.router.url;
     if (url.startsWith(AppRoutes.abs.MEDICARE_ANALYSIS)) {
       this.state.returnRoute.set(url);
+    } else if (url.startsWith(AppRoutes.abs.LTC)) {
+      this.ltcState.returnRoute.set(url);
     }
   }
 
@@ -95,6 +97,24 @@ export class ChatNavigationFlowService {
   resolveLtcStepKeyword(keyword: string): 1 | 2 | null {
     const lower = keyword.toLowerCase().replace(/-/g, ' ').trim();
     return LTC_KEYWORD_TO_STEP[lower] ?? null;
+  }
+
+  /** Check if keyword is "projection" for direct LTC projection navigation. */
+  isLtcProjectionKeyword(keyword: string): boolean {
+    return keyword.toLowerCase().trim() === 'projection';
+  }
+
+  /** Navigate directly to LTC projection page with guards. */
+  handleLtcProjectionNavigation(): void {
+    if (!this.ltcState.ltcResult()) {
+      this.state.addAssistantMessage('No projection results available. Please run a projection first.');
+      this.state.setLoading(false);
+      return;
+    }
+    this.saveLtcReturnRoute();
+    this.state.addAssistantMessage('Taking you to your projection results.');
+    this.state.setLoading(false);
+    this.router.navigate([AppRoutes.abs.LTC_PROJECTION]);
   }
 
   // ── Non-linear step navigation ────────────────────────────────────────────
@@ -217,6 +237,11 @@ export class ChatNavigationFlowService {
       this.state.addAssistantMessage(NAV_MESSAGES.CANNOT_NAVIGATE_MISSING_PREREQS('Profile'));
       this.state.setLoading(false);
       return;
+    }
+
+    // Save return route for non-sequential jumps
+    if (Math.abs(targetStep - currentStep) > 1) {
+      this.saveLtcReturnRoute();
     }
 
     this.saveLtcCurrentStepAndNavigate(currentStep, targetStep);

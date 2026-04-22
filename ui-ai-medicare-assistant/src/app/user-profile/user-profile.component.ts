@@ -531,9 +531,17 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
     const formValue = { ...this.form.value } as any;
 
-    // Format dateOfBirth as yyyy-MM-dd
-    if (formValue.dateOfBirth instanceof Date) {
-      formValue.dateOfBirth = formValue.dateOfBirth.toISOString().split('T')[0];
+    // Format dateOfBirth as yyyy-MM-dd using local date parts (not UTC).
+    // Handles Date objects, ISO strings with timezone (from JSON.stringify), and plain date strings.
+    if (formValue.dateOfBirth) {
+      const raw = formValue.dateOfBirth;
+      const d = raw instanceof Date ? raw : new Date(typeof raw === 'string' && !raw.includes('T') ? raw + 'T00:00:00' : raw);
+      if (!isNaN(d.getTime())) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        formValue.dateOfBirth = `${yyyy}-${mm}-${dd}`;
+      }
     }
 
     // Extract state code from display format "StateName(XX)" → "XX"

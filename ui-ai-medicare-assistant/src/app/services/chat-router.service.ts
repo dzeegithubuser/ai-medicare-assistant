@@ -21,6 +21,7 @@ import { ChatPlanSelectionFlowService } from './chat-plan-selection-flow.service
 import { ChatNavigationFlowService } from './chat-navigation-flow.service';
 import { ChatWizardService } from './chat-wizard.service';
 import { ChatLtcCareTypeFlowService } from './chat-ltc-care-type-flow.service';
+import { LtcStateService } from '../long-term-care/ltc-state.service';
 import {
   COST_PROJECTION_IMMUTABILITY_WARNING,
   COST_PROJECTION_PROCEED_PROMPT_SUFFIX,
@@ -29,6 +30,7 @@ import {
   ANALYSIS_MESSAGES,
   APP_MESSAGES,
   DRUG_MESSAGES,
+  LTC_MESSAGES,
   PHARMACY_MESSAGES,
   PLAN_MESSAGES,
   PROFILE_MESSAGES,
@@ -69,6 +71,7 @@ export class ChatRouterService {
   private navigationFlow = inject(ChatNavigationFlowService);
   private wizard = inject(ChatWizardService);
   private ltcCareTypeFlow = inject(ChatLtcCareTypeFlowService);
+  private ltcState = inject(LtcStateService);
 
   // ── Confirmation signals ──────────────────────────────────────────────────
 
@@ -104,6 +107,14 @@ export class ChatRouterService {
           this.navigationFlow.handleLtcStepNavigation(ltcStep);
           return;
         }
+        if (this.navigationFlow.isLtcProjectionKeyword(targetedMatch[1])) {
+          this.navigationFlow.handleLtcProjectionNavigation();
+          return;
+        }
+        // Keyword is Medicare-only (drugs, pharmacies, plans, etc.) — block cross-flow
+        this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+        this.state.setLoading(false);
+        return;
       }
       const targetStep = this.navigationFlow.resolveStepKeyword(targetedMatch[1]);
       if (targetStep) {
@@ -144,11 +155,15 @@ export class ChatRouterService {
    */
   private routeProfilePageMessage(text: string, onDrugFlow?: (text: string) => void): boolean {
     const onProfilePage =
-      this.router.url.startsWith('/profile') || this.router.url.startsWith(AppRoutes.abs.PROFILE);
+      this.router.url.startsWith('/profile') ||
+      this.router.url.startsWith(AppRoutes.abs.PROFILE) ||
+      this.router.url.startsWith(AppRoutes.abs.LTC_PROFILE);
     if (!onProfilePage) return false;
 
     this.chatIntentSvc.classify(text, this.profileService.isProfileComplete(), this.router.url).subscribe({
       next: (result) => {
+        const onLtcProfile = this.router.url.startsWith(AppRoutes.abs.LTC_PROFILE);
+
         // NAVIGATE_PROFILE with actual profile field params (e.g. zipCode, gender, dateOfBirth)
         // must be handled as a profile extraction, not a navigation, because:
         //   - pendingPrefill is only consumed in UserProfileComponent.ngOnInit — it is a
@@ -168,6 +183,11 @@ export class ChatRouterService {
         //   • If extraction returns empty but no drug keyword (bare name like "metformin")
         //     → show guidance to navigate to the Drugs step instead.
         if (result.intent === 'DRUG_INPUT') {
+          if (onLtcProfile) {
+            this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+            this.state.setLoading(false);
+            return;
+          }
           this.profileEditFlow.routeToProfileExtraction(text, () => {
             if (DRUG_KEYWORD_PATTERN.test(text)) {
               this.state.pendingCrossPageDrugSearch.set(text);
@@ -183,11 +203,11 @@ export class ChatRouterService {
         // UNKNOWN on the profile page — check for out-of-context keywords before
         // sending to profile extraction (which would find nothing and reply generically).
         if (result.intent === 'UNKNOWN') {
-          if (PHARMACY_KEYWORD_PATTERN.test(text)) {
+          if (!onLtcProfile && PHARMACY_KEYWORD_PATTERN.test(text)) {
             this.navigationFlow.handleStepNavigation(3);
             return;
           }
-          if (PLAN_KEYWORD_PATTERN.test(text)) {
+          if (!onLtcProfile && PLAN_KEYWORD_PATTERN.test(text)) {
             this.navigationFlow.handleStepNavigation(4);
             return;
           }
@@ -533,6 +553,8 @@ export class ChatRouterService {
     originalText: string,
     onDrugFlow?: (text: string) => void
   ): void {
+    const onLtc = this.router.url.startsWith(AppRoutes.abs.LTC);
+
     switch (result.intent) {
 
       case 'NAVIGATE_PROFILE': {
@@ -572,11 +594,16 @@ export class ChatRouterService {
           pharmacySavedPrefix + (result.confirmationMessage || APP_MESSAGES.OPENING_PROFILE_FOR_EDIT)
         );
         this.state.setLoading(false);
-        this.router.navigate([AppRoutes.abs.PROFILE]);
+        this.router.navigate([onLtc ? AppRoutes.abs.LTC_PROFILE : AppRoutes.abs.PROFILE]);
         break;
       }
 
       case 'NAVIGATE_ANALYSIS_DRUGS': {
+        if (onLtc) {
+          this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+          this.state.setLoading(false);
+          break;
+        }
         if (!this.profileService.isProfileComplete()) {
           this.state.addAssistantMessage(PHARMACY_MESSAGES.REQUIRE_PROFILE);
           this.state.setLoading(false);
@@ -617,6 +644,11 @@ export class ChatRouterService {
       }
 
       case 'NAVIGATE_PHARMACIES': {
+        if (onLtc) {
+          this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+          this.state.setLoading(false);
+          break;
+        }
         if (!this.profileService.isProfileComplete()) {
           this.state.addAssistantMessage(PHARMACY_MESSAGES.REQUIRE_PROFILE);
           this.state.setLoading(false);
@@ -638,6 +670,11 @@ export class ChatRouterService {
       }
 
       case 'NAVIGATE_PLANS': {
+        if (onLtc) {
+          this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+          this.state.setLoading(false);
+          break;
+        }
         this.navigationFlow.navigateWithPrerequisites(result, AppRoutes.abs.PLANS, () => {
           this.state.pharmacySelectionConfirmed.set(true);
           this.recState.savePharmacySelection().subscribe({ error: () => {} });
@@ -651,12 +688,22 @@ export class ChatRouterService {
       }
 
       case 'NAVIGATE_COST_PROJECTIONS': {
+        if (onLtc) {
+          this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+          this.state.setLoading(false);
+          break;
+        }
         this.navigationFlow.navigateWithPrerequisites(result, AppRoutes.abs.COST_PROJECTIONS, undefined, true);
         break;
       }
 
       case 'SWITCH_TO_PDP':
       case 'SWITCH_TO_MA': {
+        if (onLtc) {
+          this.state.addAssistantMessage(LTC_MESSAGES.CROSS_FLOW_MEDICARE_FEATURE);
+          this.state.setLoading(false);
+          break;
+        }
         if (!this.navigationFlow.checkDrugPharmacyPrereqs()) break;
 
         const target = result.intent === 'SWITCH_TO_PDP' ? 'partd' : 'ma';
@@ -682,7 +729,13 @@ export class ChatRouterService {
 
       case 'ACTION_RESET_ANALYSIS': {
         this.state.setLoading(false);
-        this.state.resetAll();
+        if (onLtc) {
+          this.ltcState.resetAll();
+          this.state.addAssistantMessage('Long-Term Care analysis has been reset. Starting fresh.');
+          this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
+        } else {
+          this.state.resetAll();
+        }
         break;
       }
 
@@ -710,6 +763,11 @@ export class ChatRouterService {
       }
 
       case 'ACTION_HELP': {
+        if (onLtc) {
+          this.state.addAssistantMessage(LTC_MESSAGES.LTC_HELP_TEXT);
+          this.state.setLoading(false);
+          break;
+        }
         this.state.addAssistantMessage(
           `Here's what I can help you with:\n\n` +
           `**Navigate**\n` +
@@ -737,6 +795,11 @@ export class ChatRouterService {
       }
 
       case 'ACTION_RUN_ANALYSIS': {
+        if (onLtc) {
+          // Redirect to LTC projection flow instead
+          this.handleIntent({ ...result, intent: 'ACTION_RUN_LTC_PROJECTION' }, originalText, onDrugFlow);
+          break;
+        }
         if (!this.navigationFlow.checkDrugPharmacyPrereqs()) break;
         if (!this.state.hasCompletePlanSelection()) {
           this.state.addAssistantMessage(ANALYSIS_MESSAGES.RUN_BLOCKED_NEED_PLANS);
@@ -755,6 +818,20 @@ export class ChatRouterService {
       }
 
       case 'ACTION_SAVE_ANALYSIS': {
+        if (onLtc) {
+          if (!this.ltcState.ltcResult()) {
+            this.state.addAssistantMessage('No LTC projection to save. Please run a projection first.');
+            this.state.setLoading(false);
+            break;
+          }
+          const ltcName = result.params?.analysisName;
+          if (ltcName) {
+            this.ltcCareTypeFlow.saveRecommendationFromChat(ltcName);
+          } else {
+            this.openSaveLtcDialog();
+          }
+          break;
+        }
         if (!this.analysisSnapshot.canSave()) {
           this.state.addAssistantMessage(
             ANALYSIS_MESSAGES.SAVE_REQUIRED_COMPLETE
@@ -772,11 +849,23 @@ export class ChatRouterService {
       }
 
       case 'NAVIGATE_LTC_CARE_TYPE': {
+        if (!onLtc) {
+          this.state.addAssistantMessage('That command is for **Long-Term Care Analysis**. Please switch to LTC Analysis from the home page.');
+          this.state.setLoading(false);
+          break;
+        }
         if (!this.profileService.isProfileComplete()) {
           this.state.addAssistantMessage('Please complete your profile first.');
           this.state.setLoading(false);
           this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
         } else {
+          // Save profile before navigating (same as footer "Continue to Care Type")
+          if (this.router.url.startsWith(AppRoutes.abs.LTC_PROFILE)) {
+            this.profileService.requestSaveFromChat();
+          }
+          this.navigationFlow.saveLtcReturnRoute();
+          this.ltcState.currentStep.set(2);
+          this.ltcState.careTypeVisited.set(true);
           this.state.addAssistantMessage(result.confirmationMessage || 'Taking you to the care type step.');
           this.state.setLoading(false);
           this.router.navigate([AppRoutes.abs.LTC_CARE_TYPE]);
@@ -785,11 +874,21 @@ export class ChatRouterService {
       }
 
       case 'LTC_CARE_INPUT': {
+        if (!onLtc) {
+          this.state.addAssistantMessage('That command is for **Long-Term Care Analysis**. Please switch to LTC Analysis from the home page.');
+          this.state.setLoading(false);
+          break;
+        }
         this.ltcCareTypeFlow.handleCareTypeInput(result.params, result.confirmationMessage);
         break;
       }
 
       case 'ACTION_RUN_LTC_PROJECTION': {
+        if (!onLtc) {
+          this.state.addAssistantMessage('That command is for **Long-Term Care Analysis**. Please switch to LTC Analysis from the home page.');
+          this.state.setLoading(false);
+          break;
+        }
         const nameDialogRef = this.dialog.open(SavePrescriptionDialogComponent, {
           width: '420px',
           data: {
@@ -899,6 +998,27 @@ export class ChatRouterService {
           this.state.setLoading(false);
         }
       },
+    });
+  }
+
+  private openSaveLtcDialog(): void {
+    this.state.setLoading(false);
+    const dialogRef = this.dialog.open(SavePrescriptionDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Save LTC Analysis',
+        subtitle: 'Enter a name for this long-term care analysis.',
+        icon: 'elderly',
+        defaultName: `LTC Analysis – ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((name: string | undefined) => {
+      if (name?.trim()) {
+        this.ltcCareTypeFlow.saveRecommendationFromChat(name.trim());
+      } else {
+        this.state.addAssistantMessage(APP_MESSAGES.SAVE_CANCELLED);
+      }
     });
   }
 

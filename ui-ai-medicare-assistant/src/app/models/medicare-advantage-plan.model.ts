@@ -37,6 +37,7 @@ export interface MedicareAdvantagePlanRequest {
   contractIdFilter: string | null;
   mailOrderPharmacy: boolean;
   medicareAdvantage: true;
+  retirementYear: number | null;
 }
 
 export type MedicareAdvantagePlanResponse = PartDPlanRecommendationResponse;

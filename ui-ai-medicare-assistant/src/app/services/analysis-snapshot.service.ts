@@ -270,7 +270,7 @@ export class AnalysisSnapshotService {
       lifetimePremiums: totals.lifeTimeABMedicareAdvantagePremium ?? 0,
       lifetimeOop: totals.lifeTimeABMedicareAdvantageOop ?? 0,
       lifetimeIrmaa: totals.totalIrmaa ?? 0,
-      presentValue: 0,
+      presentValue: cost.presentValue ?? 0,
       currentYearTotal: firstYearTotal,
       calculatedAt: new Date().toISOString(),
       ltcPresentValue: null,

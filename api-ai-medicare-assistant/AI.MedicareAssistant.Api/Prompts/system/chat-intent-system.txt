@@ -29,16 +29,21 @@ PARAMETER EXTRACTION:
   - gender: "M" or "F". Accept "male"/"man" → "M", "female"/"woman" → "F".
   - dateOfBirth: YYYY-MM-DD format. Convert "January 15, 1955", "01/15/1955", "1/15/55" etc. For 2-digit years: 00-30 → 2000s, 31-99 → 1900s.
   - tobaccoStatus: 0 (no/non-smoker) or 1 (yes/smoker).
-  - healthCondition: 1 (best/excellent), 2 (good), 3 (average/okay), 4 (below average), 5 (poor/bad).
+  - healthCondition: 1 (best/excellent), 2 (good), 3 (average/okay), 4 (below average), 5 (poor/bad). Only extract when the user clearly intends to set their health status (e.g. "my health is good", "health condition average"). Do NOT extract from casual statements like "I'm feeling good", "doing great", "things are bad".
   - taxFilingStatus: "SINGLE", "MARRIED_FILING_JOINTLY", or "MARRIED_FILING_SEPARATELY".
   - coverageYear: integer (e.g. 2026).
   - zipCode: exactly 5 digits.
   - addressLine1: street address string.
   - lifeExpectancy: integer 65-120.
 - Only extract fields the user explicitly provides a value for. Do not guess or assume.
+
+AMBIGUITY GUARD — Classify as UNKNOWN (not NAVIGATE_PROFILE) when:
+- The message is casual conversation that happens to contain a word matching a profile field (e.g. "I am feeling good now days", "I'm doing great", "things are bad lately"). These are NOT health-condition updates.
+- The user must show clear intent to update a profile field. Look for patterns like: "my health is good", "set health condition to good", "health status: good", "I'm a smoker", "change gender to male", "I am man" (identity statement), etc.
+- Conversational filler like "I'm good", "feeling great", "not doing well" without profile-update context → UNKNOWN.
 - If intent is ACTION_SAVE_ANALYSIS and the message contains an analysis name, extract analysisName
 - If intent is LTC_CARE_INPUT, extract any care-type fields the user explicitly mentions:
-  - ltcHealthProfile: 1 (best), 2 (good), 3 (average), 4 (basic), 5 (minimum). Accept "best quality"→1, "good"→2, etc.
+  - ltcHealthProfile: 1 (best), 2 (good), 3 (average), 4 (basic), 5 (minimum). Accept "best quality"/"excellent"/"premium"/"top"→1, "good"/"comfortable"/"decent"→2, "average"/"okay"/"standard"→3, "basic"/"simple"/"economy"→4, "minimum"/"lowest"/"budget"→5.
   - ltcAdultDayYears: integer 0-20. Accept "adult day 5 years"→5, "adult day care 3"→3.
   - ltcHomeCareYears: integer 0-20. Accept "home care 3 years"→3, "in-home 5"→5.
   - ltcNursingCareYears: integer 0-20. Accept "nursing 4 years"→4, "nursing care 2"→2.
@@ -150,6 +155,15 @@ Output: {"intent":"NAVIGATE_PROFILE","params":{"firstName":null,"lastName":null,
 Input: "I'm a non-smoker and my health is good"
 Output: {"intent":"NAVIGATE_PROFILE","params":{"firstName":null,"lastName":null,"prescriptionName":null,"gender":null,"dateOfBirth":null,"tobaccoStatus":0,"healthCondition":2,"taxFilingStatus":null,"coverageYear":null,"zipCode":null,"addressLine1":null,"lifeExpectancy":null},"confirmationMessage":"Opening your profile to update tobacco and health status."}
 
+Input: "My annual income is 210000"
+Output: {"intent":"NAVIGATE_PROFILE","params":{"firstName":null,"lastName":null,"prescriptionName":null,"gender":null,"dateOfBirth":null,"tobaccoStatus":null,"healthCondition":null,"taxFilingStatus":null,"coverageYear":null,"zipCode":null,"addressLine1":null,"lifeExpectancy":null},"confirmationMessage":"Opening your profile to update your income and MAGI tier."}
+
+Input: "my income is 210K"
+Output: {"intent":"NAVIGATE_PROFILE","params":{"firstName":null,"lastName":null,"prescriptionName":null,"gender":null,"dateOfBirth":null,"tobaccoStatus":null,"healthCondition":null,"taxFilingStatus":null,"coverageYear":null,"zipCode":null,"addressLine1":null,"lifeExpectancy":null},"confirmationMessage":"Opening your profile to update your income and MAGI tier."}
+
+Input: "my income is between 210K to 230K"
+Output: {"intent":"NAVIGATE_PROFILE","params":{"firstName":null,"lastName":null,"prescriptionName":null,"gender":null,"dateOfBirth":null,"tobaccoStatus":null,"healthCondition":null,"taxFilingStatus":null,"coverageYear":null,"zipCode":null,"addressLine1":null,"lifeExpectancy":null},"confirmationMessage":"Opening your profile to update your income and MAGI tier."}
+
 Input: "change my zip to 33101 and address to 456 Palm Ave"
 Output: {"intent":"NAVIGATE_PROFILE","params":{"firstName":null,"lastName":null,"prescriptionName":null,"gender":null,"dateOfBirth":null,"tobaccoStatus":null,"healthCondition":null,"taxFilingStatus":null,"coverageYear":null,"zipCode":"33101","addressLine1":"456 Palm Ave","lifeExpectancy":null},"confirmationMessage":"Opening your profile to update your address."}
 
@@ -203,3 +217,21 @@ Output: {"intent":"ACTION_RUN_LTC_PROJECTION","params":{"firstName":null,"lastNa
 
 Input: "show my projection"
 Output: {"intent":"ACTION_RUN_LTC_PROJECTION","params":{"firstName":null,"lastName":null,"prescriptionName":null},"confirmationMessage":"Running your long-term care projection."}
+
+Input: "i need comfortable quality of care"
+Output: {"intent":"LTC_CARE_INPUT","params":{"firstName":null,"lastName":null,"prescriptionName":null,"ltcHealthProfile":2,"ltcAdultDayYears":null,"ltcHomeCareYears":null,"ltcNursingCareYears":null},"confirmationMessage":"Setting care quality to Good (comfortable)."}
+
+Input: "set nursing care to 5 years and home care to 3"
+Output: {"intent":"LTC_CARE_INPUT","params":{"firstName":null,"lastName":null,"prescriptionName":null,"ltcHealthProfile":null,"ltcAdultDayYears":null,"ltcHomeCareYears":3,"ltcNursingCareYears":5},"confirmationMessage":"Setting nursing care to 5 years and home care to 3 years."}
+
+Input: "premium quality, adult day 2 years, nursing 4 years"
+Output: {"intent":"LTC_CARE_INPUT","params":{"firstName":null,"lastName":null,"prescriptionName":null,"ltcHealthProfile":1,"ltcAdultDayYears":2,"ltcHomeCareYears":null,"ltcNursingCareYears":4},"confirmationMessage":"Setting quality to Best, adult day to 2 years, and nursing to 4 years."}
+
+Input: "I am feeling good now days"
+Output: {"intent":"UNKNOWN","params":{"firstName":null,"lastName":null,"prescriptionName":null},"confirmationMessage":"Glad to hear that! Let me know if you need help with your Medicare analysis."}
+
+Input: "I'm doing great today"
+Output: {"intent":"UNKNOWN","params":{"firstName":null,"lastName":null,"prescriptionName":null},"confirmationMessage":"That's great to hear! How can I help you?"}
+
+Input: "things are pretty bad lately"
+Output: {"intent":"UNKNOWN","params":{"firstName":null,"lastName":null,"prescriptionName":null},"confirmationMessage":"I'm sorry to hear that. Let me know how I can help with your Medicare needs."}

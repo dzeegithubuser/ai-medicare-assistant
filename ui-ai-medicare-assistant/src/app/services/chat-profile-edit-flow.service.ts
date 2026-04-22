@@ -88,7 +88,7 @@ export class ChatProfileEditFlowService {
    */
   routeToProfileExtraction(text: string, onEmptyExtraction?: () => void): boolean {
     const url = this.router.url;
-    if (!(url.startsWith('/profile') || url.startsWith(AppRoutes.abs.PROFILE))) return false;
+    if (!(url.startsWith('/profile') || url.startsWith(AppRoutes.abs.PROFILE) || url.startsWith(AppRoutes.abs.LTC_PROFILE))) return false;
 
     const missingFields = this.profileService.isProfileComplete()
       ? []
@@ -124,6 +124,50 @@ export class ChatProfileEditFlowService {
           }
 
           const rawMagi = extracted['magiTier'];
+          const rawIncome = extracted['annualIncome'];
+
+          // ── Income → MAGI tier resolution ──────────────────────────────
+          if (rawIncome !== undefined && rawIncome !== null && !rawMagi) {
+            const income = Number(rawIncome);
+            if (!isNaN(income) && income > 0) {
+              const profile = this.profileService.profile()?.profile;
+              const filingStatus = String(extracted['taxFilingStatus'] ?? profile?.taxFilingStatus ?? '').trim();
+              const coverageYear = Number(extracted['coverageYear'] ?? profile?.coverageYear ?? 0);
+              delete extracted['annualIncome'];
+
+              if (filingStatus && coverageYear > 0) {
+                this.pendingProfileUpdate.set(extracted);
+                this.countyLookup.getMagiTiers(filingStatus, coverageYear).subscribe({
+                  next: (tiers) => {
+                    const matchedTier = this.findTierByIncome(income, tiers);
+                    if (matchedTier) {
+                      const next = { ...(this.pendingProfileUpdate() ?? {}) };
+                      next['magiTier'] = matchedTier;
+                      this.pendingProfileUpdate.set(next);
+                      this.applyExtractedProfileUpdate(this.pendingProfileUpdate() ?? extracted);
+                    } else if (tiers.length > 0) {
+                      this.pendingMagiTierChoices.set(tiers);
+                      this.state.addAssistantMessage(
+                        `Your income of $${income.toLocaleString()} doesn't fall neatly into a single MAGI tier. Please choose the correct tier from the list below.`
+                      );
+                    } else {
+                      this.applyExtractedProfileUpdate(this.pendingProfileUpdate() ?? extracted);
+                    }
+                  },
+                  error: () => this.applyExtractedProfileUpdate(this.pendingProfileUpdate() ?? extracted),
+                });
+                return;
+              } else {
+                this.state.addAssistantMessage(
+                  'I need your tax filing status to determine the correct MAGI tier from your income. Please provide your filing status (single, married filing jointly, or married filing separately).'
+                );
+                this.pendingProfileUpdate.set(extracted);
+                return;
+              }
+            }
+          }
+
+          // ── Direct MAGI tier resolution ────────────────────────────────
           if (rawMagi !== undefined && rawMagi !== null && String(rawMagi).trim() !== '') {
             const profile = this.profileService.profile()?.profile;
             const filingStatus = String(extracted['taxFilingStatus'] ?? profile?.taxFilingStatus ?? '').trim();
@@ -202,8 +246,11 @@ export class ChatProfileEditFlowService {
     this.pendingMagiTierChoices.set([]);
     this.profileService.pendingChatProfileData.set(extracted);
     const fields = Object.entries(extracted).map(([k, v]) => `- **${k}**: ${v}`).join('\n');
+    const suffix = this.router.url.startsWith(AppRoutes.abs.LTC_PROFILE)
+      ? 'Review on the left, then click **Continue to Care Type** in the footer to save and proceed.'
+      : PROFILE_MESSAGES.UPDATED_FIELDS_SUFFIX;
     this.state.addAssistantMessage(
-      `${PROFILE_MESSAGES.UPDATED_FIELDS_PREFIX}\n\n${fields}\n\n${PROFILE_MESSAGES.UPDATED_FIELDS_SUFFIX}`
+      `${PROFILE_MESSAGES.UPDATED_FIELDS_PREFIX}\n\n${fields}\n\n${suffix}`
     );
     this.hasUnsavedProfileChanges.set(true);
   }
@@ -254,5 +301,57 @@ export class ChatProfileEditFlowService {
       return label.includes(rawLower) || rawLower.includes(label);
     });
     return byLabelContains ? String(byLabelContains.value) : null;
+  }
+
+  /**
+   * Parse a tier label like "$ 103K to $ 129K" or "$ 500K +" into [min, max] in dollars.
+   * Returns null if the label cannot be parsed.
+   */
+  private parseTierRange(label: string): { min: number; max: number } | null {
+    // Normalize: remove $ signs, commas, extra spaces
+    const cleaned = label.replace(/\$/g, '').replace(/,/g, '').trim();
+    // Match patterns like "103K to 129K", "103k to 129k", "500K +", "500K and above"
+    const rangeMatch = cleaned.match(/([\d.]+)\s*([KkMm])?\s*(?:to|-)\s*([\d.]+)\s*([KkMm])?/);
+    if (rangeMatch) {
+      const min = this.parseIncomeValue(rangeMatch[1], rangeMatch[2]);
+      const max = this.parseIncomeValue(rangeMatch[3], rangeMatch[4]);
+      return (min !== null && max !== null) ? { min, max } : null;
+    }
+    // Open-ended upper tier: "500K +" or "500K and above"
+    const openMatch = cleaned.match(/([\d.]+)\s*([KkMm])?\s*(\+|and above|or more|above)/i);
+    if (openMatch) {
+      const min = this.parseIncomeValue(openMatch[1], openMatch[2]);
+      return min !== null ? { min, max: Infinity } : null;
+    }
+    // Open-ended lower tier: "Less than 103K" or "Under 103K"
+    const lowerMatch = cleaned.match(/(?:less than|under|below)\s*([\d.]+)\s*([KkMm])?/i);
+    if (lowerMatch) {
+      const max = this.parseIncomeValue(lowerMatch[1], lowerMatch[2]);
+      return max !== null ? { min: 0, max } : null;
+    }
+    return null;
+  }
+
+  private parseIncomeValue(numStr: string, suffix?: string): number | null {
+    const num = parseFloat(numStr);
+    if (isNaN(num)) return null;
+    const upper = (suffix ?? '').toUpperCase();
+    if (upper === 'K') return num * 1000;
+    if (upper === 'M') return num * 1000000;
+    return num;
+  }
+
+  /**
+   * Find the MAGI tier whose income range contains the given income.
+   * Returns the tier value as a string, or null if no match.
+   */
+  private findTierByIncome(income: number, tiers: LabelValuePair[]): string | null {
+    for (const tier of tiers) {
+      const range = this.parseTierRange(tier.label);
+      if (range && income >= range.min && income <= range.max) {
+        return String(tier.value);
+      }
+    }
+    return null;
   }
 }
