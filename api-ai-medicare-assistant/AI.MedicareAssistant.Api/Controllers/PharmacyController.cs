@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Services;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Models.Pharmacy;
 
@@ -14,17 +15,25 @@ public class PharmacyController : ControllerBase
 {
     private readonly IPharmacyLookupService _pharmacyLookupService;
     private readonly ProfileService _profileService;
+    private readonly ILogger<PharmacyController> _logger;
 
     public PharmacyController(
         IPharmacyLookupService pharmacyLookupService,
-        ProfileService profileService)
+        ProfileService profileService,
+        ILogger<PharmacyController> logger)
     {
         _pharmacyLookupService = pharmacyLookupService;
         _profileService = profileService;
+        _logger = logger;
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (claim is null || !Guid.TryParse(claim, out var userId))
+            throw new UnauthorizedException("User identity claim is missing or invalid.");
+        return userId;
+    }
 
     /// <summary>
     /// Lookup pharmacies near the user's location via Financial Planner API.

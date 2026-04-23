@@ -1,6 +1,7 @@
 using Domain.Documents;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
 namespace Infrastructure.Repositories;
@@ -8,10 +9,12 @@ namespace Infrastructure.Repositories;
 public class RecommendationRepository : IRecommendationRepository
 {
     private readonly MongoDbContext _context;
+    private readonly ILogger<RecommendationRepository> _logger;
 
-    public RecommendationRepository(MongoDbContext context)
+    public RecommendationRepository(MongoDbContext context, ILogger<RecommendationRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<RecommendationDocument?> GetByUserIdAsync(Guid userId)

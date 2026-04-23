@@ -49,7 +49,7 @@ export class AnalysisSnapshotService {
       name,
       profile: this.buildProfile(name),
       drugs: this.buildDrugs(),
-      pharmacy: this.buildPharmacy(),
+      pharmacies: this.buildPharmacies(),
       plans: this.buildPlans(),
       costSnapshot: this.buildCostSnapshot(),
     };
@@ -112,11 +112,9 @@ export class AnalysisSnapshotService {
       });
   }
 
-  private buildPharmacy(): SelectedPharmacyDto | null {
+  private buildPharmacies(): SelectedPharmacyDto[] {
     const pharmacies = this.state.selectedLookupPharmacies();
-    if (pharmacies.length === 0) return null;
-    const p = pharmacies[0];
-    return {
+    return pharmacies.map(p => ({
       npi: String(p.pharmacyNumber),
       name: p.pharmacyName,
       address: p.address ?? '',
@@ -126,7 +124,7 @@ export class AnalysisSnapshotService {
       phone: '',
       pharmacyType: 'RETAIL',
       distance: p.distance ? parseFloat(String(p.distance)) : null,
-    };
+    }));
   }
 
   private buildPlans(): SelectedPlanDto[] {

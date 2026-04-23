@@ -910,7 +910,7 @@ export class PlanRecommendationComponent implements OnInit {
       prescriptionCoverageFilter: null,
       contractIdFilter: null,
       mailOrderPharmacy: false,
-      retirementYear: retirementYear
+      retirementYear,
     };
   }
 

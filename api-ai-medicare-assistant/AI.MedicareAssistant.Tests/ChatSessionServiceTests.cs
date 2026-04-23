@@ -2,6 +2,7 @@ using Application.DTOs;
 using Application.Services;
 using Domain.Documents;
 using Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace AI.MedicareAssistant.Tests;
@@ -17,7 +18,7 @@ public class ChatSessionServiceTests
     public ChatSessionServiceTests()
     {
         _repoMock = new Mock<IChatSessionRepository>();
-        _sut = new ChatSessionService(_repoMock.Object);
+        _sut = new ChatSessionService(_repoMock.Object, Mock.Of<ILogger<ChatSessionService>>());
     }
 
     // ═══════ GetOrCreateAsync ═══════

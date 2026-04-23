@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, input, computed } from '@angular/co
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { RecommendationResponse } from '../../../models/recommendation.model';
-import { buildProfileRows } from '../compare-helpers';
+import { buildProfileRows, LABEL_A, LABEL_B } from '../compare-helpers';
 
 @Component({
   selector: 'app-compare-tab-profile',
@@ -14,6 +14,9 @@ import { buildProfileRows } from '../compare-helpers';
 export class TabProfileComponent {
   readonly left = input.required<RecommendationResponse>();
   readonly right = input.required<RecommendationResponse>();
+
+  readonly labelA = LABEL_A;
+  readonly labelB = LABEL_B;
 
   readonly profileRows = computed(() =>
     buildProfileRows(this.left().profile, this.right().profile));

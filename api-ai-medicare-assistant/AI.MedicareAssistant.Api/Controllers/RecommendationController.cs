@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Application.DTOs;
 using Application.Services;
 using Domain.Documents;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +14,21 @@ namespace AI.MedicareAssistant.Api.Controllers;
 public class RecommendationController : ControllerBase
 {
     private readonly RecommendationService _service;
+    private readonly ILogger<RecommendationController> _logger;
 
-    public RecommendationController(RecommendationService service)
+    public RecommendationController(RecommendationService service, ILogger<RecommendationController> logger)
     {
         _service = service;
+        _logger = logger;
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (claim is null || !Guid.TryParse(claim, out var userId))
+            throw new UnauthorizedException("User identity claim is missing or invalid.");
+        return userId;
+    }
 
     [HttpGet]
     public async Task<IActionResult> Get()
@@ -80,7 +88,7 @@ public class RecommendationController : ControllerBase
             Type = request.Type,
             Profile = MapToProfileSnapshot(request.Profile),
             DrugList = request.Drugs.Select(MapToDrugDoc).ToList(),
-            Pharmacy = request.Pharmacy is not null ? MapToPharmacyDoc(request.Pharmacy) : null,
+            Pharmacies = request.Pharmacies.Select(MapToPharmacyDoc).ToList(),
             PlanSelections = request.Plans.Select(MapToPlanDoc).ToList(),
             LastCostSnapshot = request.CostSnapshot is not null ? MapToCostSnapshotDoc(request.CostSnapshot) : null,
             LtcSnapshot = request.LtcSnapshot is not null ? MapToLtcSnapshotDoc(request.LtcSnapshot) : null
@@ -109,9 +117,9 @@ public class RecommendationController : ControllerBase
     [HttpPut("pharmacy")]
     public async Task<IActionResult> UpdatePharmacy([FromBody] UpdatePharmacyRequest request)
     {
-        var pharmacy = request.Pharmacy is not null ? MapToPharmacyDoc(request.Pharmacy) : null;
+        var pharmacies = request.Pharmacies.Select(MapToPharmacyDoc).ToList();
         var mailOrder = request.MailOrderPharmacy is not null ? MapToMailOrderDoc(request.MailOrderPharmacy) : null;
-        var updated = await _service.UpdatePharmacyAsync(GetUserId(), pharmacy, mailOrder);
+        var updated = await _service.UpdatePharmacyAsync(GetUserId(), pharmacies, mailOrder);
         return Ok(MapToResponse(updated));
     }
 
@@ -144,7 +152,7 @@ public class RecommendationController : ControllerBase
         Profile = MapToProfileDto(doc.Profile),
         PlanSelections = doc.PlanSelections.Select(MapToPlanDto).ToList(),
         DrugList = doc.DrugList.Select(MapToDrugDto).ToList(),
-        Pharmacy = doc.Pharmacy is not null ? MapToPharmacyDto(doc.Pharmacy) : null,
+        Pharmacies = doc.Pharmacies.Select(MapToPharmacyDto).ToList(),
         MailOrderPharmacy = doc.MailOrderPharmacy is not null ? MapToMailOrderDto(doc.MailOrderPharmacy) : null,
         LastCostSnapshot = doc.LastCostSnapshot is not null ? MapToCostSnapshotDto(doc.LastCostSnapshot) : null,
         LtcSnapshot = doc.LtcSnapshot is not null ? MapToLtcSnapshotDto(doc.LtcSnapshot) : null,

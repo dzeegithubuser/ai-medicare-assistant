@@ -58,7 +58,14 @@ public class IndividualMedicareService : IIndividualMedicareService
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("[FP individualMedicareR5] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "individualMedicareR5 failed with status {StatusCode} for email={Email}, planBundle={Bundle}. Response: {Body}",
+                (int)response.StatusCode, request.UserEmail, request.PlanBundleCode, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<IndividualMedicareResponse>(responseBody, JsonOptions);
 

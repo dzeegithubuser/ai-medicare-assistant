@@ -1,13 +1,27 @@
 
+using Microsoft.Extensions.Logging;
+
 namespace Infrastructure.AI;
 
 public class PromptBuilder
 {
     private readonly string _basePath="Prompts";
+    private readonly ILogger<PromptBuilder> _logger;
+
+    public PromptBuilder(ILogger<PromptBuilder> logger)
+    {
+        _logger = logger;
+    }
 
     private string Load(string p)
     {
-        return File.ReadAllText(Path.Combine(_basePath,p));
+        var fullPath = Path.Combine(_basePath, p);
+        if (!File.Exists(fullPath))
+        {
+            _logger.LogError("Prompt file not found: {Path}", fullPath);
+            throw new FileNotFoundException($"Prompt file not found: {fullPath}", fullPath);
+        }
+        return File.ReadAllText(fullPath);
     }
 
     public (string system,string user) Build(string prescription)

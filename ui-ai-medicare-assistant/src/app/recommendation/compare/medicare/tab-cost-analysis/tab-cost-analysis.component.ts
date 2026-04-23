@@ -8,7 +8,11 @@ import { MatCardModule } from '@angular/material/card';
 import {
   RecommendationResponse, YearlyDetailDto,
 } from '../../../../models/recommendation.model';
-import { deltaClass } from '../../compare-helpers';
+import {
+  deltaClass, LABEL_A, LABEL_B,
+  CHART_COLOR_A, CHART_COLOR_A_BG, CHART_COLOR_A_FILL,
+  CHART_COLOR_B, CHART_COLOR_B_BG, CHART_COLOR_B_FILL,
+} from '../../compare-helpers';
 import {
   Chart, ChartConfiguration,
   LineController, BarController, LineElement, BarElement, PointElement,
@@ -32,6 +36,9 @@ export class TabCostAnalysisComponent implements OnInit, OnDestroy {
 
   readonly left = input.required<RecommendationResponse>();
   readonly right = input.required<RecommendationResponse>();
+
+  readonly labelA = LABEL_A;
+  readonly labelB = LABEL_B;
 
   readonly costLineChart = viewChild<ElementRef<HTMLCanvasElement>>('costLineChart');
   readonly costBarChart = viewChild<ElementRef<HTMLCanvasElement>>('costBarChart');
@@ -100,13 +107,13 @@ export class TabCostAnalysisComponent implements OnInit, OnDestroy {
         labels,
         datasets: [
           {
-            label: this.left().name, data: allYears.map(y => lMap.get(y) ?? 0),
-            borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.08)',
+            label: LABEL_A, data: allYears.map(y => lMap.get(y) ?? 0),
+            borderColor: CHART_COLOR_A, backgroundColor: CHART_COLOR_A_BG,
             fill: true, tension: 0.3, pointRadius: 3,
           },
           {
-            label: this.right().name, data: allYears.map(y => rMap.get(y) ?? 0),
-            borderColor: '#0891b2', backgroundColor: 'rgba(8, 145, 178, 0.08)',
+            label: LABEL_B, data: allYears.map(y => rMap.get(y) ?? 0),
+            borderColor: CHART_COLOR_B, backgroundColor: CHART_COLOR_B_BG,
             fill: true, tension: 0.3, pointRadius: 3,
           },
         ],
@@ -139,14 +146,14 @@ export class TabCostAnalysisComponent implements OnInit, OnDestroy {
         labels: ['Premiums', 'Out-of-Pocket', 'IRMAA', 'Total'],
         datasets: [
           {
-            label: this.left().name,
+            label: LABEL_A,
             data: [lSnap?.lifetimePremiums ?? 0, lSnap?.lifetimeOop ?? 0, lSnap?.lifetimeIrmaa ?? 0, lSnap?.lifetimeTotal ?? 0],
-            backgroundColor: 'rgba(79, 70, 229, 0.7)', borderRadius: 4,
+            backgroundColor: CHART_COLOR_A_FILL, borderRadius: 4,
           },
           {
-            label: this.right().name,
+            label: LABEL_B,
             data: [rSnap?.lifetimePremiums ?? 0, rSnap?.lifetimeOop ?? 0, rSnap?.lifetimeIrmaa ?? 0, rSnap?.lifetimeTotal ?? 0],
-            backgroundColor: 'rgba(8, 145, 178, 0.7)', borderRadius: 4,
+            backgroundColor: CHART_COLOR_B_FILL, borderRadius: 4,
           },
         ],
       },

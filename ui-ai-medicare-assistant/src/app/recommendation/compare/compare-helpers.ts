@@ -1,5 +1,17 @@
 import { ProfileSnapshotDto, RecommendationCategory } from '../../models/recommendation.model';
 
+/** Aliases used across all comparison views instead of raw recommendation names */
+export const LABEL_A = 'Illustration A';
+export const LABEL_B = 'Illustration B';
+
+/** Accessible color palette — high-contrast shades for elderly readability */
+export const CHART_COLOR_A = '#c2410c';          // orange-700
+export const CHART_COLOR_A_BG = 'rgba(234, 88, 12, 0.08)';
+export const CHART_COLOR_A_FILL = 'rgba(234, 88, 12, 0.7)';
+export const CHART_COLOR_B = '#15803d';           // green-700
+export const CHART_COLOR_B_BG = 'rgba(22, 163, 74, 0.08)';
+export const CHART_COLOR_B_FILL = 'rgba(22, 163, 74, 0.7)';
+
 export function deltaClass(left: number, right: number): string {
   if (left === right) return 'text-gray-600';
   return left < right ? 'text-green-700' : 'text-red-700';

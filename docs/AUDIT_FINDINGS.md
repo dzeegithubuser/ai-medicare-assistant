@@ -71,9 +71,9 @@
   - File: `AI.MedicareAssistant.Application/Services/ChatSessionService.cs`
   - Fix: Validate `Role` against an allowed list (`"user"`, `"assistant"`).
 
-- [ ] **15. DrugAiService — no error handling around AI calls** — No retry, no null-check on `response.Text`.
+- [x] **15. DrugAiService — no error handling around AI calls** — ~~No retry, no null-check on `response.Text`.~~ RESOLVED: All 3 AI services (`DrugAiService`, `CostEvaluationAiService`, `LtcEvaluationAiService`) wrapped in try/catch with `LogError` and graceful fallback returns. Frontend now shows a global error popup dialog for any API failure via `httpErrorInterceptor` → `ErrorNotificationService` → `ErrorDialogComponent`.
   - File: `AI.MedicareAssistant.Infrastructure/AI/DrugAiService.cs`
-  - Fix: Wrap in try/catch with retry (Polly), null-check response.
+  - Fix: ~~Wrap in try/catch with retry (Polly), null-check response.~~
 
 - [ ] **16. AnthropicMeaiChatClient leaks raw API error text** — Exception messages contain full API response (information disclosure).
   - File: `AI.MedicareAssistant.Infrastructure/Anthropic/AnthropicMeaiChatClient.cs`
@@ -83,9 +83,9 @@
   - File: `ui-ai-medicare-assistant/src/app/services/chat-signal-r.service.ts`
   - Fix: Log errors, show user feedback on persistent failures.
 
-- [ ] **18. GetUserId() across all controllers — unhandled exceptions** — `Guid.Parse` with `!` null-forgiving on potentially missing claim.
+- [x] **18. GetUserId() across all controllers — unhandled exceptions** — ~~`Guid.Parse` with `!` null-forgiving on potentially missing claim.~~ RESOLVED: All 7 controllers now use safe `Guid.TryParse` with `UnauthorizedException` (returns 401). Private `GetUserId()` helper in each controller.
   - Files: All controllers
-  - Fix: Use `Guid.TryParse`, return 400 on failure. Create a shared base controller method.
+  - Fix: ~~Use `Guid.TryParse`, return 400 on failure. Create a shared base controller method.~~
 
 - [ ] **19. CancellationToken not forwarded to AI services** — Disconnected users still pay for AI tokens.
   - File: `AI.MedicareAssistant.Infrastructure/AI/DrugAiService.cs`

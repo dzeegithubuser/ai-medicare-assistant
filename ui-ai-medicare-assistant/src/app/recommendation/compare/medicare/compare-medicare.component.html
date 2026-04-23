@@ -1,6 +1,8 @@
 @let l = left();
 @let r = right();
 
+<app-compare-medicare-metrics [left]="l" [right]="r" />
+
 <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="200ms">
 
   <!-- Tab: Overview -->
@@ -19,20 +21,12 @@
     <app-compare-tab-profile [left]="l" [right]="r" />
   </mat-tab>
 
-  <!-- Tab: Prescriptions -->
+  <!-- Tab: Rx, Pharmacy & Plans -->
   <mat-tab>
     <ng-template mat-tab-label>
-      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">medication</mat-icon> Prescriptions</span>
+      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">local_pharmacy</mat-icon> Rx, Pharmacy & Plans</span>
     </ng-template>
-    <app-compare-tab-prescriptions [left]="l" [right]="r" />
-  </mat-tab>
-
-  <!-- Tab: Plans & Pharmacy -->
-  <mat-tab>
-    <ng-template mat-tab-label>
-      <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">local_pharmacy</mat-icon> Plans & Pharmacy</span>
-    </ng-template>
-    <app-compare-tab-plans-pharmacy [left]="l" [right]="r" />
+    <app-compare-tab-rx-pharmacy-plans [left]="l" [right]="r" />
   </mat-tab>
 
   <!-- Tab: Cost Analysis (lazy-loaded) -->

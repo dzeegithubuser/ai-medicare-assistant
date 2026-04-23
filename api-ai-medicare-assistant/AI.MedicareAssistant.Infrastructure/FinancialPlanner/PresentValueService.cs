@@ -55,7 +55,13 @@ public class PresentValueService : IPresentValueService
         _logger.LogDebug("[FP expensesPresentValue] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "expensesPresentValue failed with status {StatusCode} for fromYear={From}, toYear={To}. Response: {Body}",
+                (int)response.StatusCode, request.FromYear, request.ToYear, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<PresentValueResponse>(responseBody, JsonOptions);
 

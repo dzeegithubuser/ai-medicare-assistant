@@ -1,16 +1,19 @@
 using Application.DTOs;
 using Domain.Documents;
 using Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
 public class ChatSessionService
 {
     private readonly IChatSessionRepository _repo;
+    private readonly ILogger<ChatSessionService> _logger;
 
-    public ChatSessionService(IChatSessionRepository repo)
+    public ChatSessionService(IChatSessionRepository repo, ILogger<ChatSessionService> logger)
     {
         _repo = repo;
+        _logger = logger;
     }
 
     public async Task<ChatSessionResponse> GetOrCreateAsync(Guid userId)
@@ -18,6 +21,7 @@ public class ChatSessionService
         var doc = await _repo.GetByUserIdAsync(userId);
         if (doc is null)
         {
+            _logger.LogInformation("Creating new chat session for user {UserId}", userId);
             doc = new ChatSessionDocument
             {
                 UserId = userId,
@@ -58,6 +62,7 @@ public class ChatSessionService
 
     public async Task<ChatSessionResponse> StartNewSessionAsync(Guid userId)
     {
+        _logger.LogInformation("Starting new session for user {UserId}", userId);
         var doc = await _repo.GetByUserIdAsync(userId) ?? new ChatSessionDocument { UserId = userId };
 
         if (doc.Messages.Count > 0 || doc.UiState.EditMode)
@@ -88,6 +93,7 @@ public class ChatSessionService
 
     public async Task ClearAsync(Guid userId)
     {
+        _logger.LogInformation("Clearing chat session for user {UserId}", userId);
         await _repo.DeleteByUserIdAsync(userId);
     }
 

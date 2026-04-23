@@ -16,16 +16,15 @@ The codebase follows **Clean Architecture** on the backend (.NET 10) and **signa
 
 | #  | Chapter | Description | File |
 |----|---------|-------------|------|
-| 1  | [Overview](ch01-overview.md) | Purpose, tech stack, and high-level architecture diagram | `ch01-overview.md` |
-| 2  | [Frontend Architecture](ch02-frontend-architecture.md) | Component tree, components, services, guards, models, styling, and UI flow | `ch02-frontend-architecture.md` |
-| 3  | [Prompt Architecture](ch03-prompt-architecture.md) | File-based prompt system for AI interactions | `ch03-prompt-architecture.md` |
-| 4  | [Backend Architecture](ch04-backend-architecture.md) | API, Domain, Application, and Infrastructure layers | `ch04-backend-architecture.md` |
-| 5  | [Data & Authentication](ch05-data-and-auth.md) | MongoDB database schema and JWT authentication | `ch05-data-and-auth.md` |
-| 6  | [API Contract](ch06-api-contract.md) | Endpoints, request/response schemas, and examples | `ch06-api-contract.md` |
-| 7  | [Project Structure](ch07-project-structure.md) | Full directory tree for frontend and backend | `ch07-project-structure.md` |
-| 8  | [Feature Catalog](ch08-feature-catalog.md) | Story of each implemented enhancement | `ch08-feature-catalog.md` |
-| 9  | [Roadmap](ch09-roadmap.md) | Future enhancements and planned capabilities | `ch09-roadmap.md` |
-| 10 | [Testing Scenarios](ch10-testing-scenarios.md) | Manual test matrix covering all features | `ch10-testing-scenarios.md` |
-| 11 | [Drug Endpoint Test Scenarios](drug-endpoint-test-scenarios.md) | Quick QA checklist for `POST /api/drug/suggest-names` with real-world validation references | `drug-endpoint-test-scenarios.md` |
+| 1  | [Overview](ch01-overview/ch01-overview.md) | Purpose, tech stack, and high-level architecture diagram | `ch01-overview/ch01-overview.md` |
+| 2  | [Frontend Architecture](ch02-frontend-architecture/ch02-frontend-architecture.md) | Component tree, components, services, guards, models, styling, and UI flow — *8 sub-files* | `ch02-frontend-architecture/` |
+| 3  | [Prompt Architecture](ch03-prompt-architecture/ch03-prompt-architecture.md) | File-based prompt system for AI interactions | `ch03-prompt-architecture/` |
+| 4  | [Backend Architecture](ch04-backend-architecture/ch04-backend-architecture.md) | API, Domain, Application, and Infrastructure layers | `ch04-backend-architecture/` |
+| 5  | [Data & Authentication](ch05-data-and-auth/ch05-data-and-auth.md) | MongoDB database schema and JWT authentication | `ch05-data-and-auth/` |
+| 6  | [API Contract](ch06-api-contract/ch06-api-contract.md) | Endpoints, request/response schemas, and examples — *6 sub-files, 40 endpoints* | `ch06-api-contract/` |
+| 7  | [Project Structure](ch07-project-structure/ch07-project-structure.md) | Full directory tree for frontend and backend | `ch07-project-structure/` |
+| 8  | [Feature Catalog](ch08-feature-catalog/ch08-feature-catalog.md) | Story of each implemented enhancement — *7 sub-files, 56 features* | `ch08-feature-catalog/` |
+| 9  | [Roadmap](ch09-roadmap/ch09-roadmap.md) | Future enhancements and planned capabilities | `ch09-roadmap/` |
+| 10 | [Testing Scenarios](ch10-testing-scenarios/ch10-testing-scenarios.md) | Manual test matrix covering all features — *9 sub-files* | `ch10-testing-scenarios/` |
 
 

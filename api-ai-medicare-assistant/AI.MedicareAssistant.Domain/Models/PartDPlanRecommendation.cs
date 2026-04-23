@@ -30,7 +30,8 @@ public class PartDPlanRecommendationRequest
     public string? PrescriptionCoverageFilter { get; set; }
     public string? ContractIdFilter { get; set; }
     public bool MailOrderPharmacy { get; set; }
-    public int RetirementYear { get; set; }
+    /// <summary>Year in which the user attains age 65 (BirthYear + 65).</summary>
+    public int? RetirementYear { get; set; }
 }
 
 public class CountyCodeModel

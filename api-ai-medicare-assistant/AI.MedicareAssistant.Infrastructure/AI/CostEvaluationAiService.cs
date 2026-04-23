@@ -69,23 +69,31 @@ public class CostEvaluationAiService : ICostEvaluationAiService
 
         _logger.LogInformation("Requesting AI cost evaluation for plan {PlanName}", planName);
 
-        var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-        var raw = aiResponse.Text?.Trim() ?? "{}";
-
-        // Strip markdown code fences if present
-        if (raw.StartsWith("```"))
+        try
         {
-            var firstNewline = raw.IndexOf('\n');
-            var lastFence = raw.LastIndexOf("```");
-            if (firstNewline >= 0 && lastFence > firstNewline)
-                raw = raw[(firstNewline + 1)..lastFence].Trim();
+            var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
+            var raw = aiResponse.Text?.Trim() ?? "{}";
+
+            // Strip markdown code fences if present
+            if (raw.StartsWith("```"))
+            {
+                var firstNewline = raw.IndexOf('\n');
+                var lastFence = raw.LastIndexOf("```");
+                if (firstNewline >= 0 && lastFence > firstNewline)
+                    raw = raw[(firstNewline + 1)..lastFence].Trim();
+            }
+
+            var result = JsonSerializer.Deserialize<CostEvaluation>(raw, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return result ?? new CostEvaluation();
         }
-
-        var result = JsonSerializer.Deserialize<CostEvaluation>(raw, new JsonSerializerOptions
+        catch (Exception ex)
         {
-            PropertyNameCaseInsensitive = true
-        });
-
-        return result ?? new CostEvaluation();
+            _logger.LogError(ex, "AI cost evaluation failed for plan {PlanName}, returning empty evaluation", planName);
+            return new CostEvaluation();
+        }
     }
 }

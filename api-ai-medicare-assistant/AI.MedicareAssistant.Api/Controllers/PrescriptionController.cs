@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.DTOs;
 using Application.Services;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,14 +13,21 @@ namespace AI.MedicareAssistant.Api.Controllers;
 public class PrescriptionController : ControllerBase
 {
     private readonly PrescriptionService _service;
+    private readonly ILogger<PrescriptionController> _logger;
 
-    public PrescriptionController(PrescriptionService service)
+    public PrescriptionController(PrescriptionService service, ILogger<PrescriptionController> logger)
     {
         _service = service;
+        _logger = logger;
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (claim is null || !Guid.TryParse(claim, out var userId))
+            throw new UnauthorizedException("User identity claim is missing or invalid.");
+        return userId;
+    }
 
     /// <summary>Upserts confirmed FP drugs as the user's current prescriptions (MongoDB + MySQL profile link).</summary>
     [HttpPost("current")]

@@ -78,24 +78,32 @@ public class LtcEvaluationAiService : ILtcEvaluationAiService
 
         _logger.LogInformation("Requesting AI LTC cost evaluation for {State}, age {Age}", state, age);
 
-        var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-        var raw = aiResponse.Text?.Trim() ?? "{}";
-
-        // Strip markdown code fences if present
-        if (raw.StartsWith("```"))
+        try
         {
-            var firstNewline = raw.IndexOf('\n');
-            var lastFence = raw.LastIndexOf("```");
-            if (firstNewline >= 0 && lastFence > firstNewline)
-                raw = raw[(firstNewline + 1)..lastFence].Trim();
+            var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
+            var raw = aiResponse.Text?.Trim() ?? "{}";
+
+            // Strip markdown code fences if present
+            if (raw.StartsWith("```"))
+            {
+                var firstNewline = raw.IndexOf('\n');
+                var lastFence = raw.LastIndexOf("```");
+                if (firstNewline >= 0 && lastFence > firstNewline)
+                    raw = raw[(firstNewline + 1)..lastFence].Trim();
+            }
+
+            var result = JsonSerializer.Deserialize<LtcCostEvaluation>(raw, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return result ?? new LtcCostEvaluation();
         }
-
-        var result = JsonSerializer.Deserialize<LtcCostEvaluation>(raw, new JsonSerializerOptions
+        catch (Exception ex)
         {
-            PropertyNameCaseInsensitive = true
-        });
-
-        return result ?? new LtcCostEvaluation();
+            _logger.LogError(ex, "AI LTC evaluation failed for {State}, age {Age}, returning empty evaluation", state, age);
+            return new LtcCostEvaluation();
+        }
     }
 
     private static string BuildYearlyBreakdown(LongTermCareResponse projection)

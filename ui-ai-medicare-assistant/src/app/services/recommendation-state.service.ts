@@ -54,22 +54,19 @@ export class RecommendationStateService {
     if (!this.activeRecommendation()) return of(void 0);
 
     const pharmacies = this.state.selectedLookupPharmacies();
-    const entry = pharmacies[0] ?? null;
 
     const request: UpdatePharmacyRequest = {
-      pharmacy: entry
-        ? {
-            npi: entry.pharmacyNumber,
-            name: entry.pharmacyName,
-            address: entry.address,
-            city: '',
-            state: '',
-            zipCode: entry.zipcode,
-            phone: '',
-            pharmacyType: '',
-            distance: entry.distance ? parseFloat(entry.distance) || null : null,
-          }
-        : null,
+      pharmacies: pharmacies.map(entry => ({
+        npi: entry.pharmacyNumber,
+        name: entry.pharmacyName,
+        address: entry.address,
+        city: '',
+        state: '',
+        zipCode: entry.zipcode,
+        phone: '',
+        pharmacyType: '',
+        distance: entry.distance ? parseFloat(entry.distance) || null : null,
+      })),
       mailOrderPharmacy: null,
     };
 

@@ -32,7 +32,7 @@ export interface RecommendationResponse {
   profile: ProfileSnapshotDto;
   planSelections: SelectedPlanDto[];
   drugList: SelectedDrugDto[];
-  pharmacy: SelectedPharmacyDto | null;
+  pharmacies: SelectedPharmacyDto[];
   mailOrderPharmacy: MailOrderPharmacyDto | null;
   lastCostSnapshot: CostSnapshotDto | null;
   ltcSnapshot: LtcSnapshotDto | null;
@@ -206,7 +206,7 @@ export interface CreateRecommendationRequest {
   type?: RecommendationCategory;
   profile: ProfileSnapshotDto;
   drugs: SelectedDrugDto[];
-  pharmacy: SelectedPharmacyDto | null;
+  pharmacies: SelectedPharmacyDto[];
   plans: SelectedPlanDto[];
   costSnapshot: CostSnapshotDto | null;
   ltcSnapshot?: LtcSnapshotDto;
@@ -221,7 +221,7 @@ export interface UpdateDrugsRequest {
 }
 
 export interface UpdatePharmacyRequest {
-  pharmacy: SelectedPharmacyDto | null;
+  pharmacies: SelectedPharmacyDto[];
   mailOrderPharmacy: MailOrderPharmacyDto | null;
 }
 

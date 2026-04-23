@@ -4,9 +4,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { RecommendationResponse } from '../../../models/recommendation.model';
 import { TabOverviewComponent } from './tab-overview/tab-overview.component';
 import { TabProfileComponent } from '../tab-profile/tab-profile.component';
-import { TabPrescriptionsComponent } from './tab-prescriptions/tab-prescriptions.component';
-import { TabPlansPharmacyComponent } from './tab-plans-pharmacy/tab-plans-pharmacy.component';
+import { TabRxPharmacyPlansComponent } from './tab-rx-pharmacy-plans/tab-rx-pharmacy-plans.component';
 import { TabCostAnalysisComponent } from './tab-cost-analysis/tab-cost-analysis.component';
+import { CompareMedicareMetricsComponent } from './compare-medicare-metrics.component';
 
 @Component({
   selector: 'app-compare-medicare',
@@ -17,9 +17,9 @@ import { TabCostAnalysisComponent } from './tab-cost-analysis/tab-cost-analysis.
     MatTabsModule,
     TabOverviewComponent,
     TabProfileComponent,
-    TabPrescriptionsComponent,
-    TabPlansPharmacyComponent,
+    TabRxPharmacyPlansComponent,
     TabCostAnalysisComponent,
+    CompareMedicareMetricsComponent,
   ],
   templateUrl: './compare-medicare.component.html',
 })

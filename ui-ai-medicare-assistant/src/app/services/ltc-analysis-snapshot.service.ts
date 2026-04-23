@@ -34,7 +34,7 @@ export class LtcAnalysisSnapshotService {
       type: 'longterm',
       profile: this.buildProfile(name),
       drugs: [],
-      pharmacy: null,
+      pharmacies: [],
       plans: [],
       costSnapshot: null,
       ltcSnapshot: this.buildLtcSnapshot(),

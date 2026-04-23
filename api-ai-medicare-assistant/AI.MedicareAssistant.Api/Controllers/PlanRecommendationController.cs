@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Application.Services;
+using Domain.Exceptions;
 using Domain.Models;
 
 namespace Api.Controllers;
@@ -13,15 +14,23 @@ namespace Api.Controllers;
 public class PlanRecommendationController : ControllerBase
 {
     private readonly CostProjectionService _costProjectionService;
+    private readonly ILogger<PlanRecommendationController> _logger;
 
     public PlanRecommendationController(
-        CostProjectionService costProjectionService)
+        CostProjectionService costProjectionService,
+        ILogger<PlanRecommendationController> logger)
     {
         _costProjectionService = costProjectionService;
+        _logger = logger;
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (claim is null || !Guid.TryParse(claim, out var userId))
+            throw new UnauthorizedException("User identity claim is missing or invalid.");
+        return userId;
+    }
 
     /// <summary>
     /// Calculate costs then run AI evaluation to produce chart-ready projections.

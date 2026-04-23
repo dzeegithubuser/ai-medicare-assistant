@@ -9,19 +9,24 @@ import {
   deltaIcon, deltaLabel,
   getTrajectoryIcon, getTrajectoryColor,
   typeBadgeClass, typeLabel, buildProfileRows,
+  LABEL_A, LABEL_B,
 } from '../compare-helpers';
 import { TabProfileComponent } from '../tab-profile/tab-profile.component';
+import { CompareCrossMetricsComponent } from './compare-cross-metrics.component';
 
 @Component({
   selector: 'app-compare-cross',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent],
+  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent, CompareCrossMetricsComponent],
   templateUrl: './compare-cross.component.html',
 })
 export class CompareCrossComponent {
   readonly left = input.required<RecommendationResponse>();
   readonly right = input.required<RecommendationResponse>();
+
+  readonly labelA = LABEL_A;
+  readonly labelB = LABEL_B;
 
   // ── Helpers (template-callable) ──────────────────────────────────────────
   readonly deltaIcon = deltaIcon;

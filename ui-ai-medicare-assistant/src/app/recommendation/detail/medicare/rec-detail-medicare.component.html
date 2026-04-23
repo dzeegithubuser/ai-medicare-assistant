@@ -131,49 +131,51 @@
           <mat-panel-title class="flex items-center gap-2 text-sm font-semibold text-gray-800">
             <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
             Pharmacy
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">{{ rec().pharmacy ? (rec().mailOrderPharmacy ? 2 : 1) : 0 }}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">{{ rec().pharmacies.length + (rec().mailOrderPharmacy ? 1 : 0) }}</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
-        @if (!rec().pharmacy) {
+        @if (!rec().pharmacies.length) {
           <div class="flex flex-col items-center py-8 text-gray-600">
             <mat-icon class="!text-4xl !w-10 !h-10 mb-2 opacity-40">storefront</mat-icon>
             <p class="text-sm">No pharmacy recorded</p>
           </div>
         } @else {
           <div class="flex flex-wrap gap-3 pb-2">
-            <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm w-64 shrink-0">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                  <mat-icon class="!text-base text-emerald-600">storefront</mat-icon>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2 mb-0.5">
-                    <p class="text-xs font-semibold text-gray-900 truncate">{{ rec().pharmacy!.name }}</p>
-                    <span class="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 shrink-0">{{ rec().pharmacy!.pharmacyType }}</span>
+            @for (ph of rec().pharmacies; track ph.npi) {
+              <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm w-64 shrink-0">
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                    <mat-icon class="!text-base text-emerald-600">storefront</mat-icon>
                   </div>
-                  <p class="text-xs text-gray-500">{{ rec().pharmacy!.address }}</p>
-                  <p class="text-xs text-gray-500">{{ rec().pharmacy!.city }}, {{ rec().pharmacy!.state }} {{ rec().pharmacy!.zipCode }}</p>
-                  <div class="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-500">
-                    @if (rec().pharmacy!.phone) {
-                      <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">phone</mat-icon> {{ rec().pharmacy!.phone }}</span>
-                    }
-                    @if (rec().pharmacy!.distance != null) {
-                      <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">pin_drop</mat-icon> {{ rec().pharmacy!.distance | number:'1.1-1' }} mi</span>
-                    }
-                  </div>
-                  <div class="flex gap-1.5 mt-2">
-                    <a class="flex-1 h-6 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-blue-600"
-                       [href]="getSpotOnMapUrl(rec().pharmacy!)" target="_blank" rel="noopener noreferrer">
-                      <mat-icon class="!text-xs !w-3 !h-3">place</mat-icon> Map
-                    </a>
-                    <a class="flex-1 h-6 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-indigo-600"
-                       [href]="getDirectionsUrl(rec().pharmacy!)" target="_blank" rel="noopener noreferrer">
-                      <mat-icon class="!text-xs !w-3 !h-3">directions</mat-icon> Directions
-                    </a>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <p class="text-xs font-semibold text-gray-900 truncate">{{ ph.name }}</p>
+                      <span class="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 shrink-0">{{ ph.pharmacyType }}</span>
+                    </div>
+                    <p class="text-xs text-gray-500">{{ ph.address }}</p>
+                    <p class="text-xs text-gray-500">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</p>
+                    <div class="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-500">
+                      @if (ph.phone) {
+                        <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">phone</mat-icon> {{ ph.phone }}</span>
+                      }
+                      @if (ph.distance != null) {
+                        <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">pin_drop</mat-icon> {{ ph.distance | number:'1.1-1' }} mi</span>
+                      }
+                    </div>
+                    <div class="flex gap-1.5 mt-2">
+                      <a class="flex-1 h-6 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-blue-600"
+                         [href]="getSpotOnMapUrl(ph)" target="_blank" rel="noopener noreferrer">
+                        <mat-icon class="!text-xs !w-3 !h-3">place</mat-icon> Map
+                      </a>
+                      <a class="flex-1 h-6 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-indigo-600"
+                         [href]="getDirectionsUrl(ph)" target="_blank" rel="noopener noreferrer">
+                        <mat-icon class="!text-xs !w-3 !h-3">directions</mat-icon> Directions
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            }
 
             @if (rec().mailOrderPharmacy; as mo) {
               <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm w-56 shrink-0">

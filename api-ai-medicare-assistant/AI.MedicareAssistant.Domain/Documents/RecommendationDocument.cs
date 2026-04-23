@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.Documents;
 
+[BsonIgnoreExtraElements]
 public class RecommendationDocument
 {
     [BsonId]
@@ -30,8 +31,8 @@ public class RecommendationDocument
     [BsonElement("drugList")]
     public List<SelectedDrugDoc> DrugList { get; set; } = [];
 
-    [BsonElement("pharmacy")]
-    public SelectedPharmacyDoc? Pharmacy { get; set; }
+    [BsonElement("pharmacies")]
+    public List<SelectedPharmacyDoc> Pharmacies { get; set; } = [];
 
     [BsonElement("mailOrderPharmacy")]
     public MailOrderPharmacyDoc? MailOrderPharmacy { get; set; }

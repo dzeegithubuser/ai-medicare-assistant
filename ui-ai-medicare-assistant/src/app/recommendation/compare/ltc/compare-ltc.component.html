@@ -1,6 +1,8 @@
 @let l = left();
 @let r = right();
 
+<app-compare-ltc-metrics [left]="l" [right]="r" />
+
 <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" animationDuration="200ms">
 
   <!-- Tab: Overview -->
@@ -21,8 +23,8 @@
             <thead>
               <tr class="border-b border-gray-200 bg-gray-50/80">
                 <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Metric</th>
-                <th class="py-2 px-3 text-right text-indigo-600 uppercase font-semibold">{{ l.name }}</th>
-                <th class="py-2 px-3 text-right text-cyan-600 uppercase font-semibold">{{ r.name }}</th>
+                <th class="py-2 px-3 text-right text-orange-700 uppercase font-semibold">{{ labelA }}</th>
+                <th class="py-2 px-3 text-right text-green-700 uppercase font-semibold">{{ labelB }}</th>
                 <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">Difference</th>
               </tr>
             </thead>
@@ -109,8 +111,8 @@
                   <tr class="border-b border-gray-200 bg-gray-50/80">
                     <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
                     <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
-                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
-                    <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+                    <th class="py-2 px-3 text-left text-orange-600 uppercase font-semibold">{{ labelA }}</th>
+                    <th class="py-2 px-3 text-left text-green-600 uppercase font-semibold">{{ labelB }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -149,8 +151,8 @@
                 <tr class="border-b border-gray-200 bg-gray-50/80">
                   <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
                   <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Setting</th>
-                  <th class="py-2 px-3 text-left text-indigo-600 uppercase font-semibold">{{ l.name }}</th>
-                  <th class="py-2 px-3 text-left text-cyan-600 uppercase font-semibold">{{ r.name }}</th>
+                  <th class="py-2 px-3 text-left text-orange-700 uppercase font-semibold">{{ labelA }}</th>
+                  <th class="py-2 px-3 text-left text-green-700 uppercase font-semibold">{{ labelB }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,7 +185,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               @if (l.ltcSnapshot?.evaluation; as lev) {
                 <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
-                  <p class="text-xs text-gray-500 uppercase font-semibold mb-2">{{ l.name }}</p>
+                  <p class="text-xs text-orange-600 uppercase font-semibold mb-2">{{ labelA }}</p>
                   <div class="flex items-center gap-2 mb-1">
                     <div class="w-7 h-7 rounded-lg flex items-center justify-center"
                          [class]="lev.costTrajectory === 'Rising' ? 'bg-red-100' : lev.costTrajectory === 'Declining' ? 'bg-green-100' : 'bg-blue-100'">
@@ -196,7 +198,7 @@
               }
               @if (r.ltcSnapshot?.evaluation; as rev) {
                 <div class="rounded-lg border border-cyan-100 bg-cyan-50/40 p-3">
-                  <p class="text-xs text-gray-500 uppercase font-semibold mb-2">{{ r.name }}</p>
+                  <p class="text-xs text-green-600 uppercase font-semibold mb-2">{{ labelB }}</p>
                   <div class="flex items-center gap-2 mb-1">
                     <div class="w-7 h-7 rounded-lg flex items-center justify-center"
                          [class]="rev.costTrajectory === 'Rising' ? 'bg-red-100' : rev.costTrajectory === 'Declining' ? 'bg-green-100' : 'bg-blue-100'">
@@ -246,8 +248,8 @@
               <tr class="border-b border-gray-200 bg-gray-50/80">
                 <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
                 <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Setting</th>
-                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
-                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
+                <th class="py-2 px-3 text-left text-orange-600 uppercase font-semibold">{{ labelA }}</th>
+                <th class="py-2 px-3 text-left text-green-600 uppercase font-semibold">{{ labelB }}</th>
                 <th class="py-2 px-3 text-center text-gray-500 uppercase font-semibold w-12">Match</th>
               </tr>
             </thead>
@@ -274,7 +276,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div class="px-4 py-2.5 border-b border-indigo-100 bg-indigo-50/40">
-            <p class="text-xs text-indigo-700 uppercase font-semibold">{{ l.name }}</p>
+            <p class="text-xs text-orange-700 uppercase font-semibold">{{ labelA }}</p>
           </div>
           <div class="p-4 grid grid-cols-2 gap-3">
             <div class="text-center">
@@ -289,7 +291,7 @@
         </div>
         <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div class="px-4 py-2.5 border-b border-cyan-100 bg-cyan-50/40">
-            <p class="text-xs text-cyan-700 uppercase font-semibold">{{ r.name }}</p>
+            <p class="text-xs text-green-700 uppercase font-semibold">{{ labelB }}</p>
           </div>
           <div class="p-4 grid grid-cols-2 gap-3">
             <div class="text-center">
@@ -327,7 +329,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @if (l.ltcSnapshot?.evaluation?.categories; as leftCats) {
                   <div>
-                    <p class="text-xs text-indigo-600 uppercase font-semibold mb-2">{{ l.name }}</p>
+                    <p class="text-xs text-orange-700 uppercase font-semibold mb-2">{{ labelA }}</p>
                     <div class="space-y-2">
                       @for (cat of leftCats; track cat.name) {
                         <div class="p-3 rounded-lg border border-indigo-100 bg-indigo-50/30">
@@ -352,7 +354,7 @@
                 }
                 @if (r.ltcSnapshot?.evaluation?.categories; as rightCats) {
                   <div>
-                    <p class="text-xs text-cyan-600 uppercase font-semibold mb-2">{{ r.name }}</p>
+                    <p class="text-xs text-green-700 uppercase font-semibold mb-2">{{ labelB }}</p>
                     <div class="space-y-2">
                       @for (cat of rightCats; track cat.name) {
                         <div class="p-3 rounded-lg border border-cyan-100 bg-cyan-50/30">
@@ -393,7 +395,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @if (l.ltcSnapshot?.evaluation?.savingsTips; as leftTips) {
                   <div>
-                    <p class="text-xs text-indigo-600 uppercase font-semibold mb-2">{{ l.name }}</p>
+                    <p class="text-xs text-orange-700 uppercase font-semibold mb-2">{{ labelA }}</p>
                     <div class="space-y-2">
                       @for (tip of leftTips; track tip.title) {
                         <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
@@ -415,7 +417,7 @@
                 }
                 @if (r.ltcSnapshot?.evaluation?.savingsTips; as rightTips) {
                   <div>
-                    <p class="text-xs text-cyan-600 uppercase font-semibold mb-2">{{ r.name }}</p>
+                    <p class="text-xs text-green-700 uppercase font-semibold mb-2">{{ labelB }}</p>
                     <div class="space-y-2">
                       @for (tip of rightTips; track tip.title) {
                         <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
@@ -448,7 +450,7 @@
                 <div class="flex items-start gap-2">
                   <mat-icon class="!text-indigo-600 mt-0.5">assessment</mat-icon>
                   <div>
-                    <p class="text-xs font-semibold text-gray-800 mb-1">{{ l.name }}</p>
+                    <p class="text-xs font-semibold text-orange-700 mb-1">{{ labelA }}</p>
                     <p class="text-xs text-gray-600 leading-relaxed">{{ la }}</p>
                   </div>
                 </div>
@@ -459,7 +461,7 @@
                 <div class="flex items-start gap-2">
                   <mat-icon class="!text-cyan-600 mt-0.5">assessment</mat-icon>
                   <div>
-                    <p class="text-xs font-semibold text-gray-800 mb-1">{{ r.name }}</p>
+                    <p class="text-xs font-semibold text-green-700 mb-1">{{ labelB }}</p>
                     <p class="text-xs text-gray-600 leading-relaxed">{{ ra }}</p>
                   </div>
                 </div>

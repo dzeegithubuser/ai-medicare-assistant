@@ -75,7 +75,14 @@ public class LongTermCareService : ILongTermCareService
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("[FP longTermCareR4] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "longTermCareR4 failed with status {StatusCode} for userEmail={UserEmail}. Response: {Body}",
+                (int)response.StatusCode, userEmail, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<LongTermCareResponse>(responseBody, JsonOptions);
         if (result is null)

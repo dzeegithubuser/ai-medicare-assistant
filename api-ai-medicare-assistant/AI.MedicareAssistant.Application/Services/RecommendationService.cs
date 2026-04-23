@@ -76,14 +76,14 @@ public class RecommendationService
         return doc;
     }
 
-    public async Task<RecommendationDocument> UpdatePharmacyAsync(Guid userId, SelectedPharmacyDoc? pharmacy, MailOrderPharmacyDoc? mailOrder = null)
+    public async Task<RecommendationDocument> UpdatePharmacyAsync(Guid userId, List<SelectedPharmacyDoc> pharmacies, MailOrderPharmacyDoc? mailOrder = null)
     {
         var doc = await GetRequiredAsync(userId);
-        doc.Pharmacy = pharmacy;
+        doc.Pharmacies = pharmacies;
         if (mailOrder is not null)
             doc.MailOrderPharmacy = mailOrder;
         await _repo.ReplaceAsync(doc);
-        _logger.LogInformation("Updated pharmacy for recommendation of user {UserId}", userId);
+        _logger.LogInformation("Updated pharmacies ({Count}) for recommendation of user {UserId}", pharmacies.Count, userId);
         return doc;
     }
 

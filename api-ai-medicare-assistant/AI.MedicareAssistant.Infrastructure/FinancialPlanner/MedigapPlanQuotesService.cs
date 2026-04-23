@@ -63,7 +63,14 @@ public class MedigapPlanQuotesService : IMedigapPlanQuotesService
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("[FP medigapPlanQuotes] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "medigapPlanQuotes failed with status {StatusCode} for zip={Zip5}, plan={Plan}. Response: {Body}",
+                (int)response.StatusCode, request.Zip5, request.Plan, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<MedigapPlanQuotesResponse>(responseBody, JsonOptions);
         if (result is null)

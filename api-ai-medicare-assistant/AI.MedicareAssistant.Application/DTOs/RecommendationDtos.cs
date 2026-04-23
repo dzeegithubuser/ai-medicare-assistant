@@ -16,7 +16,7 @@ public class CreateRecommendationRequest
     public ProfileSnapshotDto Profile { get; set; } = new();
 
     public List<SelectedDrugDto> Drugs { get; set; } = [];
-    public SelectedPharmacyDto? Pharmacy { get; set; }
+    public List<SelectedPharmacyDto> Pharmacies { get; set; } = [];
     public List<SelectedPlanDto> Plans { get; set; } = [];
     public CostSnapshotDto? CostSnapshot { get; set; }
     public LtcSnapshotDto? LtcSnapshot { get; set; }
@@ -36,7 +36,7 @@ public class UpdateDrugsRequest
 
 public class UpdatePharmacyRequest
 {
-    public SelectedPharmacyDto? Pharmacy { get; set; }
+    public List<SelectedPharmacyDto> Pharmacies { get; set; } = [];
     public MailOrderPharmacyDto? MailOrderPharmacy { get; set; }
 }
 
@@ -135,7 +135,7 @@ public class RecommendationResponse
     public ProfileSnapshotDto Profile { get; set; } = new();
     public List<SelectedPlanDto> PlanSelections { get; set; } = [];
     public List<SelectedDrugDto> DrugList { get; set; } = [];
-    public SelectedPharmacyDto? Pharmacy { get; set; }
+    public List<SelectedPharmacyDto> Pharmacies { get; set; } = [];
     public MailOrderPharmacyDto? MailOrderPharmacy { get; set; }
     public CostSnapshotDto? LastCostSnapshot { get; set; }
     public LtcSnapshotDto? LtcSnapshot { get; set; }

@@ -52,7 +52,14 @@ public class FinancialPlannerDrugService : IFinancialPlannerDrugService
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("[FP drugSearch] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "drugSearch failed with status {StatusCode} for drug={DrugName}. Response: {Body}",
+                (int)response.StatusCode, drugName, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<DrugSearchResponse>(responseBody, JsonOptions);
         if (result is null)
@@ -80,7 +87,14 @@ public class FinancialPlannerDrugService : IFinancialPlannerDrugService
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("[FP getDrugDetailAdvance] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "getDrugDetailAdvance failed with status {StatusCode} for rxcui={Rxcui}. Response: {Body}",
+                (int)response.StatusCode, rxcui, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<DrugDetailResponse>(responseBody, JsonOptions);
         if (result is null)

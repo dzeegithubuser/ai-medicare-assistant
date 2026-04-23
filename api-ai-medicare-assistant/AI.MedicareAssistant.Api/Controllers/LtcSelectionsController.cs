@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Application.DTOs;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Documents;
 using Microsoft.AspNetCore.Authorization;
@@ -13,10 +14,12 @@ namespace Api.Controllers;
 public class LtcSelectionsController : ControllerBase
 {
     private readonly ILtcSelectionsRepository _repo;
+    private readonly ILogger<LtcSelectionsController> _logger;
 
-    public LtcSelectionsController(ILtcSelectionsRepository repo)
+    public LtcSelectionsController(ILtcSelectionsRepository repo, ILogger<LtcSelectionsController> logger)
     {
         _repo = repo;
+        _logger = logger;
     }
 
     [HttpPut("current")]
@@ -52,6 +55,11 @@ public class LtcSelectionsController : ControllerBase
         });
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (claim is null || !Guid.TryParse(claim, out var userId))
+            throw new UnauthorizedException("User identity claim is missing or invalid.");
+        return userId;
+    }
 }

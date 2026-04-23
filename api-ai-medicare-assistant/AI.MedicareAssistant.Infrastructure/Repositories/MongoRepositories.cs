@@ -1,6 +1,7 @@
 using Domain.Documents;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -9,10 +10,12 @@ namespace Infrastructure.Repositories;
 public class UserAnalysisSelectionsRepository : IUserAnalysisSelectionsRepository
 {
     private readonly MongoDbContext _context;
+    private readonly ILogger<UserAnalysisSelectionsRepository> _logger;
 
-    public UserAnalysisSelectionsRepository(MongoDbContext context)
+    public UserAnalysisSelectionsRepository(MongoDbContext context, ILogger<UserAnalysisSelectionsRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public const string CurrentSelectionsName = "__current_analysis_selections__";
@@ -94,11 +97,13 @@ public class UserAnalysisSelectionsRepository : IUserAnalysisSelectionsRepositor
 public class LtcSelectionsRepository : ILtcSelectionsRepository
 {
     private readonly MongoDbContext _context;
+    private readonly ILogger<LtcSelectionsRepository> _logger;
     public const string CurrentSelectionsName = "__current_ltc_selections__";
 
-    public LtcSelectionsRepository(MongoDbContext context)
+    public LtcSelectionsRepository(MongoDbContext context, ILogger<LtcSelectionsRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     private FilterDefinition<LtcCurrentSelectionsDocument> CurrentFilter(Guid userId) =>

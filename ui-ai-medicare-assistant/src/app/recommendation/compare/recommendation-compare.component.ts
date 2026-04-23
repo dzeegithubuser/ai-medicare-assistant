@@ -1,7 +1,7 @@
 import {
   Component, ChangeDetectionStrategy, inject, signal, computed, OnInit,
 } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +14,7 @@ import { RecommendationResponse, RecommendationCategory } from '../../models/rec
 import { CompareMedicareComponent } from './medicare/compare-medicare.component';
 import { CompareLtcComponent } from './ltc/compare-ltc.component';
 import { CompareCrossComponent } from './cross/compare-cross.component';
+import { LABEL_A, LABEL_B } from './compare-helpers';
 
 type ComparisonMode = 'medicare' | 'longterm' | 'cross';
 
@@ -22,22 +23,19 @@ type ComparisonMode = 'medicare' | 'longterm' | 'cross';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule, CurrencyPipe, DatePipe,
+    CommonModule, DatePipe,
     MatIconModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatTooltipModule,
     CompareMedicareComponent, CompareLtcComponent, CompareCrossComponent,
   ],
-  providers:[CurrencyPipe],
   templateUrl: './recommendation-compare.component.html',
 })
 export class RecommendationCompareComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private recommendationService = inject(RecommendationService);
-  private currencyPipe = inject(CurrencyPipe);
- 
-  formatCurrency(value: number, fmt = '1.0-0'): string {
-    return this.currencyPipe.transform(value, 'USD', 'symbol', fmt) ?? '$0';
-  }
+
+  readonly labelA = LABEL_A;
+  readonly labelB = LABEL_B;
 
   readonly left = signal<RecommendationResponse | null>(null);
   readonly right = signal<RecommendationResponse | null>(null);
@@ -106,7 +104,7 @@ export class RecommendationCompareComponent implements OnInit {
   readonly winnerName = computed<string>(() => {
     const w = this.winner();
     if (w === 'tie') return 'Tied';
-    return w === 'left' ? (this.left()?.name ?? 'Left') : (this.right()?.name ?? 'Right');
+    return w === 'left' ? LABEL_A : LABEL_B;
   });
 
   readonly winnerSavings = computed(() => Math.abs(this.costDelta()));
@@ -139,21 +137,6 @@ export class RecommendationCompareComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/saved']);
-  }
-
-  formatCoverageYears(rec: RecommendationResponse): string {
-    const details = rec.lastCostSnapshot?.yearlyDetails;
-    if (!details?.length) return 'N/A';
-    const startYear = details[0].year;
-    const endYear = details[details.length - 1].year;
-    return `${details.length} (${startYear}\u2013${endYear})`;
-  }
-
-  avgAnnualCost(rec: RecommendationResponse): number {
-    const snapshot = rec.lastCostSnapshot;
-    const years = snapshot?.yearlyDetails?.length;
-    if (!years || !snapshot?.lifetimeTotal) return 0;
-    return snapshot.lifetimeTotal / years;
   }
 
   planTypeLabel(planType: string): string {

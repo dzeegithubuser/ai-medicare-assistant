@@ -53,7 +53,14 @@ public class PartDPlanRecommendationService : IPartDPlanRecommendationService
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("[FP partDPlanRecommendation] Response ({StatusCode}): {Body}",
             (int)response.StatusCode, responseBody);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "partDPlanRecommendation failed with status {StatusCode} for user={UserId}. Response: {Body}",
+                (int)response.StatusCode, request.UserId, responseBody);
+            response.EnsureSuccessStatusCode();
+        }
 
         var result = JsonSerializer.Deserialize<PartDPlanRecommendationResponse>(responseBody, JsonOptions);
         if (result is null)

@@ -1,6 +1,7 @@
 using Domain.Documents;
 using Domain.Interfaces;
 using Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -14,9 +15,13 @@ namespace Infrastructure.Repositories;
 public class MongoProfileRepository : IProfileRepository
 {
     private readonly IMongoCollection<UserDocument> _collection;
+    private readonly ILogger<MongoProfileRepository> _logger;
 
-    public MongoProfileRepository(MongoDbContext context) =>
+    public MongoProfileRepository(MongoDbContext context, ILogger<MongoProfileRepository> logger)
+    {
         _collection = context.Users;
+        _logger = logger;
+    }
 
     public async Task<UserDocument?> GetByUserIdAsync(Guid userId) =>
         await _collection.Find(u => u.UserId == userId).FirstOrDefaultAsync();

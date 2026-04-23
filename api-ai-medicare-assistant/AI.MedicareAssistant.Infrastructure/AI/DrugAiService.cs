@@ -21,37 +21,53 @@ public class DrugAiService : IDrugAiService
     {
         _logger.LogInformation("Sending prescription to AI provider (length={Length})", prescription.Length);
 
-        var prompts=_builder.Build(prescription);
-
-        var messages=new List<ChatMessage>
+        try
         {
-            new(ChatRole.System,prompts.system),
-            new(ChatRole.User,prompts.user)
-        };
+            var prompts=_builder.Build(prescription);
 
-        var response=await _client.GetResponseAsync(messages);
+            var messages=new List<ChatMessage>
+            {
+                new(ChatRole.System,prompts.system),
+                new(ChatRole.User,prompts.user)
+            };
 
-        _logger.LogInformation("AI response received ({Length} chars)", response.Text.Length);
+            var response=await _client.GetResponseAsync(messages);
 
-        return response.Text;
+            _logger.LogInformation("AI response received ({Length} chars)", response.Text.Length);
+
+            return response.Text;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Prescription analysis AI call failed");
+            return "{}";
+        }
     }
 
     public async Task<string> SuggestDrugNames(string input)
     {
         _logger.LogInformation("Requesting drug name suggestions from AI provider (length={Length})", input.Length);
 
-        var prompts = _builder.BuildDrugNameSuggestion(input);
-
-        var messages = new List<ChatMessage>
+        try
         {
-            new(ChatRole.System, prompts.system),
-            new(ChatRole.User, prompts.user)
-        };
+            var prompts = _builder.BuildDrugNameSuggestion(input);
 
-        var response = await _client.GetResponseAsync(messages);
+            var messages = new List<ChatMessage>
+            {
+                new(ChatRole.System, prompts.system),
+                new(ChatRole.User, prompts.user)
+            };
 
-        _logger.LogInformation("Drug name suggestions received ({Length} chars)", response.Text.Length);
+            var response = await _client.GetResponseAsync(messages);
 
-        return response.Text;
+            _logger.LogInformation("Drug name suggestions received ({Length} chars)", response.Text.Length);
+
+            return response.Text;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Drug name suggestion AI call failed for input: {Input}", input);
+            return "{}";
+        }
     }
 }

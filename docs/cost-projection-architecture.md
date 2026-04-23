@@ -199,7 +199,7 @@ If `costProjection()` is `null` on `ngOnInit`, the component resets the entire a
 
 ### Auto-Save Behaviour
 
-On reaching the cost projections page, if `pendingCostRunRecommendationName` is set, the component auto-calls `AnalysisSnapshotService.save()` to persist the full recommendation (profile + drugs + pharmacy + plans + cost result) as a named snapshot in MongoDB.
+On reaching the cost projections page, if `pendingCostRunRecommendationName` is set, the component auto-calls `AnalysisSnapshotService.save()` to persist the full recommendation (profile + drugs + pharmacies + plans + cost result) as a named snapshot in MongoDB.
 
 ---
 

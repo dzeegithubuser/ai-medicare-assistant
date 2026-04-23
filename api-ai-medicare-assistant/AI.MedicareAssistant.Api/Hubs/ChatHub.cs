@@ -10,10 +10,12 @@ namespace Api.Hubs;
 public class ChatHub : Hub
 {
     private readonly ChatSessionService _sessionService;
+    private readonly ILogger<ChatHub> _logger;
 
-    public ChatHub(ChatSessionService sessionService)
+    public ChatHub(ChatSessionService sessionService, ILogger<ChatHub> logger)
     {
         _sessionService = sessionService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -24,6 +26,7 @@ public class ChatHub : Hub
     public async Task SyncMessages(List<ChatSessionMessageDto> messages)
     {
         var userId = GetUserId();
+        _logger.LogDebug("SyncMessages received {Count} messages from user {UserId}", messages.Count, userId);
         await _sessionService.UpdateMessagesAsync(userId, messages);
         // Lightweight ack so the client knows the write completed.
         await Clients.Caller.SendAsync("MessagesSynced");
@@ -38,13 +41,17 @@ public class ChatHub : Hub
     public override async Task OnConnectedAsync()
     {
         var userId = GetUserId();
+        _logger.LogInformation("ChatHub connected for user {UserId}, ConnectionId={ConnectionId}", userId, Context.ConnectionId);
         var session = await _sessionService.GetOrCreateAsync(userId);
         await Clients.Caller.SendAsync("ReceiveSession", session.Messages, session.UiState);
         await base.OnConnectedAsync();
     }
 
-    private Guid GetUserId() =>
-        Guid.TryParse(Context.User?.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
-            ? id
-            : throw new HubException("Unauthorized");
+    private Guid GetUserId()
+    {
+        if (Guid.TryParse(Context.User?.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
+            return id;
+        _logger.LogWarning("ChatHub unauthorized access attempt, ConnectionId={ConnectionId}", Context.ConnectionId);
+        throw new HubException("Unauthorized");
+    }
 }

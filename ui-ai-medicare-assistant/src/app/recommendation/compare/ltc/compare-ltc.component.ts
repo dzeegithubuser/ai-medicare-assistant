@@ -9,19 +9,24 @@ import {
   deltaIcon, deltaLabel,
   getTrajectoryIcon, getTrajectoryColor, getPriorityColor,
   buildProfileRows, ProfileRow,
+  LABEL_A, LABEL_B,
 } from '../compare-helpers';
 import { TabProfileComponent } from '../tab-profile/tab-profile.component';
+import { CompareLtcMetricsComponent } from './compare-ltc-metrics.component';
 
 @Component({
   selector: 'app-compare-ltc',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent],
+  imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent, CompareLtcMetricsComponent],
   templateUrl: './compare-ltc.component.html',
 })
 export class CompareLtcComponent {
   readonly left = input.required<RecommendationResponse>();
   readonly right = input.required<RecommendationResponse>();
+
+  readonly labelA = LABEL_A;
+  readonly labelB = LABEL_B;
 
   // ── Helpers (template-callable) ──────────────────────────────────────────
   readonly deltaIcon = deltaIcon;
@@ -50,7 +55,7 @@ export class CompareLtcComponent {
   readonly winnerName = computed(() => {
     const w = this.winner();
     if (w === 'tie') return 'Tied';
-    return w === 'left' ? this.left().name : this.right().name;
+    return w === 'left' ? LABEL_A : LABEL_B;
   });
 
   readonly winnerSavings = computed(() => Math.abs(this.costDelta()));

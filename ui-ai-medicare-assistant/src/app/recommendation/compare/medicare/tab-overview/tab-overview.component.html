@@ -7,16 +7,18 @@
   <mat-card class="!rounded-xl !shadow-sm">
     <mat-card-content class="!p-0">
       <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
-        <mat-icon class="!text-base text-gray-600">insights</mat-icon>
-        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost Comparison</p>
+        <div class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center">
+          <mat-icon class="!text-base text-gray-600">insights</mat-icon>
+        </div>
+        <p class="text-sm font-semibold text-gray-800">Cost Comparison</p>
       </div>
       <div class="overflow-x-auto">
         <table class="min-w-full text-xs">
           <thead>
             <tr class="border-b border-gray-100 bg-gray-50/40">
               <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-36">Metric</th>
-              <th class="text-right px-4 py-2.5 font-semibold text-indigo-600 uppercase tracking-wide">{{ l.name }}</th>
-              <th class="text-right px-4 py-2.5 font-semibold text-cyan-600 uppercase tracking-wide">{{ r.name }}</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-orange-700 uppercase tracking-wide">{{ labelA }}</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-green-700 uppercase tracking-wide">{{ labelB }}</th>
               <th class="text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Difference</th>
             </tr>
           </thead>
@@ -27,7 +29,6 @@
               { label: 'Out-of-Pocket', left: l.lastCostSnapshot?.lifetimeOop ?? 0, right: r.lastCostSnapshot?.lifetimeOop ?? 0, delta: oopDelta() },
               { label: 'IRMAA Surcharge', left: l.lastCostSnapshot?.lifetimeIrmaa ?? 0, right: r.lastCostSnapshot?.lifetimeIrmaa ?? 0, delta: irmaaDelta() },
               { label: 'Present Value', left: l.lastCostSnapshot?.presentValue ?? 0, right: r.lastCostSnapshot?.presentValue ?? 0, delta: pvDelta() },
-              { label: 'Current Year', left: l.lastCostSnapshot?.currentYearTotal ?? 0, right: r.lastCostSnapshot?.currentYearTotal ?? 0, delta: currentYearDelta() }
             ]; track row.label) {
               <tr class="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
                 <td class="px-4 py-2.5 font-medium text-gray-700">{{ row.label }}</td>
@@ -66,204 +67,395 @@
 
   <!-- ── 1. Profile Differences ── -->
   <mat-card class="!rounded-xl !shadow-sm">
-    <mat-card-content class="!p-4">
-      <div class="flex items-center gap-2 mb-3">
+    <mat-card-content class="!p-0">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-violet-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
           <mat-icon class="!text-base text-violet-600">person</mat-icon>
         </div>
-        <p class="text-sm font-semibold text-gray-800">Profile Differences</p>
+        <p class="text-sm font-semibold text-gray-800">Profile Comparison</p>
         <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
               [class]="profileDiffs().length ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
           {{ profileDiffs().length ? profileDiffs().length + ' differ' : 'Identical' }}
         </span>
       </div>
-      @if (profileDiffs().length) {
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-xs">
-            <thead>
-              <tr class="border-b border-gray-200 bg-gray-50/80">
-                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
-                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
-                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ l.name }}</th>
-                <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">{{ r.name }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of profileDiffs(); track row.label) {
-                <tr class="border-b border-gray-100 bg-amber-50/40">
-                  <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
-                  <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
-                  <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
-                  <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
+      <div class="p-4">
+        @if (profileDiffs().length) {
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-xs">
+              <thead>
+                <tr class="border-b border-gray-200 bg-gray-50/80">
+                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
+                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
+                  <th class="py-2 px-3 text-left text-orange-600 uppercase font-semibold">{{ labelA }}</th>
+                  <th class="py-2 px-3 text-left text-green-600 uppercase font-semibold">{{ labelB }}</th>
                 </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <p class="text-xs text-gray-600 italic">Both analyses use identical profile settings.</p>
-      }
+              </thead>
+              <tbody>
+                @for (row of profileDiffs(); track row.label) {
+                  <tr class="border-b border-gray-100 bg-amber-50/40">
+                    <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
+                    <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
+                    <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
+                    <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="text-xs text-gray-600 italic">Both analyses use identical profile settings.</p>
+        }
+      </div>
     </mat-card-content>
   </mat-card>
 
-  <!-- ── 2. Prescriptions Summary ── -->
+  <!-- ── 2. Prescriptions ── -->
   <mat-card class="!rounded-xl !shadow-sm">
-    <mat-card-content class="!p-4">
-      <div class="flex items-center gap-2 mb-3">
+    <mat-card-content class="!p-0">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-blue-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
           <mat-icon class="!text-base text-blue-600">medication</mat-icon>
         </div>
-        <p class="text-sm font-semibold text-gray-800">Prescriptions</p>
+        <p class="text-sm font-semibold text-gray-800">Prescription Comparison</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+              [class]="(uniqueLeftDrugs().length || uniqueRightDrugs().length) ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+          {{ (uniqueLeftDrugs().length || uniqueRightDrugs().length) ? 'Different' : 'Identical' }}
+        </span>
       </div>
-      <div class="grid grid-cols-3 gap-3">
-        <div class="rounded-lg border border-green-200 bg-green-50/60 p-3 text-center">
-          <p class="text-2xl font-bold text-green-700">{{ commonDrugCount() }}</p>
-          <p class="text-xs text-green-600 uppercase mt-0.5">Common</p>
-        </div>
-        <div class="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-center">
-          <p class="text-2xl font-bold text-indigo-700">{{ uniqueLeftCount() }}</p>
-          <p class="text-xs text-indigo-600 uppercase mt-0.5">Only {{ l.name }}</p>
-        </div>
-        <div class="rounded-lg border border-cyan-200 bg-cyan-50/60 p-3 text-center">
-          <p class="text-2xl font-bold text-cyan-700">{{ uniqueRightCount() }}</p>
-          <p class="text-xs text-cyan-600 uppercase mt-0.5">Only {{ r.name }}</p>
-        </div>
+      <div class="p-4">
+        @if (uniqueLeftDrugs().length || uniqueRightDrugs().length) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <!-- Left only -->
+      <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+            <mat-icon class="!text-base text-indigo-600">medication</mat-icon>
+            <p class="text-sm font-semibold text-orange-700">Only in {{ labelA }}</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftDrugs().length }}</span>
+          </div>
+          @if (uniqueLeftDrugs().length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (d of uniqueLeftDrugs(); track d.drugName) {
+                <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">medication</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                    @if (d.drugType) {
+                      <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                        [class]="d.drugType === 'Generic' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'">
+                        {{ d.drugType }}
+                      </span>
+                    }
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    @if (d.dosage) {
+                      <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                    }
+                    <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                    @if (d.rxcui) {
+                      <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                    }
+                    @if (d.refillFrequency) {
+                      <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No unique drugs</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right only -->
+      <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+            <mat-icon class="!text-base text-cyan-600">medication</mat-icon>
+            <p class="text-sm font-semibold text-green-700">Only in {{ labelB }}</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightDrugs().length }}</span>
+          </div>
+          @if (uniqueRightDrugs().length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (d of uniqueRightDrugs(); track d.drugName) {
+                <div class="bg-white rounded-xl p-3 border border-cyan-100 w-64 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-cyan-700 !text-base !w-4 !h-4">medication</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
+                    @if (d.drugType) {
+                      <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                        [class]="d.drugType === 'Generic' ? 'bg-cyan-100 text-cyan-700' : 'bg-amber-100 text-amber-700'">
+                        {{ d.drugType }}
+                      </span>
+                    }
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    @if (d.dosage) {
+                      <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ d.dosage }}</span></div>
+                    }
+                    <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ d.quantity }}</span></div>
+                    @if (d.rxcui) {
+                      <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ d.rxcui }}</span></div>
+                    }
+                    @if (d.refillFrequency) {
+                      <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ d.refillFrequency }}</span></div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No unique drugs</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+          </div>
+        } @else {
+          <p class="text-xs text-gray-600 italic">No difference — both illustrations use the same prescriptions.</p>
+        }
       </div>
-      @if (uniqueLeftDrugNames().length || uniqueRightDrugNames().length) {
-        <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-1.5">
-          @for (name of uniqueLeftDrugNames(); track name) {
-            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ name }}</span>
-          }
-          @for (name of uniqueRightDrugNames(); track name) {
-            <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ name }}</span>
-          }
-        </div>
-      }
     </mat-card-content>
   </mat-card>
 
   <!-- ── 3. Pharmacy Comparison ── -->
   <mat-card class="!rounded-xl !shadow-sm">
-    <mat-card-content class="!p-4">
-      <div class="flex items-center gap-2 mb-3">
+    <mat-card-content class="!p-0">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-emerald-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
           <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
         </div>
-        <p class="text-sm font-semibold text-gray-800">Pharmacy</p>
+        <p class="text-sm font-semibold text-gray-800">Pharmacy Comparison</p>
         <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
-              [class]="l.pharmacy?.npi === r.pharmacy?.npi ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
-          {{ l.pharmacy?.npi === r.pharmacy?.npi ? 'Same' : 'Different' }}
+              [class]="samePharmacies() ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+          {{ samePharmacies() ? 'Identical' : 'Different' }}
         </span>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="rounded-lg bg-indigo-50/60 border border-indigo-100 p-3">
-          <p class="text-xs text-gray-500 uppercase mb-1">{{ l.name }}</p>
-          <p class="text-sm font-semibold text-gray-900">{{ l.pharmacy?.name ?? 'Not selected' }}</p>
-          @if (l.pharmacy) {
-            <p class="text-xs text-gray-500 mt-0.5">{{ l.pharmacy.pharmacyType }}{{ l.pharmacy.distance ? ' · ' + l.pharmacy.distance.toFixed(1) + ' mi' : '' }}</p>
-          }
-        </div>
-        <div class="rounded-lg bg-cyan-50/60 border border-cyan-100 p-3">
-          <p class="text-xs text-gray-500 uppercase mb-1">{{ r.name }}</p>
-          <p class="text-sm font-semibold text-gray-900">{{ r.pharmacy?.name ?? 'Not selected' }}</p>
-          @if (r.pharmacy) {
-            <p class="text-xs text-gray-500 mt-0.5">{{ r.pharmacy.pharmacyType }}{{ r.pharmacy.distance ? ' · ' + r.pharmacy.distance.toFixed(1) + ' mi' : '' }}</p>
-          }
-        </div>
+      <div class="p-4">
+        @if (uniqueLeftPharmacies().length || uniqueRightPharmacies().length) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Left only -->
+            <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
+              <mat-card-content class="!p-0">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                  <mat-icon class="!text-base text-indigo-600">storefront</mat-icon>
+                  <p class="text-sm font-semibold text-orange-700">Only in {{ labelA }}</p>
+                  <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftPharmacies().length }}</span>
+                </div>
+                @if (uniqueLeftPharmacies().length) {
+                  <div class="p-4 flex flex-wrap gap-3">
+                    @for (ph of uniqueLeftPharmacies(); track ph.npi) {
+                      <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
+                        <div class="flex items-center gap-2 mb-1.5">
+                          <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">storefront</mat-icon>
+                          <span class="text-xs font-bold text-gray-900 truncate">{{ ph.name }}</span>
+                          <span class="px-1.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 shrink-0">{{ ph.pharmacyType }}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">{{ ph.address }}</p>
+                        <p class="text-xs text-gray-500">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</p>
+                        <div class="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-500">
+                          @if (ph.phone) {
+                            <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">phone</mat-icon> {{ ph.phone }}</span>
+                          }
+                          @if (ph.distance != null) {
+                            <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">pin_drop</mat-icon> {{ ph.distance.toFixed(1) }} mi</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="px-4 py-6 text-center">
+                    <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+                    <p class="text-xs text-gray-600 mt-1">No unique pharmacies</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Right only -->
+            <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
+              <mat-card-content class="!p-0">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                  <mat-icon class="!text-base text-cyan-600">storefront</mat-icon>
+                  <p class="text-sm font-semibold text-green-700">Only in {{ labelB }}</p>
+                  <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightPharmacies().length }}</span>
+                </div>
+                @if (uniqueRightPharmacies().length) {
+                  <div class="p-4 flex flex-wrap gap-3">
+                    @for (ph of uniqueRightPharmacies(); track ph.npi) {
+                      <div class="bg-white rounded-xl p-3 border border-cyan-100 w-64 shrink-0">
+                        <div class="flex items-center gap-2 mb-1.5">
+                          <mat-icon class="text-cyan-700 !text-base !w-4 !h-4">storefront</mat-icon>
+                          <span class="text-xs font-bold text-gray-900 truncate">{{ ph.name }}</span>
+                          <span class="px-1.5 py-0.5 rounded-full text-xs font-bold bg-cyan-100 text-cyan-700 shrink-0">{{ ph.pharmacyType }}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">{{ ph.address }}</p>
+                        <p class="text-xs text-gray-500">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</p>
+                        <div class="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-500">
+                          @if (ph.phone) {
+                            <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">phone</mat-icon> {{ ph.phone }}</span>
+                          }
+                          @if (ph.distance != null) {
+                            <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">pin_drop</mat-icon> {{ ph.distance.toFixed(1) }} mi</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="px-4 py-6 text-center">
+                    <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+                    <p class="text-xs text-gray-600 mt-1">No unique pharmacies</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+          </div>
+        } @else {
+          <p class="text-xs text-gray-600 italic">No difference — both illustrations use the same pharmacies.</p>
+        }
+
+        <!-- Mail-order pharmacy if available -->
+        @if (l.mailOrderPharmacy?.enabled || r.mailOrderPharmacy?.enabled) {
+          <div class="mt-4 pt-3 border-t border-gray-100">
+            <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Mail-Order Pharmacy</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="flex items-center gap-2 p-2 rounded-lg" [class]="l.mailOrderPharmacy?.enabled ? 'bg-green-50' : 'bg-gray-50'">
+                <mat-icon class="!text-sm" [class]="l.mailOrderPharmacy?.enabled ? 'text-green-600' : 'text-gray-600'">
+                  {{ l.mailOrderPharmacy?.enabled ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                <span class="text-xs" [class]="l.mailOrderPharmacy?.enabled ? 'text-green-700' : 'text-gray-500'">
+                  {{ l.mailOrderPharmacy?.enabled ? l.mailOrderPharmacy?.name : 'Not enabled' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 p-2 rounded-lg" [class]="r.mailOrderPharmacy?.enabled ? 'bg-green-50' : 'bg-gray-50'">
+                <mat-icon class="!text-sm" [class]="r.mailOrderPharmacy?.enabled ? 'text-green-600' : 'text-gray-600'">
+                  {{ r.mailOrderPharmacy?.enabled ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                <span class="text-xs" [class]="r.mailOrderPharmacy?.enabled ? 'text-green-700' : 'text-gray-500'">
+                  {{ r.mailOrderPharmacy?.enabled ? r.mailOrderPharmacy?.name : 'Not enabled' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </mat-card-content>
   </mat-card>
 
   <!-- ── 4. Plan Comparison ── -->
   <mat-card class="!rounded-xl !shadow-sm">
-    <mat-card-content class="!p-4">
-      <div class="flex items-center gap-2 mb-3">
+    <mat-card-content class="!p-0">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-amber-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
           <mat-icon class="!text-base text-amber-600">shield</mat-icon>
         </div>
-        <p class="text-sm font-semibold text-gray-800">Plans</p>
+        <p class="text-sm font-semibold text-gray-800">Plan Comparison</p>
+        <span class="ml-auto text-xs px-2 py-0.5 rounded-full font-medium"
+              [class]="samePlans() ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+          {{ samePlans() ? 'Identical' : 'Different' }}
+        </span>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="space-y-2">
-          <p class="text-xs text-gray-500 uppercase font-semibold">{{ l.name }} ({{ leftPlanSummary().length }})</p>
-          @for (p of leftPlanSummary(); track p.name) {
-            <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-2.5 flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold text-gray-900">{{ p.name }}</p>
-                <p class="text-xs text-gray-500">{{ p.carrier }}</p>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <span class="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-medium">{{ p.type }}</span>
-                <p class="text-xs font-bold text-gray-900 mt-0.5">{{ p.premium | currency:'USD':'symbol':'1.0-0' }}/mo</p>
-              </div>
-            </div>
-          }
-        </div>
-        <div class="space-y-2">
-          <p class="text-xs text-gray-500 uppercase font-semibold">{{ r.name }} ({{ rightPlanSummary().length }})</p>
-          @for (p of rightPlanSummary(); track p.name) {
-            <div class="rounded-lg border border-cyan-100 bg-cyan-50/40 p-2.5 flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold text-gray-900">{{ p.name }}</p>
-                <p class="text-xs text-gray-500">{{ p.carrier }}</p>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <span class="text-xs px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded font-medium">{{ p.type }}</span>
-                <p class="text-xs font-bold text-gray-900 mt-0.5">{{ p.premium | currency:'USD':'symbol':'1.0-0' }}/mo</p>
-              </div>
-            </div>
-          }
-        </div>
+      <div class="p-4">
+        @if (uniqueLeftPlans().length || uniqueRightPlans().length) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Left only -->
+            <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
+              <mat-card-content class="!p-0">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                  <mat-icon class="!text-base text-indigo-600">shield</mat-icon>
+                  <p class="text-sm font-semibold text-orange-700">Only in {{ labelA }}</p>
+                  <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftPlans().length }}</span>
+                </div>
+                @if (uniqueLeftPlans().length) {
+                  <div class="p-4 space-y-2">
+                    @for (p of uniqueLeftPlans(); track p.planId) {
+                      <div class="rounded-lg border border-indigo-100 bg-indigo-50/40 p-2.5 flex items-center justify-between">
+                        <div>
+                          <p class="text-xs font-semibold text-gray-900">{{ p.name }}</p>
+                          <p class="text-xs text-gray-500">{{ p.carrier }}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                          <span class="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded font-medium">{{ p.type }}</span>
+                          <p class="text-xs font-bold text-gray-900 mt-0.5">{{ p.premium | currency:'USD':'symbol':'1.0-0' }}/mo</p>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="px-4 py-6 text-center">
+                    <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+                    <p class="text-xs text-gray-600 mt-1">No unique plans</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Right only -->
+            <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
+              <mat-card-content class="!p-0">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                  <mat-icon class="!text-base text-cyan-600">shield</mat-icon>
+                  <p class="text-sm font-semibold text-green-700">Only in {{ labelB }}</p>
+                  <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightPlans().length }}</span>
+                </div>
+                @if (uniqueRightPlans().length) {
+                  <div class="p-4 space-y-2">
+                    @for (p of uniqueRightPlans(); track p.planId) {
+                      <div class="rounded-lg border border-cyan-100 bg-cyan-50/40 p-2.5 flex items-center justify-between">
+                        <div>
+                          <p class="text-xs font-semibold text-gray-900">{{ p.name }}</p>
+                          <p class="text-xs text-gray-500">{{ p.carrier }}</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                          <span class="text-xs px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded font-medium">{{ p.type }}</span>
+                          <p class="text-xs font-bold text-gray-900 mt-0.5">{{ p.premium | currency:'USD':'symbol':'1.0-0' }}/mo</p>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="px-4 py-6 text-center">
+                    <mat-icon class="!text-2xl text-gray-500">check_circle</mat-icon>
+                    <p class="text-xs text-gray-600 mt-1">No unique plans</p>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+
+          </div>
+        } @else {
+          <p class="text-xs text-gray-600 italic">No difference — both illustrations use the same plans.</p>
+        }
       </div>
     </mat-card-content>
   </mat-card>
 
-  <!-- ── 5. Cost Projection Summary ── -->
-  <mat-card class="!rounded-xl !shadow-sm">
-    <mat-card-content class="!p-4">
-      <div class="flex items-center gap-2 mb-3">
-        <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
-          <mat-icon class="!text-base text-rose-600">analytics</mat-icon>
+  <!-- ── 5. Cost Trajectory ── -->
+  @if (l.lastCostSnapshot?.evaluation || r.lastCostSnapshot?.evaluation) {
+    <mat-card class="!rounded-xl !shadow-sm">
+      <mat-card-content class="!p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
+            <mat-icon class="!text-base text-rose-600">analytics</mat-icon>
+          </div>
+          <p class="text-sm font-semibold text-gray-800">Cost Trajectory</p>
         </div>
-        <p class="text-sm font-semibold text-gray-800">Projection Summary</p>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-xs">
-          <thead>
-            <tr class="border-b border-gray-200 bg-gray-50/80">
-              <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Metric</th>
-              <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">{{ l.name }}</th>
-              <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">{{ r.name }}</th>
-              <th class="py-2 px-3 text-right text-gray-500 uppercase font-semibold">Delta</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of [
-              { label: 'Lifetime Total', lv: l.lastCostSnapshot?.lifetimeTotal ?? 0, rv: r.lastCostSnapshot?.lifetimeTotal ?? 0 },
-              { label: 'Lifetime Premiums', lv: l.lastCostSnapshot?.lifetimePremiums ?? 0, rv: r.lastCostSnapshot?.lifetimePremiums ?? 0 },
-              { label: 'Lifetime OOP', lv: l.lastCostSnapshot?.lifetimeOop ?? 0, rv: r.lastCostSnapshot?.lifetimeOop ?? 0 },
-              { label: 'IRMAA Surcharge', lv: l.lastCostSnapshot?.lifetimeIrmaa ?? 0, rv: r.lastCostSnapshot?.lifetimeIrmaa ?? 0 },
-              { label: 'Present Value (6%)', lv: l.lastCostSnapshot?.presentValue ?? 0, rv: r.lastCostSnapshot?.presentValue ?? 0 },
-              { label: 'Current Year', lv: l.lastCostSnapshot?.currentYearTotal ?? 0, rv: r.lastCostSnapshot?.currentYearTotal ?? 0 }
-            ]; track row.label) {
-              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
-                <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
-                <td class="py-2 px-3 text-right text-gray-900">{{ row.lv | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="py-2 px-3 text-right text-gray-900">{{ row.rv | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="py-2 px-3 text-right font-semibold" [class]="(row.lv - row.rv) <= 0 ? 'text-green-700' : 'text-red-700'">
-                  {{ (row.lv - row.rv) | currency:'USD':'symbol':'1.0-0' }}
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      @if (l.lastCostSnapshot?.evaluation || r.lastCostSnapshot?.evaluation) {
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-3 border-t border-gray-100">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           @if (l.lastCostSnapshot?.evaluation; as lev) {
             <div class="rounded-lg border border-gray-200 p-3">
-              <p class="text-xs text-gray-500 uppercase mb-1.5">{{ l.name }} Trajectory</p>
+              <p class="text-xs text-orange-600 uppercase mb-1.5">{{ labelA }} Trajectory</p>
               <div class="flex items-center gap-2">
                 <mat-icon [class]="getTrajectoryColor(lev.costTrajectory)">{{ getTrajectoryIcon(lev.costTrajectory) }}</mat-icon>
                 <span class="text-sm font-semibold" [class]="getTrajectoryColor(lev.costTrajectory)">{{ lev.costTrajectory }}</span>
@@ -273,7 +465,7 @@
           }
           @if (r.lastCostSnapshot?.evaluation; as rev) {
             <div class="rounded-lg border border-gray-200 p-3">
-              <p class="text-xs text-gray-500 uppercase mb-1.5">{{ r.name }} Trajectory</p>
+              <p class="text-xs text-green-600 uppercase mb-1.5">{{ labelB }} Trajectory</p>
               <div class="flex items-center gap-2">
                 <mat-icon [class]="getTrajectoryColor(rev.costTrajectory)">{{ getTrajectoryIcon(rev.costTrajectory) }}</mat-icon>
                 <span class="text-sm font-semibold" [class]="getTrajectoryColor(rev.costTrajectory)">{{ rev.costTrajectory }}</span>
@@ -282,8 +474,8 @@
             </div>
           }
         </div>
-      }
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
+  }
 
 </div>

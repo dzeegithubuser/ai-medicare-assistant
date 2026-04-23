@@ -78,8 +78,8 @@ export interface PartDPlanRecommendationResponse {
   totalRecommendationPages: number;
   totalRecommendations: number;
   sortRecommendations: string;
-  retirementYear: number;
-  dataYear: number;
+  retirementYear: number | null;
+  dataYear: number | null;
   partAPremium: number;
   partBPremium: number;
   partBOOP: number;
