@@ -22,6 +22,7 @@ import { CompareMedicareMetricsComponent } from './compare-medicare-metrics.comp
     CompareMedicareMetricsComponent,
   ],
   templateUrl: './compare-medicare.component.html',
+  styleUrl: './compare-medicare.component.scss',
 })
 export class CompareMedicareComponent {
   readonly left = input.required<RecommendationResponse>();

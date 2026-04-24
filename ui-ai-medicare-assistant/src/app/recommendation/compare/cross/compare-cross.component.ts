@@ -20,6 +20,7 @@ import { CompareCrossMetricsComponent } from './compare-cross-metrics.component'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent, CompareCrossMetricsComponent],
   templateUrl: './compare-cross.component.html',
+  styleUrl: './compare-cross.component.scss',
 })
 export class CompareCrossComponent {
   readonly left = input.required<RecommendationResponse>();

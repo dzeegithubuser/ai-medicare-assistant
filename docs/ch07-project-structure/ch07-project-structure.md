@@ -161,8 +161,8 @@ app/
       tab-profile/
         tab-profile.component.ts/html    → Shared profile comparison tab (4 grouped sections: Personal, Location, Health, Financial). Used by Medicare, LTC, and Cross compare
       medicare/
-        compare-medicare.component.ts/html → Medicare-vs-Medicare comparison shell (4-tab: Overview, Profile, Rx Pharmacy & Plans, Cost Analysis)
-        compare-medicare-metrics.component.ts → Medicare KPI metrics cards (inline template — cost + profile metrics grid with orange/green labels)
+        compare-medicare.component.ts/html/scss → Medicare-vs-Medicare comparison shell (4-tab: Overview, Profile, Rx Pharmacy & Plans, Cost Analysis) with active-tab primary color styling
+        compare-medicare-metrics.component.ts → Medicare KPI metrics cards (inline template — unified single grid via allMetrics() with orange/green labels)
         tab-overview/
           tab-overview.component.ts/html → Overview tab — 6 KPI delta cards, winner banner, profile diffs, Rx summary, pharmacy, plans, projections
         tab-cost-analysis/
@@ -170,12 +170,17 @@ app/
         tab-rx-pharmacy-plans/
           tab-rx-pharmacy-plans.component.ts/html → Rx, Pharmacy & Plans tab — side-by-side prescription drug cards, pharmacy comparison cards, plan cards with star ratings
       ltc/
-        compare-ltc.component.ts/html      → LTC-vs-LTC comparison (4-tab: Overview, Profile, Care Config, Cost Analysis)
-        compare-ltc-metrics.component.ts   → LTC KPI metrics cards (inline template — cost + profile metrics grid with orange/green labels)
+        compare-ltc.component.ts/html/scss      → LTC-vs-LTC comparison (4-tab: Overview, Profile, Care Config, Cost Analysis) with active-tab primary color styling
+        compare-ltc-metrics.component.ts   → LTC KPI metrics cards (inline template — unified single grid via allMetrics() with orange/green labels)
       cross/
-        compare-cross.component.ts/html    → Medicare-vs-LTC cross-type comparison (3-tab: Overview, Profile, Cost Summary)
-        compare-cross-metrics.component.ts → Cross-type KPI metrics cards (inline template — dispatches to LTC/Medicare snapshot per side)
-    recommendation-detail.component.ts/html/scss → Full detail view of a single saved analysis (/saved/:id) — hero header, KPI strip, grouped profile/pharmacy/plans/cost tabs
+        compare-cross.component.ts/html/scss    → Medicare-vs-LTC cross-type comparison (3-tab: Overview, Profile, Cost Summary) with active-tab primary color styling
+        compare-cross-metrics.component.ts → Cross-type KPI metrics cards (inline template — unified single grid via allMetrics(), dispatches to LTC/Medicare snapshot per side)
+    detail/
+      recommendation-detail.component.ts/html/scss → Full detail view of a single saved analysis (/saved/:id) — flat header (matching compare), KPI strip, grouped profile/details/cost tabs
+      medicare/
+        rec-detail-medicare.component.ts/html/scss → Medicare detail child — 3 tabs (Profile, Details, Cost & Charts) with active-tab primary color styling, Chart.js charts
+      ltc/
+        rec-detail-ltc.component.ts/html/scss     → LTC detail child — 2 tabs (Profile, Cost Analysis) with active-tab primary color styling, Chart.js charts
   constants/
     chat-messages.ts                  → Chat message constant strings
   pipes/

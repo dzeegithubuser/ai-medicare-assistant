@@ -1,4 +1,4 @@
-<div class="h-full overflow-y-auto p-6 bg-slate-200">
+<div class="h-full overflow-y-auto p-6 bg-[var(--app-bg)]">
 
   <!-- ── Welcome Card ───────────────────────────────────────────────────── -->
   <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
@@ -62,7 +62,7 @@
                 <mat-icon class="!text-sm text-gray-600">close</mat-icon>
               </button>
             </div>
-            <p class="text-xs text-gray-600 mt-1">Saved {{ rec.createdAt | date:'MMM d, y' }}</p>
+            <p class="text-xs text-gray-600 mt-1">Saved {{ rec.createdAt | date:'MMM d, y \'at\' h:mm a' }}</p>
           } @else {
             <div class="flex flex-col items-center justify-center h-full text-indigo-400 text-center py-1">
               <mat-icon class="!text-2xl mb-0.5">add_circle_outline</mat-icon>
@@ -86,7 +86,7 @@
                 <mat-icon class="!text-sm text-gray-600">close</mat-icon>
               </button>
             </div>
-            <p class="text-xs text-gray-600 mt-1">Saved {{ rec.createdAt | date:'MMM d, y' }}</p>
+            <p class="text-xs text-gray-600 mt-1">Saved {{ rec.createdAt | date:'MMM d, y \'at\' h:mm a' }}</p>
           } @else {
             <div class="flex flex-col items-center justify-center h-full text-indigo-400 text-center py-1">
               <mat-icon class="!text-2xl mb-0.5">add_circle_outline</mat-icon>
@@ -186,14 +186,14 @@
         </button>
       </div>
     } @else {
-      <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
         @for (rec of pagedRecommendations(); track rec.id) {
-          <mat-card class="!rounded-xl !bg-white !border-l-4 !border !border-gray-300 !shadow hover:!shadow-lg transition-all"
+          <mat-card class="!rounded-xl !bg-white !border-l-4 !border !border-gray-300 !shadow hover:!shadow-lg transition-all !flex !flex-col"
                     [class.!border-l-cyan-600]="!isInCompare(rec.id)"
                     [class.!border-l-indigo-500]="isInCompare(rec.id)"
                     [class.!ring-2]="isInCompare(rec.id)"
                     [class.!ring-indigo-400]="isInCompare(rec.id)">
-            <mat-card-content class="!p-3">
+            <mat-card-content class="!p-3 !flex !flex-col !flex-1">
 
               <!-- Row 1: icon + name | status + type badges -->
               <div class="flex items-center justify-between gap-2">
@@ -220,95 +220,103 @@
               <!-- Row 2: date -->
               <p class="text-xs text-gray-500 mt-1.5 ml-10">Saved {{ rec.createdAt | date:'MMM d, y \'at\' h:mm a' }}</p>
 
-              <!-- Row 3: stats — Medicare shows drug/plan/cost; LTC shows care types -->
-              @if (rec.type === 'longterm') {
-                <!-- LTC: health profile -->
-                <div class="flex items-center gap-1.5 mt-2 ml-10 text-xs text-gray-600">
-                  <mat-icon class="!text-xs !w-3.5 !h-3.5">favorite</mat-icon>
-                  <span>{{ fmtHealthProfile(rec.healthProfile) }}</span>
-                  @if (rec.hasCostSnapshot) {
-                    <span class="flex items-center gap-0.5 font-semibold text-purple-700 ml-2">
-                      <mat-icon class="!text-xs !w-3.5 !h-3.5">payments</mat-icon>
-                      {{ rec.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}
-                    </span>
-                  }
-                </div>
-                <!-- LTC: care type chips (only show care types > 0) -->
-                <div class="mt-1.5 ml-10 flex flex-wrap gap-1">
-                  @if ((rec.adultDayYears ?? 0) > 0) {
-                    <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
-                      <mat-icon class="!text-xs !w-3 !h-3">wb_sunny</mat-icon>
-                      Adult Day · {{ rec.adultDayYears }}yr
-                    </span>
-                  }
-                  @if ((rec.homeCareYears ?? 0) > 0) {
-                    <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
-                      <mat-icon class="!text-xs !w-3 !h-3">home</mat-icon>
-                      Home Care · {{ rec.homeCareYears }}yr
-                    </span>
-                  }
-                  @if ((rec.nursingCareYears ?? 0) > 0) {
-                    <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-rose-100 text-rose-700">
-                      <mat-icon class="!text-xs !w-3 !h-3">local_hospital</mat-icon>
-                      Nursing · {{ rec.nursingCareYears }}yr
-                    </span>
-                  }
-                </div>
-              } @else {
-                <div class="flex items-center gap-3 mt-2 ml-10 text-xs text-gray-600">
-                  <span class="flex items-center gap-0.5">
-                    <mat-icon class="!text-xs !w-3.5 !h-3.5">medication</mat-icon>
-                    {{ rec.drugCount }} drug{{ rec.drugCount === 1 ? '' : 's' }}
-                  </span>
-                  <span class="flex items-center gap-0.5">
-                    <mat-icon class="!text-xs !w-3.5 !h-3.5">health_and_safety</mat-icon>
-                    {{ rec.planCount }} plan{{ rec.planCount === 1 ? '' : 's' }}
-                  </span>
-                  @if (rec.hasCostSnapshot) {
-                    <span class="flex items-center gap-0.5 font-semibold text-indigo-700">
-                      <mat-icon class="!text-xs !w-3.5 !h-3.5">payments</mat-icon>
-                      {{ rec.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}
-                    </span>
-                  }
-                </div>
-              }
+              <!-- Row 3+4 (left) / Row 5 (right) two-column layout -->
+              <div class="flex-1"></div>
+              <div class="flex items-end gap-2 mt-2 ml-10">
 
-              <!-- Row 4: selected plans (medicare only) -->
-              @if ((rec.type ?? 'medicare') === 'medicare' && rec.plans.length) {
-                <div class="mt-2 ml-10 flex flex-wrap gap-1">
-                  @for (plan of rec.plans; track $index) {
-                    <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium max-w-[180px]"
-                          [class]="planTypeBadgeClass(plan.planType)"
-                          [matTooltip]="plan.planName">
-                      <span class="font-semibold">{{ planTypeLabel(plan.planType) }}:</span>
-                      <span class="truncate">{{ plan.planName }}</span>
-                    </span>
+                <!-- Left column: stats + plans -->
+                <div class="flex-1 min-w-0">
+                  <!-- Row 3: stats -->
+                  @if (rec.type === 'longterm') {
+                    <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                      <mat-icon class="!text-xs !w-3.5 !h-3.5">favorite</mat-icon>
+                      <span>{{ fmtHealthProfile(rec.healthProfile) }}</span>
+                      @if (rec.hasCostSnapshot) {
+                        <span class="flex items-center gap-0.5 font-semibold text-purple-700 ml-2">
+                          <mat-icon class="!text-xs !w-3.5 !h-3.5">payments</mat-icon>
+                          {{ rec.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <!-- LTC: care type chips -->
+                    <div class="mt-1.5 flex flex-wrap gap-1">
+                      @if ((rec.adultDayYears ?? 0) > 0) {
+                        <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
+                          <mat-icon class="!text-xs !w-3 !h-3">wb_sunny</mat-icon>
+                          Adult Day · {{ rec.adultDayYears }}yr
+                        </span>
+                      }
+                      @if ((rec.homeCareYears ?? 0) > 0) {
+                        <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
+                          <mat-icon class="!text-xs !w-3 !h-3">home</mat-icon>
+                          Home Care · {{ rec.homeCareYears }}yr
+                        </span>
+                      }
+                      @if ((rec.nursingCareYears ?? 0) > 0) {
+                        <span class="inline-flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full font-medium bg-rose-100 text-rose-700">
+                          <mat-icon class="!text-xs !w-3 !h-3">local_hospital</mat-icon>
+                          Nursing · {{ rec.nursingCareYears }}yr
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-3 text-xs text-gray-600">
+                      <span class="flex items-center gap-0.5">
+                        <mat-icon class="!text-xs !w-3.5 !h-3.5">medication</mat-icon>
+                        {{ rec.drugCount }} drug{{ rec.drugCount === 1 ? '' : 's' }}
+                      </span>
+                      <span class="flex items-center gap-0.5">
+                        <mat-icon class="!text-xs !w-3.5 !h-3.5">health_and_safety</mat-icon>
+                        {{ rec.planCount }} plan{{ rec.planCount === 1 ? '' : 's' }}
+                      </span>
+                      @if (rec.hasCostSnapshot) {
+                        <span class="flex items-center gap-0.5 font-semibold text-indigo-700">
+                          <mat-icon class="!text-xs !w-3.5 !h-3.5">payments</mat-icon>
+                          {{ rec.lifetimeTotal | currency:'USD':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  <!-- Row 4: selected plans (medicare only) -->
+                  @if ((rec.type ?? 'medicare') === 'medicare' && rec.plans.length) {
+                    <div class="mt-1.5 flex flex-wrap gap-1">
+                      @for (plan of rec.plans; track $index) {
+                        <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium max-w-[180px]"
+                              [class]="planTypeBadgeClass(plan.planType)"
+                              [matTooltip]="plan.planName">
+                          <span class="font-semibold">{{ planTypeLabel(plan.planType) }}:</span>
+                          <span class="truncate">{{ plan.planName }}</span>
+                        </span>
+                      }
+                    </div>
                   }
                 </div>
-              }
 
-              <!-- Row 5: action buttons -->
-              <div class="mt-3 ml-10 flex items-center gap-2">
-                <button mat-flat-button color="primary" (click)="viewDetails(rec.id)" class="!rounded-lg !h-10 !text-xs !px-3 !gap-1">
-                  <mat-icon class="!text-sm">visibility</mat-icon>
-                  View details
-                </button>
-
-                @if (isInCompare(rec.id)) {
-                  <button mat-stroked-button class="!rounded-lg !h-10 !text-xs !px-3 !gap-1 !border-indigo-400 !text-indigo-700"
-                          (click)="removeFromCompare(rec.id)">
-                    <mat-icon class="!text-sm">remove_circle_outline</mat-icon>
-                    Remove
+                <!-- Right column: action buttons -->
+                <div class="flex flex-col gap-1.5 shrink-0">
+                  <button mat-flat-button color="primary" (click)="viewDetails(rec.id)" class="!rounded-lg !h-9 !px-3 !gap-1">
+                    <mat-icon class="!text-[24px] !w-6 !h-6">visibility</mat-icon>
+                    <span class="text-xs">View details</span>
                   </button>
-                } @else {
-                  <button mat-stroked-button class="!rounded-lg !h-10 !text-xs !px-3 !gap-1"
-                          [disabled]="!canAdd(rec.id)"
-                          [matTooltip]="compareCount() >= 2 ? 'Compare basket is full' : 'Add to compare'"
-                          (click)="addToCompare(rec)">
-                    <mat-icon class="!text-sm">add_circle_outline</mat-icon>
-                    Compare
-                  </button>
-                }
+
+                  @if (isInCompare(rec.id)) {
+                    <button mat-stroked-button class="!rounded-lg !h-9 !px-3 !gap-1 !border-indigo-400 !text-indigo-700"
+                            (click)="removeFromCompare(rec.id)">
+                      <mat-icon class="!text-[24px] !w-6 !h-6">remove_circle_outline</mat-icon>
+                      <span class="text-xs">Remove</span>
+                    </button>
+                  } @else {
+                    <button mat-stroked-button class="!rounded-lg !h-9 !px-3 !gap-1"
+                            [disabled]="!canAdd(rec.id)"
+                            [matTooltip]="compareCount() >= 2 ? 'Compare basket is full' : 'Add to compare'"
+                            (click)="addToCompare(rec)">
+                      <mat-icon class="!text-[24px] !w-6 !h-6">add_circle_outline</mat-icon>
+                      <span class="text-xs">Compare</span>
+                    </button>
+                  }
+                </div>
+
               </div>
 
             </mat-card-content>

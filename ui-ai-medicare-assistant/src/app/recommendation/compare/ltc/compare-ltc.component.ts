@@ -20,6 +20,7 @@ import { CompareLtcMetricsComponent } from './compare-ltc-metrics.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule, MatTooltipModule, TabProfileComponent, CompareLtcMetricsComponent],
   templateUrl: './compare-ltc.component.html',
+  styleUrl: './compare-ltc.component.scss',
 })
 export class CompareLtcComponent {
   readonly left = input.required<RecommendationResponse>();

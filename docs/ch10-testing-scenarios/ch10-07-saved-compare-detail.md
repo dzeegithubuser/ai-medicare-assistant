@@ -22,13 +22,15 @@
 
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
-| SD.12 | Analyses loaded | Navigate to `/saved` with saved analyses | Analysis list shows cards with name, date, counts, and cost info. |
+| SD.12 | Analyses loaded | Navigate to `/saved` with saved analyses | Analysis list shows cards with name, date, counts, and cost info. Themed background via `bg-[var(--app-bg)]`. |
 | SD.13 | No tab count badge | 2 saved analyses | Page shows list directly (no tabs/badges). |
 | SD.14 | Completed analysis card | Analysis with cost snapshot | Green status badge "completed". Lifetime total displayed. `hasCostSnapshot` indicator shown. |
 | SD.15 | In-progress analysis card | Analysis without cost snapshot | Amber status badge "in-progress". No lifetime total. |
-| SD.16 | Drug and plan counts | Analysis with 3 drugs, 2 plans | Card shows "3 drugs" and "2 plans". |
+| SD.16 | Drug and plan counts | Analysis with 3 drugs, 2 plans | Card shows "3 drugs" and "2 plans" in left stats column. |
 | SD.17 | Empty analyses | No saved analyses | Empty state message displayed on the page. |
 | SD.18 | Loading state | Page loading | Loading spinner shown during API calls. |
+| SD.19a | Two-column card layout | Load card with stats and plans | Bottom section has flex row: left column with stats + plan chips, right column with stacked "View details" and "Compare" buttons. |
+| SD.19b | Equal-height cards | Load 2+ cards in same row | All cards in the same grid row stretch to equal height via `items-stretch` + `flex-col`. |
 
 ### Backend: GET /api/recommendation/all
 
@@ -75,7 +77,7 @@
 
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
-| 25.1 | Hero header | Open `/saved/:id` for a Medicare rec | Dark gradient hero bar with type badge ("Medicare"), back button, save date, recommendation name. |
+| 25.1 | Flat header (matches compare) | Open `/saved/:id` for a Medicare rec | Flat flex header row with back button, analysis name (bold, gray-900), type badge pill ("Medicare" in cyan-100/cyan-700), save date (gray-500). Themed page background via `bg-[var(--app-bg)]`. |
 | 25.2 | KPI strip — Medicare | Open Medicare rec with cost snapshot | 6 KPI cards: Lifetime, Premiums, OOP, IRMAA, Present Value, Current Year — all populated from `lastCostSnapshot`. |
 | 25.3 | Profile tab grouping | Click Profile tab | 3 grouped sections: Personal (name, DOB, age, gender), Location (state, ZIP, county, FIPS), Health & Financial (health, tobacco, tax filing, MAGI, concierge). |
 | 25.4 | Prescriptions tab | Click Prescriptions tab with 3 drugs | Count pill shows "3", HTML table lists drug name, formulation, strength. |
@@ -142,13 +144,18 @@
 
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
-| 30.1 | Medicare metrics component | Compare 2 Medicare recs | `CompareMedicareMetricsComponent` renders 4 cost KPI cards (Lifetime, PV, IRMAA, Avg Annual) + 2 profile cards above tabs. |
-| 30.2 | LTC metrics component | Compare 2 LTC recs | `CompareLtcMetricsComponent` renders 3 cost KPI cards (Lifetime, PV, Avg Annual) + 2 profile cards above tabs. |
-| 30.3 | Cross metrics component | Compare Medicare vs LTC | `CompareCrossMetricsComponent` renders cross-type aware KPI cards — dispatches to correct snapshot per side. |
+| 30.1 | Medicare metrics — unified grid | Compare 2 Medicare recs | `CompareMedicareMetricsComponent` renders unified `allMetrics()` grid (`grid-cols-2 md:grid-cols-3`) with 4 cost KPI cards (Lifetime, PV, IRMAA, Avg Annual) + 2 profile cards (Coverage Years, ZIP Code). |
+| 30.2 | LTC metrics — unified grid | Compare 2 LTC recs | `CompareLtcMetricsComponent` renders unified `allMetrics()` grid with 3 cost KPI cards (Lifetime, PV, Avg Annual) + 2 profile cards (Projection Years, ZIP Code). |
+| 30.3 | Cross metrics — unified grid | Compare Medicare vs LTC | `CompareCrossMetricsComponent` renders unified `allMetrics()` grid with cross-type aware KPI cards — dispatches to correct snapshot per side. Profile metrics: ZIP Code only (Coverage Years removed). |
 | 30.4 | Tab Overview | Medicare compare → Overview tab | `TabOverviewComponent` renders 6 KPI deltas, winner banner, diffs, Rx, pharmacy, plans, projections. |
 | 30.5 | Tab Cost Analysis charts | Medicare compare → Cost Analysis tab | `TabCostAnalysisComponent` renders Chart.js line + bar charts with orange/green colors, destroys charts on destroy. |
 | 30.6 | Tab Rx, Pharmacy & Plans | Medicare compare → Rx, Pharmacy & Plans tab | `TabRxPharmacyPlansComponent` shows side-by-side Rx drug cards, pharmacy comparison cards, plan cards with star ratings. |
 | 30.7 | Tab Profile (shared) | Any compare → Profile tab | `TabProfileComponent` renders 4 grouped sections with match column. Shared across all 3 compare modes. |
+| 30.8 | Active tab styling — Medicare | Click any tab in Medicare compare | Active tab has primary color (`--color-cyan-600`) background, white text/icon, and rounded top corners (from `compare-medicare.component.scss`). |
+| 30.9 | Active tab styling — LTC | Click any tab in LTC compare | Same primary-color active tab styling via `compare-ltc.component.scss`. |
+| 30.10 | Active tab styling — Cross | Click any tab in Cross compare | Same primary-color active tab styling via `compare-cross.component.scss`. |
+| 30.11 | Table column alignment — cost | Any compare → cost-related table | Table uses `table-fixed` with percentage widths: Metric 20%, A 30%, B 30%, Diff 20%. Columns vertically aligned across sections. |
+| 30.12 | Table column alignment — profile | Any compare → Profile tab table | Table uses `table-fixed` with percentage widths: Icon 5%, Field 15%, A/B ~33-40% each. |
 
 ---
 

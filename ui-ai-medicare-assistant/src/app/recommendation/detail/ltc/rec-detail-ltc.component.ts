@@ -28,7 +28,7 @@ Chart.register(
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CurrencyPipe, MatIconModule, MatCardModule, MatTabsModule],
   templateUrl: './rec-detail-ltc.component.html',
-  styles: [`:host { display: block; } .chart-container { position: relative; height: 240px; }`],
+  styleUrl: './rec-detail-ltc.component.scss',
 })
 export class RecDetailLtcComponent implements OnDestroy {
   private cdr = inject(ChangeDetectorRef);

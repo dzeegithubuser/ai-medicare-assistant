@@ -38,7 +38,7 @@ const COST_TAB_INDEX = 2;
     MatTabsModule, MatExpansionModule,
   ],
   templateUrl: './rec-detail-medicare.component.html',
-  styles: [`:host { display: block; } .chart-container { position: relative; height: 320px; }`],
+  styleUrl: './rec-detail-medicare.component.scss',
 })
 export class RecDetailMedicareComponent implements OnDestroy {
   private cdr = inject(ChangeDetectorRef);

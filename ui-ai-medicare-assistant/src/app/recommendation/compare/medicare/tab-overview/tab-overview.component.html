@@ -13,13 +13,13 @@
         <p class="text-sm font-semibold text-gray-800">Cost Comparison</p>
       </div>
       <div class="overflow-x-auto">
-        <table class="min-w-full text-xs">
+        <table class="w-full table-fixed text-xs">
           <thead>
             <tr class="border-b border-gray-100 bg-gray-50/40">
-              <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-36">Metric</th>
-              <th class="text-right px-4 py-2.5 font-semibold text-orange-700 uppercase tracking-wide">{{ labelA }}</th>
-              <th class="text-right px-4 py-2.5 font-semibold text-green-700 uppercase tracking-wide">{{ labelB }}</th>
-              <th class="text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide">Difference</th>
+              <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-[20%]">Metric</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-orange-700 uppercase tracking-wide w-[30%]">{{ labelA }}</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-green-700 uppercase tracking-wide w-[30%]">{{ labelB }}</th>
+              <th class="text-right px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-[20%]">Difference</th>
             </tr>
           </thead>
           <tbody>
@@ -81,13 +81,13 @@
       <div class="p-4">
         @if (profileDiffs().length) {
           <div class="overflow-x-auto">
-            <table class="min-w-full text-xs">
+            <table class="w-full table-fixed text-xs">
               <thead>
                 <tr class="border-b border-gray-200 bg-gray-50/80">
-                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-8"></th>
-                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold">Field</th>
-                  <th class="py-2 px-3 text-left text-orange-600 uppercase font-semibold">{{ labelA }}</th>
-                  <th class="py-2 px-3 text-left text-green-600 uppercase font-semibold">{{ labelB }}</th>
+                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-[5%]"></th>
+                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-[15%]">Field</th>
+                  <th class="py-2 px-3 text-left text-orange-600 uppercase font-semibold w-[40%]">{{ labelA }}</th>
+                  <th class="py-2 px-3 text-left text-green-600 uppercase font-semibold w-[40%]">{{ labelB }}</th>
                 </tr>
               </thead>
               <tbody>

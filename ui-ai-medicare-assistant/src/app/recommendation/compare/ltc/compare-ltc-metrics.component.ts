@@ -10,9 +10,8 @@ import { LABEL_A, LABEL_B } from '../compare-helpers';
   imports: [CommonModule],
   providers: [CurrencyPipe],
   template: `
-    <!-- Cost Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-      @for (m of costMetrics(); track m.label) {
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+      @for (m of allMetrics(); track m.label) {
         <div class="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
           <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ m.label }}</p>
           <div class="grid grid-cols-2 gap-2 text-sm">
@@ -23,25 +22,6 @@ import { LABEL_A, LABEL_B } from '../compare-helpers';
             <div class="text-right">
               <p class="text-[10px] text-green-600 truncate">{{ labelB }}</p>
               <p class="font-bold text-gray-900">{{ m.right }}</p>
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- Profile Metrics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-      @for (m of profileMetrics(); track m.label) {
-        <div class="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ m.label }}</p>
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <p class="text-[10px] text-orange-600 truncate">{{ labelA }}</p>
-              <p class="font-semibold text-gray-800">{{ m.left }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-[10px] text-green-600 truncate">{{ labelB }}</p>
-              <p class="font-semibold text-gray-800">{{ m.right }}</p>
             </div>
           </div>
         </div>
@@ -61,6 +41,8 @@ export class CompareLtcMetricsComponent {
   private fmt(value: number, format = '1.0-0'): string {
     return this.currencyPipe.transform(value, 'USD', 'symbol', format) ?? '$0';
   }
+
+  readonly allMetrics = computed(() => [...this.costMetrics(), ...this.profileMetrics()]);
 
   readonly costMetrics = computed(() => {
     const l = this.left();

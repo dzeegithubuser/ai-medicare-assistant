@@ -118,12 +118,12 @@
   - Sticky ribbon at the bottom of the screen appears when ≥1 item is in the basket. At 2 items, a **Compare** button navigates to `/saved/compare`.
   - Compare is type-aware — Medicare and Long Term Care analyses are compared in their respective context.
   - `RecommendationCompareComponent` orchestrates comparison: reads `ids` from query params, `forkJoin` loads both records, determines mode (`medicare` / `longterm` / `cross`), renders hero header with **Illustration A/B aliases** (recommendation name shown as primary title, alias below in orange/green), and dispatches to:
-    - `CompareMedicareComponent` — 4-tab Medicare comparison shell. `CompareMedicareMetricsComponent` renders KPI cards above tabs. Tabs: Overview (`TabOverviewComponent` — 6 KPI deltas + 5 key-difference sections), Profile (`TabProfileComponent` — shared, 4 grouped card sections), Rx, Pharmacy & Plans (`TabRxPharmacyPlansComponent` — side-by-side Rx drug cards + storefront cards + detailed plan cards), Cost Analysis (`TabCostAnalysisComponent` — Chart.js line + bar charts with orange/green series + year-by-year delta table).
-    - `CompareLtcComponent` — 4-tab LTC comparison (Overview, Profile, Care Config, Cost Analysis). `CompareLtcMetricsComponent` renders KPI cards above tabs.
-    - `CompareCrossComponent` — 3-tab cross-type comparison (Overview with disclaimer, Profile, Cost Summary). `CompareCrossMetricsComponent` renders KPI cards above tabs.
+    - `CompareMedicareComponent` — 4-tab Medicare comparison shell with SCSS active-tab styling (primary color background, white text). `CompareMedicareMetricsComponent` renders unified KPI metrics grid above tabs (single `allMetrics()` computed signal). Tabs: Overview (`TabOverviewComponent` — 6 KPI deltas + 5 key-difference sections), Profile (`TabProfileComponent` — shared, 4 grouped card sections), Rx, Pharmacy & Plans (`TabRxPharmacyPlansComponent` — side-by-side Rx drug cards + storefront cards + detailed plan cards), Cost Analysis (`TabCostAnalysisComponent` — Chart.js line + bar charts with orange/green series + year-by-year delta table).
+    - `CompareLtcComponent` — 4-tab LTC comparison (Overview, Profile, Care Config, Cost Analysis) with SCSS active-tab styling. `CompareLtcMetricsComponent` renders unified KPI metrics grid above tabs.
+    - `CompareCrossComponent` — 3-tab cross-type comparison (Overview with disclaimer, Profile, Cost Summary) with SCSS active-tab styling. `CompareCrossMetricsComponent` renders unified KPI metrics grid above tabs.
   - **Illustration Aliasing:** Left recommendation is labeled **Illustration A** (orange), right is **Illustration B** (green). Constants `LABEL_A` / `LABEL_B` in `compare-helpers.ts` control the alias text; change once to update everywhere. Chart colors use `CHART_COLOR_A` (orange `#c2410c`) and `CHART_COLOR_B` (green `#15803d`). Orange/green palette chosen for WCAG AA contrast (6:1+) for elderly readability.
   - Shared helpers in `compare-helpers.ts`: label/color constants, delta formatting, trajectory icons/colors, star arrays, profile row builder with grouped labels (personal/location/health/financial) and inline formatters (health condition, gender, tobacco, concierge, tax filing).
-- **Card Layout (4-row grid):** Analysis name (displayed in **uppercase**), creation date, type badge, drug count, plan count, lifetime total (when available), status pill. Compare basket slots also show the name in uppercase.
+- **Card Layout (two-column bottom section):** Row 1: status icon + analysis name (uppercase) + type/status badges. Row 2: saved date. Bottom section uses a flex row: left column holds stats (drug count, plan count, lifetime total for Medicare; health profile, care type chips for LTC) and selected plan chips; right column holds stacked "View details" and "Compare" action buttons. Cards use `items-stretch` grid with `flex-col` for equal height. Themed background via `bg-[var(--app-bg)]`. Compare basket ribbon appears above cards when ≥1 item selected.
 - **Empty State:** "No saved analyses" when list is empty; "No results" when active filters match nothing.
 - **Backend:** `GET /api/recommendation/all` returns `RecommendationSummaryResponse[]` (id, name, status, drugCount, planCount, hasCostSnapshot, lifetimeTotal, dates). `IRecommendationRepository.GetAllByUserIdAsync()` sorted by CreatedAt desc.
 - **Frontend Navigation (3 entry points):**
@@ -139,7 +139,7 @@
 - **What:** A dedicated full-detail view for any saved recommendation, accessible from the Saved Data page. Professional redesign matching the compare page design language.
 - **Route:** `/saved/:id` → `RecommendationDetailComponent`.
 - **Design:**
-  - **Hero Header:** Dark gradient bar with type badge (Medicare/LTC), back button, save date.
+  - **Header:** Flat flex row matching compare page — back button, analysis name (`text-xl font-bold text-gray-900`), type badge pill, save date. Themed page background via `bg-[var(--app-bg)]`.
   - **Medicare KPI Strip:** 6 cards above tabs (Lifetime, Premiums, OOP, IRMAA, Present Value, Current Year).
   - **Medicare Tabs (5):**
     1. **Profile** — 3 grouped section cards (Personal, Location, Health & Financial) with colored icons and human-readable labels.
@@ -147,7 +147,7 @@
     3. **Pharmacy** — Storefront-style cards with type badge, phone/distance/NPI icons, mail-order card.
     4. **Plans** — Card-per-plan with colored type headers, 6-metric grid, visual star ratings, unavailable drug chips.
     5. **Cost & Charts** — Trajectory banner, Chart.js charts (line, stacked bar, doughnut, projection), Medicare Expense Table, summary strip.
-  - **LTC Tabs (3):** Profile, Care Config, Cost Analysis (trajectory, categories, tips, assessment).
+  - **LTC Tabs (2):** Profile, Cost Analysis (care config card, trajectory, categories, tips, assessment).
 - **Helper Methods:** `fmtGender()`, `fmtHealth()`, `fmtTaxFiling()`, `starArray()`.
 - **Backend:** `GET /api/recommendation/{id}` returns full `RecommendationResponse` including embedded `CostSnapshotDto` with `yearlyDetails[]` and `evaluation`.
 - **Frontend:** `RecommendationDetailComponent` — standalone, OnPush, Chart.js manually registered. `RecommendationService.getById(id)` called on init from route param.

@@ -14,12 +14,13 @@
   - **Search:** Text input filters by analysis name (case-insensitive).
   - **Type pills:** All / Medicare / Long Term Care — filters `recommendation.type`.
   - **Sort:** 6 options — Newest First, Oldest First, Name A–Z, Name Z–A, Highest Cost, Lowest Cost.
-  - **Pagination:** Configurable page size (10/25/50); Prev/Next and numbered page buttons.
+  - **Pagination:** Configurable page size (6/12/24); Prev/Next page buttons with page indicator.
 - **Compare Basket:**
   - Each card shows an **Add to Compare** / **Remove** toggle button.
-  - Sticky ribbon at screen bottom appears when ≥1 item is in the basket. At 2 items, **Compare** button navigates to `/saved/compare`.
+  - Ribbon appears above the cards when ≥1 item is in the basket. At 2 items, **Compare Now** button navigates to `/saved/compare`.
   - Compare is type-aware — Medicare analyses and Long Term Care analyses are compared separately.
-- **Cards (4-row grid layout):** Analysis name (uppercase CSS), creation date, type badge, drug count, plan count, lifetime total (when available), and status pill.
+- **Card Layout (two-column bottom section):** Row 1: status icon + analysis name (uppercase) + type/status badges. Row 2: saved date. Bottom section uses a flex row: left column holds stats (drug count, plan count, lifetime total for Medicare; health profile, care type chips for LTC) and selected plan chips; right column holds stacked "View details" and "Compare" action buttons. Cards use `items-stretch` grid with `flex-col` for equal height across rows.
+- **Themed Background:** Page background uses `bg-[var(--app-bg)]` CSS variable to respect the active theme (Navy & Gold, Lavender Calm, or Teal Medical).
 - **Empty State:** Shows "No saved analyses" guidance when the full list is empty; "No results" when filters return nothing.
 - **Back button:** Navigates to `/medicare-analysis`.
 - **Pattern:** Standalone, OnPush.
@@ -32,20 +33,21 @@
 - **Mode Dispatch:** `@switch(mode())` delegates to `CompareMedicareComponent`, `CompareLtcComponent`, or `CompareCrossComponent`.
 - **Pattern:** Standalone, OnPush.
 
-### `CompareMedicareComponent` (`recommendation/compare/medicare/compare-medicare.component.ts`, `.html`)
+### `CompareMedicareComponent` (`recommendation/compare/medicare/compare-medicare.component.ts`, `.html`, `.scss`)
 - **Role:** Medicare-vs-Medicare comparison — pure tab shell, no logic.
 - **Inputs:** `left`, `right` (`RecommendationResponse`).
+- **SCSS:** `compare-medicare.component.scss` — active tab styling with primary color (`--color-cyan-600`) background, white text/icon, rounded top corners.
 - **Children:**
-  - `CompareMedicareMetricsComponent` — cost & profile metrics cards (above tabs).
+  - `CompareMedicareMetricsComponent` — unified metrics grid (above tabs).
   - **4 Tabs** (lazy via `matTabContent`): Overview (`TabOverviewComponent`), Profile (`TabProfileComponent`), Rx, Pharmacy & Plans (`TabRxPharmacyPlansComponent`), Cost Analysis (`TabCostAnalysisComponent`).
 - **Pattern:** Standalone, OnPush.
 
 ### Compare Metrics Components (Extracted)
-Three per-type metrics components render KPI cards above the comparison tabs. All share the same inline template pattern (cost metrics grid + profile metrics grid) but differ in data sources:
+Three per-type metrics components render KPI cards above the comparison tabs. All share the same unified single-grid template pattern via an `allMetrics()` computed signal that merges cost and profile metrics into one `grid-cols-2 md:grid-cols-3` grid:
 
 - **`CompareMedicareMetricsComponent`** (`medicare/compare-medicare-metrics.component.ts`) — Cost metrics: Lifetime Cost, Present Value, IRMAA Surcharge, Avg Annual Cost (from `lastCostSnapshot`). Profile metrics: Coverage Years, ZIP Code.
 - **`CompareLtcMetricsComponent`** (`ltc/compare-ltc-metrics.component.ts`) — Cost metrics: Lifetime Cost, Present Value, Avg Annual Cost (from `ltcSnapshot`). Profile metrics: Projection Years, ZIP Code.
-- **`CompareCrossMetricsComponent`** (`cross/compare-cross-metrics.component.ts`) — Cross-type aware — dispatches to LTC or Medicare snapshot per side. Cost metrics: Lifetime Cost, Present Value, Avg Annual Cost. Profile metrics: Coverage Years, ZIP Code.
+- **`CompareCrossMetricsComponent`** (`cross/compare-cross-metrics.component.ts`) — Cross-type aware — dispatches to LTC or Medicare snapshot per side. Cost metrics: Lifetime Cost, Present Value, Avg Annual Cost. Profile metrics: ZIP Code.
 
 All metrics components use `LABEL_A` / `LABEL_B` with orange/green color coding for elderly-friendly readability.
 
@@ -57,9 +59,10 @@ Five standalone tab components extracted from the compare shell:
 - **`TabRxPharmacyPlansComponent`** (`medicare/tab-rx-pharmacy-plans/`) — Side-by-side prescription drug cards, pharmacy comparison cards, plan cards with star ratings.
 - **`TabProfileComponent`** (`compare/tab-profile/`) — 4 grouped sections (Personal, Location, Health, Financial) with match column. Shared across all comparison modes.
 
-### `CompareLtcComponent` (`recommendation/compare/ltc/compare-ltc.component.ts`, `.html`)
+### `CompareLtcComponent` (`recommendation/compare/ltc/compare-ltc.component.ts`, `.html`, `.scss`)
 - **Role:** LTC-vs-LTC comparison — 4-tab deep dive.
 - **Inputs:** `left`, `right` (`RecommendationResponse`).
+- **SCSS:** `compare-ltc.component.scss` — active tab styling with primary color (`--color-cyan-600`) background, white text/icon, rounded top corners.
 - **Children:** `CompareLtcMetricsComponent` (above tabs), `TabProfileComponent` (shared).
 - **Computed Signals:** `costDelta`, `pvDelta`, `avgAnnualDelta`, `winner`, `winnerName`, `winnerSavings`, `profileRows`, `profileDiffs`, `careConfigRows` (Health Profile, Adult Day Years, Home Care Years, Nursing Care Years), `careConfigDiffs`.
 - **4 Tabs:**
@@ -70,9 +73,10 @@ Five standalone tab components extracted from the compare shell:
 - **Color Coding:** All labels and section headers use orange for Illustration A / green for Illustration B.
 - **Pattern:** Standalone, OnPush.
 
-### `CompareCrossComponent` (`recommendation/compare/cross/compare-cross.component.ts`, `.html`)
+### `CompareCrossComponent` (`recommendation/compare/cross/compare-cross.component.ts`, `.html`, `.scss`)
 - **Role:** Medicare-vs-LTC cross-type comparison — 3-tab layout.
 - **Inputs:** `left`, `right` (`RecommendationResponse`).
+- **SCSS:** `compare-cross.component.scss` — active tab styling with primary color (`--color-cyan-600`) background, white text/icon, rounded top corners.
 - **Children:** `CompareCrossMetricsComponent` (above tabs), `TabProfileComponent` (shared).
 - **Computed Signals:** `leftType`, `rightType` (inferred `RecommendationCategory`), `leftLifetime`, `rightLifetime` (via `lifetimeCost()` helper), `profileRows`, `profileDiffs`, `costDelta`, `deltaIcon`, `deltaLabel`.
 - **3 Tabs:**
@@ -105,16 +109,16 @@ Centralized constants, color palette, and helper functions used across all compa
 - **Role:** Full detail view for a single saved recommendation. Routed at `/saved/:id`.
 - **State:** Injects `RecommendationService`, `ActivatedRoute`, `Router`. Loads recommendation via `id` route param.
 - **Chart.js:** Manually registers all chart controllers (LineController, BarController, DoughnutController) — same setup as `CostProjectionsComponent`.
-- **Design:** Professional redesign matching the compare page design language:
-  - **Hero Header:** Dark gradient bar with type badge (Medicare/LTC), back button, save date.
+- **Design:** Matches the compare page design language:
+  - **Header:** Flat flex row matching compare page — back button, analysis name (`text-xl font-bold text-gray-900`), type badge pill (cyan for Medicare, violet for LTC), save date (`text-sm text-gray-500`). Themed page background via `bg-[var(--app-bg)]`.
   - **Medicare KPI Strip:** 6 cards above tabs (Lifetime, Premiums, OOP, IRMAA, Present Value, Current Year).
-  - **Medicare Tabs (5):**
+  - **Medicare Tabs (3):** Active-tab primary color styling via `rec-detail-medicare.component.scss` (same `--color-cyan-600` pattern as compare).**
     1. **Profile** — 3 grouped section cards (Personal, Location, Health & Financial) with colored icons and human-readable labels.
     2. **Prescriptions** — Drug count pill + clean HTML table (drug name, dosage, quantity, refill).
     3. **Pharmacy** — Storefront-style cards with type badge, phone/distance/NPI icons, mail-order card.
     4. **Plans** — Card-per-plan with colored type headers, 6-metric grid (Monthly Premium, Deductible, Star Rating, Rx Coverage, Rx Cost, Total Cost), visual star ratings, unavailable drug chips.
     5. **Cost & Charts** — Trajectory banner, all Chart.js charts in card containers (line, stacked bar, doughnut, projection), Medicare Expense Table, summary strip.
-  - **LTC Tabs (3):** Profile, Care Config, Cost Analysis (trajectory, categories, tips, assessment).
+  - **LTC Tabs (2):** Active-tab primary color styling via `rec-detail-ltc.component.scss`. Profile, Cost Analysis (care config card, trajectory, categories, tips, assessment).
 - **Helper Methods:** `fmtGender()`, `fmtHealth()`, `fmtTaxFiling()`, `starArray()` — format raw data values to human-readable labels.
 - **Computed Getters:** `recBundleLabel`, `recExpenseTableRow`, `recPresentValue`, `recCoverageYear`, `recPlanSpecificLifetimeExpense`, `recTotalIrmaaSurcharge` — sourced from `rec.lastCostSnapshot`.
 - **Imports:** `CommonModule`, `CurrencyPipe`, `DatePipe`, `DecimalPipe`, `MatTabsModule`, `MatCardModule`, `MatIconModule`, `MatButtonModule`, `MatProgressSpinnerModule`, `MatTooltipModule`.
