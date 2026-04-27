@@ -112,7 +112,7 @@
 ### `CostProjectionsComponent` (`cost-projections/cost-projections.component.ts`, `.html`, `.scss`)
 - **Role:** Full-page cost projections dashboard with Chart.js visualizations and AI-generated insights. Routed at `/medicare-analysis/cost-projections`.
 - **State:** Injects `MedicareStateService` (reads `costProjection` signal), `Router`.
-- **Chart.js Integration:** Chart.js 4.x with manual controller registration (`LineController`, `BarController`, `DoughnutController`, `ArcElement`, `LineElement`, `BarElement`, `PointElement`, `CategoryScale`, `LinearScale`, `Tooltip`, `Legend`, `Filler`). Charts built in `afterNextRender()` lifecycle hook.
+- **Chart.js Integration:** Chart.js 4.x with centralized registration via `ChartBuilderService` (replaces manual per-component `Chart.register()` calls). Charts built via `chartBuilder.buildChart(canvas, config)` in `afterNextRender()` lifecycle hook.
 - **5 Charts:**
   1. **Line Chart:** Total annual cost trajectory over projection period (filled area).
   2. **Stacked Bar Chart:** Premium vs Out-of-Pocket vs Surcharges breakdown per year.

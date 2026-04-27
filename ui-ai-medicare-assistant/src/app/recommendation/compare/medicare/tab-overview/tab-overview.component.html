@@ -4,9 +4,9 @@
 <div class="pt-4 space-y-5">
 
   <!-- ── Cost Comparison Table ── -->
-  <mat-card class="!rounded-xl !shadow-sm">
+  <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
     <mat-card-content class="!p-0">
-      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-gray-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center">
           <mat-icon class="!text-base text-gray-600">insights</mat-icon>
         </div>
@@ -15,7 +15,7 @@
       <div class="overflow-x-auto">
         <table class="w-full table-fixed text-xs">
           <thead>
-            <tr class="border-b border-gray-100 bg-gray-50/40">
+            <tr class="border-b border-gray-300 bg-gray-50/40">
               <th class="text-left px-4 py-2.5 font-semibold text-gray-500 uppercase tracking-wide w-[20%]">Metric</th>
               <th class="text-right px-4 py-2.5 font-semibold text-orange-700 uppercase tracking-wide w-[30%]">{{ labelA }}</th>
               <th class="text-right px-4 py-2.5 font-semibold text-green-700 uppercase tracking-wide w-[30%]">{{ labelB }}</th>
@@ -30,7 +30,7 @@
               { label: 'IRMAA Surcharge', left: l.lastCostSnapshot?.lifetimeIrmaa ?? 0, right: r.lastCostSnapshot?.lifetimeIrmaa ?? 0, delta: irmaaDelta() },
               { label: 'Present Value', left: l.lastCostSnapshot?.presentValue ?? 0, right: r.lastCostSnapshot?.presentValue ?? 0, delta: pvDelta() },
             ]; track row.label) {
-              <tr class="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
+              <tr class="border-b border-gray-200 hover:bg-gray-50/60 transition-colors">
                 <td class="px-4 py-2.5 font-medium text-gray-700">{{ row.label }}</td>
                 <td class="px-4 py-2.5 text-right font-semibold text-indigo-700">{{ row.left | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="px-4 py-2.5 text-right font-semibold text-cyan-700">{{ row.right | currency:'USD':'symbol':'1.0-0' }}</td>
@@ -66,9 +66,9 @@
   }
 
   <!-- ── 1. Profile Differences ── -->
-  <mat-card class="!rounded-xl !shadow-sm">
+  <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
     <mat-card-content class="!p-0">
-      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-violet-50/60 rounded-t-xl">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-violet-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
           <mat-icon class="!text-base text-violet-600">person</mat-icon>
         </div>
@@ -92,7 +92,7 @@
               </thead>
               <tbody>
                 @for (row of profileDiffs(); track row.label) {
-                  <tr class="border-b border-gray-100 bg-amber-50/40">
+                  <tr class="border-b border-gray-300 bg-amber-50/40">
                     <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
                     <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
                     <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
@@ -110,9 +110,9 @@
   </mat-card>
 
   <!-- ── 2. Prescriptions ── -->
-  <mat-card class="!rounded-xl !shadow-sm">
+  <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
     <mat-card-content class="!p-0">
-      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-blue-50/60 rounded-t-xl">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-blue-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
           <mat-icon class="!text-base text-blue-600">medication</mat-icon>
         </div>
@@ -129,7 +129,7 @@
       <!-- Left only -->
       <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
         <mat-card-content class="!p-0">
-          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300">
             <mat-icon class="!text-base text-indigo-600">medication</mat-icon>
             <p class="text-sm font-semibold text-orange-700">Only in {{ labelA }}</p>
             <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftDrugs().length }}</span>
@@ -175,7 +175,7 @@
       <!-- Right only -->
       <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
         <mat-card-content class="!p-0">
-          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300">
             <mat-icon class="!text-base text-cyan-600">medication</mat-icon>
             <p class="text-sm font-semibold text-green-700">Only in {{ labelB }}</p>
             <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightDrugs().length }}</span>
@@ -226,9 +226,9 @@
   </mat-card>
 
   <!-- ── 3. Pharmacy Comparison ── -->
-  <mat-card class="!rounded-xl !shadow-sm">
+  <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
     <mat-card-content class="!p-0">
-      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-emerald-50/60 rounded-t-xl">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-emerald-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
           <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
         </div>
@@ -245,7 +245,7 @@
             <!-- Left only -->
             <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
               <mat-card-content class="!p-0">
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300">
                   <mat-icon class="!text-base text-indigo-600">storefront</mat-icon>
                   <p class="text-sm font-semibold text-orange-700">Only in {{ labelA }}</p>
                   <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftPharmacies().length }}</span>
@@ -284,7 +284,7 @@
             <!-- Right only -->
             <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
               <mat-card-content class="!p-0">
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300">
                   <mat-icon class="!text-base text-cyan-600">storefront</mat-icon>
                   <p class="text-sm font-semibold text-green-700">Only in {{ labelB }}</p>
                   <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightPharmacies().length }}</span>
@@ -327,7 +327,7 @@
 
         <!-- Mail-order pharmacy if available -->
         @if (l.mailOrderPharmacy?.enabled || r.mailOrderPharmacy?.enabled) {
-          <div class="mt-4 pt-3 border-t border-gray-100">
+          <div class="mt-4 pt-3 border-t border-gray-300">
             <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Mail-Order Pharmacy</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="flex items-center gap-2 p-2 rounded-lg" [class]="l.mailOrderPharmacy?.enabled ? 'bg-green-50' : 'bg-gray-50'">
@@ -354,9 +354,9 @@
   </mat-card>
 
   <!-- ── 4. Plan Comparison ── -->
-  <mat-card class="!rounded-xl !shadow-sm">
+  <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
     <mat-card-content class="!p-0">
-      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-amber-50/60 rounded-t-xl">
+      <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-amber-50/60 rounded-t-xl">
         <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
           <mat-icon class="!text-base text-amber-600">shield</mat-icon>
         </div>
@@ -373,7 +373,7 @@
             <!-- Left only -->
             <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
               <mat-card-content class="!p-0">
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300">
                   <mat-icon class="!text-base text-indigo-600">shield</mat-icon>
                   <p class="text-sm font-semibold text-orange-700">Only in {{ labelA }}</p>
                   <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ uniqueLeftPlans().length }}</span>
@@ -405,7 +405,7 @@
             <!-- Right only -->
             <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
               <mat-card-content class="!p-0">
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300">
                   <mat-icon class="!text-base text-cyan-600">shield</mat-icon>
                   <p class="text-sm font-semibold text-green-700">Only in {{ labelB }}</p>
                   <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ uniqueRightPlans().length }}</span>
@@ -444,7 +444,7 @@
 
   <!-- ── 5. Cost Trajectory ── -->
   @if (l.lastCostSnapshot?.evaluation || r.lastCostSnapshot?.evaluation) {
-    <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
       <mat-card-content class="!p-4">
         <div class="flex items-center gap-2 mb-3">
           <div class="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">

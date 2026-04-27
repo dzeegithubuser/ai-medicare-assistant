@@ -1,0 +1,6 @@
+@mixin chart-container($height: 320px) {
+  .chart-container {
+    position: relative;
+    height: $height;
+  }
+}

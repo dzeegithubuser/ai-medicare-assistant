@@ -1,5 +1,4 @@
 using Domain.Interfaces;
-using Domain.Models;
 using Infrastructure.AI;
 using Infrastructure.Anthropic;
 using Infrastructure.Gemini;
@@ -59,7 +58,19 @@ internal static class AiExtensions
 
         // ------- AI infrastructure -------
         services.AddSingleton<PromptBuilder>();
+        services.AddScoped<IAiCompletionService, AiCompletionService>();
         services.AddScoped<IDrugAiService, DrugAiService>();
+        services.AddScoped<IPlanScoringAiService, PlanScoringAiService>();
+        services.AddScoped<ICostEvaluationAiService, CostEvaluationAiService>();
+        services.AddScoped<ILtcEvaluationAiService, LtcEvaluationAiService>();
+        services.AddScoped<IDrugInteractionAiService, DrugInteractionAiService>();
+
+        // ------- AI extractors -------
+        services.AddScoped<Application.Interfaces.IChatIntentClassifier, Infrastructure.AI.Extractors.ChatIntentClassifier>();
+        services.AddScoped<Application.Interfaces.IProfileExtractor, Infrastructure.AI.Extractors.ProfileExtractor>();
+        services.AddScoped<Application.Interfaces.IDrugSelectionExtractor, Infrastructure.AI.Extractors.DrugSelectionExtractor>();
+        services.AddScoped<Application.Interfaces.IPharmacySelectionExtractor, Infrastructure.AI.Extractors.PharmacySelectionExtractor>();
+        services.AddScoped<Application.Interfaces.IPlanSelectionExtractor, Infrastructure.AI.Extractors.PlanSelectionExtractor>();
 
         return services;
     }

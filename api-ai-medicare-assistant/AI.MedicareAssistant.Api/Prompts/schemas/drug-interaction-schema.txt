@@ -1,0 +1,20 @@
+Return a JSON object with this exact structure:
+{
+  "interactions": [
+    {
+      "drugA": "Drug A name",
+      "drugB": "Drug B name",
+      "severity": "High|Moderate|Low",
+      "description": "Brief description of the interaction",
+      "clinicalConsequence": "What could happen clinically",
+      "recommendation": "Clinical recommendation"
+    }
+  ],
+  "duplicateTherapies": [
+    {
+      "drugs": ["Drug1", "Drug2"],
+      "therapeuticClass": "The shared therapeutic class",
+      "message": "Brief explanation of the overlap"
+    }
+  ]
+}

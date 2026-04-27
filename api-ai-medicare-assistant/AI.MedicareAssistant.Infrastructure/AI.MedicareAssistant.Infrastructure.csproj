@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AI.MedicareAssistant.Domain\AI.MedicareAssistant.Domain.csproj" />
+    <ProjectReference Include="..\AI.MedicareAssistant.Application\AI.MedicareAssistant.Application.csproj" />
   </ItemGroup>
 
 </Project>

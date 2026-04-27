@@ -10,20 +10,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { RecommendationResponse } from '../../../models/recommendation.model';
 import { IndividualMedicareDetail, CostCategory, ExpenseTableRow } from '../../../models/cost-projection.model';
-import {
-  Chart, ChartConfiguration,
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler,
-} from 'chart.js';
-
-Chart.register(
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler,
-);
+import { EmptyStateComponent } from '../../../shared/empty-state/empty-state.component';
+import { Chart, ChartConfiguration } from 'chart.js';
+import { ChartBuilderService } from '../../../services/chart-builder.service';
 
 /** Cost tab is the 3rd tab (0-based index 2): Profile | Details | Cost & Charts */
 const COST_TAB_INDEX = 2;
@@ -36,12 +25,14 @@ const COST_TAB_INDEX = 2;
     CommonModule, CurrencyPipe, DatePipe, DecimalPipe,
     MatIconModule, MatButtonModule, MatCardModule,
     MatTabsModule, MatExpansionModule,
+    EmptyStateComponent,
   ],
   templateUrl: './rec-detail-medicare.component.html',
   styleUrl: './rec-detail-medicare.component.scss',
 })
 export class RecDetailMedicareComponent implements OnDestroy {
   private cdr = inject(ChangeDetectorRef);
+  private chartBuilder = inject(ChartBuilderService);
 
   readonly rec = input.required<RecommendationResponse>();
 

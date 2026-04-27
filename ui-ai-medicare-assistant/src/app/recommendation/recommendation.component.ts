@@ -14,6 +14,8 @@ import { ChatWizardService } from '../services/chat-wizard.service';
 import { RecommendationService } from '../services/recommendation.service';
 import { RecommendationSummaryResponse, RecommendationCategory } from '../models/recommendation.model';
 import { AppRoutes } from '../app-routes.const';
+import { EmptyStateComponent } from '../shared/empty-state/empty-state.component';
+import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-recommendation',
@@ -24,6 +26,7 @@ import { AppRoutes } from '../app-routes.const';
     MatIconModule, MatButtonModule, MatButtonToggleModule, MatCardModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatTooltipModule, MatProgressSpinnerModule,
+    EmptyStateComponent, LoadingSpinnerComponent,
   ],
   templateUrl: './recommendation.component.html',
 })

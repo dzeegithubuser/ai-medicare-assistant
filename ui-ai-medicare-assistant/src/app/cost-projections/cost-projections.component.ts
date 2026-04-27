@@ -13,22 +13,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MedicareStateService } from '../services/drug-state.service';
 import { AnalysisSnapshotService } from '../services/analysis-snapshot.service';
 import { EvaluateCostsResponse, IndividualMedicareDetail, CostEvaluation, CostCategory, ExpenseTableRow } from '../models/cost-projection.model';
-import {
-  Chart, ChartConfiguration,
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler
-} from 'chart.js';
+import { Chart, ChartConfiguration } from 'chart.js';
 import { COST_PROJECTION_IMMUTABILITY_WARNING } from '../medicare-analysis/cost-projection-messages';
 import { AppRoutes } from '../app-routes.const';
-
-Chart.register(
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler
-);
+import { EmptyStateComponent } from '../shared/empty-state/empty-state.component';
+import { ChartBuilderService } from '../services/chart-builder.service';
 
 @Component({
   selector: 'app-cost-projections',
@@ -38,13 +27,15 @@ Chart.register(
   standalone: true,
   imports: [
     CommonModule, CurrencyPipe, MatIconModule, MatButtonModule,
-    MatCardModule, MatTooltipModule, MatProgressSpinnerModule
+    MatCardModule, MatTooltipModule, MatProgressSpinnerModule,
+    EmptyStateComponent
   ]
 })
 export class CostProjectionsComponent implements OnInit, OnDestroy {
   protected state = inject(MedicareStateService);
   private router = inject(Router);
   private analysisSnapshot = inject(AnalysisSnapshotService);
+  private chartBuilder = inject(ChartBuilderService);
 
   readonly lineChart = viewChild<ElementRef<HTMLCanvasElement>>('lineChart');
   readonly barChart = viewChild<ElementRef<HTMLCanvasElement>>('barChart');

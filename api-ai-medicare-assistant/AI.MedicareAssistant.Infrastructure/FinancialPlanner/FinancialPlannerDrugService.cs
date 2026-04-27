@@ -1,6 +1,5 @@
 using Domain.Interfaces;
 using Domain.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
@@ -12,7 +11,7 @@ namespace Infrastructure.FinancialPlanner;
 public class FinancialPlannerDrugService : IFinancialPlannerDrugService
 {
     private readonly HttpClient _httpClient;
-    private readonly IChatClient _chatClient;
+    private readonly IDrugInteractionAiService _interactionAiService;
     private readonly ILogger<FinancialPlannerDrugService> _logger;
     private readonly string _baseUrl;
     private readonly string _authToken;
@@ -25,12 +24,12 @@ public class FinancialPlannerDrugService : IFinancialPlannerDrugService
 
     public FinancialPlannerDrugService(
         HttpClient httpClient,
-        IChatClient chatClient,
+        IDrugInteractionAiService interactionAiService,
         IConfiguration configuration,
         ILogger<FinancialPlannerDrugService> logger)
     {
         _httpClient = httpClient;
-        _chatClient = chatClient;
+        _interactionAiService = interactionAiService;
         _logger = logger;
         _baseUrl = configuration["FinancialPlanner:BaseUrl"]
             ?? "http://169.61.105.110:8080/NewFinancialPlanner/api/v1";
@@ -150,88 +149,11 @@ public async Task<BulkDrugSearchResponse> SearchBulkAsync(List<string> drugNames
 
         if (drugNames.Count > 1)
         {
-            var analysis = await EvaluateInteractionsAsync(drugNames, cancellationToken);
+            var analysis = await _interactionAiService.EvaluateInteractionsAsync(drugNames, cancellationToken);
             response.Interactions = analysis.Interactions;
             response.DuplicateTherapies = analysis.DuplicateTherapies;
         }
 
         return response;
-    }
-
-    private async Task<DrugInteractionAnalysis> EvaluateInteractionsAsync(
-        List<string> drugNames, CancellationToken cancellationToken)
-    {
-        var drugList = string.Join("\n", drugNames.Select(d => $"- {d}"));
-
-        var systemPrompt = """
-            You are a clinical pharmacology assistant. Analyze drug combinations for safety.
-            Return ONLY a JSON object with no additional text.
-            """;
-
-        var userPrompt = "Analyze the following drugs for interactions and duplicate therapies:\n\n"
-            + drugList + "\n\n"
-            + """
-            Return a JSON object with this exact structure:
-            {
-              "interactions": [
-                {
-                  "drugA": "Drug A name",
-                  "drugB": "Drug B name",
-                  "severity": "High|Moderate|Low",
-                  "description": "Brief description of the interaction",
-                  "clinicalConsequence": "What could happen clinically",
-                  "recommendation": "Clinical recommendation"
-                }
-              ],
-              "duplicateTherapies": [
-                {
-                  "drugs": ["Drug1", "Drug2"],
-                  "therapeuticClass": "The shared therapeutic class",
-                  "message": "Brief explanation of the overlap"
-                }
-              ]
-            }
-
-            Rules:
-            - Evaluate ALL pairwise interactions between the drugs.
-            - Detect duplicate therapies where drugs share overlapping therapeutic classes.
-            - If no interactions or duplicates exist, return empty arrays.
-            - Do not invent interactions that are not clinically recognized.
-            """;
-
-        _logger.LogInformation("Evaluating drug interactions via AI for {Count} drugs", drugNames.Count);
-
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.System, systemPrompt),
-            new(ChatRole.User, userPrompt)
-        };
-
-        try
-        {
-            var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-            var text = aiResponse.Text.Trim();
-
-            // Strip markdown code fences if present
-            if (text.StartsWith("```"))
-            {
-                var firstNewline = text.IndexOf('\n');
-                var lastFence = text.LastIndexOf("```");
-                if (firstNewline > 0 && lastFence > firstNewline)
-                    text = text[(firstNewline + 1)..lastFence].Trim();
-            }
-
-            var analysis = JsonSerializer.Deserialize<DrugInteractionAnalysis>(text, JsonOptions);
-            _logger.LogInformation(
-                "AI interaction analysis complete: {Interactions} interactions, {Duplicates} duplicate therapies",
-                analysis?.Interactions.Count ?? 0, analysis?.DuplicateTherapies.Count ?? 0);
-
-            return analysis ?? new DrugInteractionAnalysis();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to evaluate drug interactions via AI");
-            return new DrugInteractionAnalysis();
-        }
     }
 }

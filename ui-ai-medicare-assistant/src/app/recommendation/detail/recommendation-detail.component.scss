@@ -1,9 +1,8 @@
+@use '../../shared/styles/chart-container' as *;
+
 :host {
   display: block;
   height: 100%;
 }
 
-.chart-container {
-  position: relative;
-  height: 320px;
-}
+@include chart-container;

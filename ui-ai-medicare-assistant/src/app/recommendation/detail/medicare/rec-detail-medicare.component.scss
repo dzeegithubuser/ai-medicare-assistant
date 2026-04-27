@@ -1,21 +1,9 @@
+@use '../../../shared/styles/chart-container' as *;
+@use '../../../shared/styles/tab-active' as tab;
+
 :host {
   display: block;
 }
 
-.chart-container {
-  position: relative;
-  height: 320px;
-}
-
-:host ::ng-deep .mat-mdc-tab.mdc-tab--active {
-  background-color: var(--color-cyan-600);
-  border-radius: 0.5rem 0.5rem 0 0;
-}
-
-:host ::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
-  color: #ffffff !important;
-}
-
-:host ::ng-deep .mat-mdc-tab.mdc-tab--active .mat-icon {
-  color: #ffffff !important;
-}
+@include chart-container;
+@include tab.tab-active;

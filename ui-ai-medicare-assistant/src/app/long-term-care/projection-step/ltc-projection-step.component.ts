@@ -12,24 +12,12 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  Chart, ChartConfiguration,
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler,
-} from 'chart.js';
+import { Chart, ChartConfiguration } from 'chart.js';
 import { LtcStateService } from '../ltc-state.service';
 import { LtcExpenseEntry, LtcCostEvaluation, LtcCostCategory, LtcProjectionResponse } from '../../models/ltc.model';
 import { Router } from '@angular/router';
 import { AppRoutes } from '../../app-routes.const';
-
-Chart.register(
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler,
-);
+import { ChartBuilderService } from '../../services/chart-builder.service';
 
 @Component({
   selector: 'app-ltc-projection-step',
@@ -42,6 +30,7 @@ Chart.register(
 export class LtcProjectionStepComponent implements OnDestroy {
   private state = inject(LtcStateService);
   private router = inject(Router);
+  private chartBuilder = inject(ChartBuilderService);
 
   readonly lineChart = viewChild<ElementRef<HTMLCanvasElement>>('lineChart');
   readonly stackedChart = viewChild<ElementRef<HTMLCanvasElement>>('stackedChart');

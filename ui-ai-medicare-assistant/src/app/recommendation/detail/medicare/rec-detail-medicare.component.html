@@ -89,10 +89,12 @@
           </mat-panel-title>
         </mat-expansion-panel-header>
         @if (rec().drugList.length === 0) {
-          <div class="flex flex-col items-center py-8 text-gray-600">
-            <mat-icon class="!text-4xl !w-10 !h-10 mb-2 opacity-40">medication</mat-icon>
-            <p class="text-sm">No prescriptions recorded</p>
-          </div>
+          <app-empty-state
+            icon="medication"
+            title="No prescriptions recorded"
+            containerClass="py-8"
+            iconClass="!text-4xl !w-10 !h-10 mb-2 opacity-40"
+            titleClass="text-sm" />
         } @else {
           <div class="flex flex-wrap gap-3 pb-2">
             @for (drug of rec().drugList; track drug.drugName + drug.dosage) {
@@ -135,10 +137,12 @@
           </mat-panel-title>
         </mat-expansion-panel-header>
         @if (!rec().pharmacies.length) {
-          <div class="flex flex-col items-center py-8 text-gray-600">
-            <mat-icon class="!text-4xl !w-10 !h-10 mb-2 opacity-40">storefront</mat-icon>
-            <p class="text-sm">No pharmacy recorded</p>
-          </div>
+          <app-empty-state
+            icon="storefront"
+            title="No pharmacy recorded"
+            containerClass="py-8"
+            iconClass="!text-4xl !w-10 !h-10 mb-2 opacity-40"
+            titleClass="text-sm" />
         } @else {
           <div class="flex flex-wrap gap-3 pb-2">
             @for (ph of rec().pharmacies; track ph.npi) {
@@ -211,10 +215,12 @@
           </mat-panel-title>
         </mat-expansion-panel-header>
         @if (rec().planSelections.length === 0) {
-          <div class="flex flex-col items-center py-8 text-gray-600">
-            <mat-icon class="!text-4xl !w-10 !h-10 mb-2 opacity-40">health_and_safety</mat-icon>
-            <p class="text-sm">No plans recorded</p>
-          </div>
+          <app-empty-state
+            icon="health_and_safety"
+            title="No plans recorded"
+            containerClass="py-8"
+            iconClass="!text-4xl !w-10 !h-10 mb-2 opacity-40"
+            titleClass="text-sm" />
         } @else {
           <div class="flex flex-wrap gap-3 pb-2">
             @for (plan of rec().planSelections; track plan.planId + plan.planType) {
@@ -295,10 +301,11 @@
     </ng-template>
     <div class="pt-5">
       @if (!rec().lastCostSnapshot) {
-        <div class="flex flex-col items-center py-12 text-gray-600">
-          <mat-icon class="!text-5xl !w-14 !h-14 mb-2 opacity-40">analytics</mat-icon>
-          <p class="text-sm">No cost snapshot was stored for this analysis</p>
-        </div>
+        <app-empty-state
+          icon="analytics"
+          title="No cost snapshot was stored for this analysis"
+          containerClass="py-12"
+          titleClass="text-sm" />
       } @else {
         @let snap = rec().lastCostSnapshot!;
         @let ev = snap.evaluation;
@@ -386,7 +393,7 @@
               <p class="text-sm font-semibold text-gray-800">Lifetime Medicare Expenses Projections</p>
             </div>
             <div class="p-4">
-              <div class="chart-container" style="height: 350px;"><canvas #medicareProjectionChart></canvas></div>
+              <div class="chart-container"><canvas #medicareProjectionChart></canvas></div>
               <div class="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
                 <div class="text-center">
                   <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Present Value as of {{ coverageYear }}</p>

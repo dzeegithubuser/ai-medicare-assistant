@@ -4,13 +4,13 @@
 <div class="pt-4">
   <!-- Charts -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-    <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
       <mat-card-header><mat-card-title class="!text-sm !font-semibold">Yearly Cost Trend</mat-card-title></mat-card-header>
       <mat-card-content class="!pt-2">
         <div class="h-[320px]"><canvas #costLineChart></canvas></div>
       </mat-card-content>
     </mat-card>
-    <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
       <mat-card-header><mat-card-title class="!text-sm !font-semibold">Cost Breakdown Comparison</mat-card-title></mat-card-header>
       <mat-card-content class="!pt-2">
         <div class="h-[320px]"><canvas #costBarChart></canvas></div>
@@ -19,7 +19,7 @@
   </div>
 
   <!-- Year-by-year delta table -->
-  <mat-card class="!rounded-xl !shadow-sm mb-5">
+  <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300 mb-5">
     <mat-card-header><mat-card-title class="!text-sm !font-semibold">Year-by-Year Comparison</mat-card-title></mat-card-header>
     <mat-card-content class="!pt-2">
       <div class="overflow-x-auto">
@@ -35,7 +35,7 @@
           </thead>
           <tbody>
             @for (row of yearlyRows(); track row.year) {
-              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+              <tr class="border-b border-gray-300 hover:bg-gray-50/50">
                 <td class="py-2 px-3 font-medium text-gray-700">{{ row.year }}</td>
                 <td class="py-2 px-3">{{ yearlyTotal(row.left) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2 px-3">{{ yearlyTotal(row.right) | currency:'USD':'symbol':'1.0-0' }}</td>
@@ -61,7 +61,7 @@
 
   <!-- Category comparison -->
   @if (l.lastCostSnapshot?.evaluation?.categories?.length && r.lastCostSnapshot?.evaluation?.categories?.length) {
-    <mat-card class="!rounded-xl !shadow-sm mb-5">
+    <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300 mb-5">
       <mat-card-header><mat-card-title class="!text-sm !font-semibold">Cost Category Comparison</mat-card-title></mat-card-header>
       <mat-card-content class="!pt-3">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

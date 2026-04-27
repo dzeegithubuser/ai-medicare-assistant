@@ -160,5 +160,5 @@
 
 - [ ] **38. Backend: 0/19 controllers tested** — No integration tests with `WebApplicationFactory`.
 - [x] **39. Backend: ~13 application services untested** — AuthService, ProfileService, all Extract services, Pipeline steps, etc. *(Added 65+ unit tests: AuthService, ProfileService, DrugService, ChatSessionService, PrescriptionService — all passing)*
-- [x] **40. Frontend: effectively zero test coverage** — Only 1 spec file exists. *(Added 34 Vitest tests: AuthService 12 tests, DrugStateService 22 tests — plus fixed existing 5 chat-send-guards matchers — 39 total passing)*
+- [x] **40. Frontend: effectively zero test coverage** — Only 1 spec file exists. *(Added 117 Vitest tests across 7 spec files: AuthService 12, MedicareStateService 22, chat-send-guards 5, ChatComponent 12, UserProfileComponent 23, CostProjectionsComponent 20, RecDetailMedicareComponent 23 — all passing)*
 - [ ] **41. No E2E tests** — No Cypress/Playwright.

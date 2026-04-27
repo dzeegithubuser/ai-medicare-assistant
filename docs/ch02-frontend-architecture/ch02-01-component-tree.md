@@ -53,6 +53,15 @@ App (root) → <router-outlet />
            │    │    └── /saved/:id → RecommendationDetailComponent (full detail view with 5 tabs + Chart.js)
            │    └── /change-password → ChangePasswordComponent
            └── ChatComponent (right panel, fixed 420px — visible on /medicare-analysis/* and /long-term-care/* routes)
+
+  Shared Component Library (shared/)
+  ├── AuthFormShellComponent — reusable auth form card shell (gradient bg, icon, title, form projection, footer link)
+  ├── LoadingSpinnerComponent — shared spinner with optional message
+  ├── EmptyStateComponent — shared empty state card (icon, title, subtitle)
+  ├── ErrorAlertComponent — shared error alert banner
+  ├── KpiCardComponent — shared KPI metric card (label, value, icon, color)
+  ├── SectionHeaderComponent — shared section header (icon, title, subtitle)
+  └── ErrorDialogComponent — Material Dialog for global API error popups
 ```
 
 ---

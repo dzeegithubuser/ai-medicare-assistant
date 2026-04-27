@@ -9,13 +9,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
 import { ChatSessionService } from '../../services/chat-session.service';
+import { ErrorAlertComponent } from '../../shared/error-alert/error-alert.component';
+import { AuthFormShellComponent } from '../../shared/auth-form-shell/auth-form-shell.component';
 
 @Component({
   selector: 'app-signin',
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, RouterLink,
-    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    ErrorAlertComponent, AuthFormShellComponent
   ],
   templateUrl: './signin.component.html',
   styleUrl: './signin.component.scss'

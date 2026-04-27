@@ -1,5 +1,5 @@
 using Application.DTOs;
-using Application.Services;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,24 +10,24 @@ namespace Api.Controllers;
 [Authorize]
 public class ChatIntentController : ControllerBase
 {
-    private readonly ChatIntentService _intentService;
-    private readonly ProfileExtractService _profileExtractService;
-    private readonly DrugSelectionExtractService _drugSelectionService;
-    private readonly PharmacySelectionExtractService _pharmacySelectionService;
-    private readonly PlanSelectionExtractService _planSelectionService;
+    private readonly IChatIntentClassifier _intentClassifier;
+    private readonly IProfileExtractor _profileExtractor;
+    private readonly IDrugSelectionExtractor _drugSelectionExtractor;
+    private readonly IPharmacySelectionExtractor _pharmacySelectionExtractor;
+    private readonly IPlanSelectionExtractor _planSelectionExtractor;
 
     public ChatIntentController(
-        ChatIntentService intentService,
-        ProfileExtractService profileExtractService,
-        DrugSelectionExtractService drugSelectionService,
-        PharmacySelectionExtractService pharmacySelectionService,
-        PlanSelectionExtractService planSelectionService)
+        IChatIntentClassifier intentClassifier,
+        IProfileExtractor profileExtractor,
+        IDrugSelectionExtractor drugSelectionExtractor,
+        IPharmacySelectionExtractor pharmacySelectionExtractor,
+        IPlanSelectionExtractor planSelectionExtractor)
     {
-        _intentService = intentService;
-        _profileExtractService = profileExtractService;
-        _drugSelectionService = drugSelectionService;
-        _pharmacySelectionService = pharmacySelectionService;
-        _planSelectionService = planSelectionService;
+        _intentClassifier = intentClassifier;
+        _profileExtractor = profileExtractor;
+        _drugSelectionExtractor = drugSelectionExtractor;
+        _pharmacySelectionExtractor = pharmacySelectionExtractor;
+        _planSelectionExtractor = planSelectionExtractor;
     }
 
     [HttpPost("intent")]
@@ -35,7 +35,7 @@ public class ChatIntentController : ControllerBase
         [FromBody] ChatIntentRequest request,
         CancellationToken ct)
     {
-        var result = await _intentService.ClassifyAsync(request, ct);
+        var result = await _intentClassifier.ClassifyAsync(request, ct);
         return Ok(result);
     }
 
@@ -47,7 +47,7 @@ public class ChatIntentController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Message))
             return BadRequest(new { error = "Message is required." });
 
-        var result = await _profileExtractService.ExtractAsync(request, ct);
+        var result = await _profileExtractor.ExtractAsync(request, ct);
         return Ok(result);
     }
 
@@ -59,7 +59,7 @@ public class ChatIntentController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Message))
             return BadRequest(new { error = "Message is required." });
 
-        var result = await _drugSelectionService.ExtractAsync(request, ct);
+        var result = await _drugSelectionExtractor.ExtractAsync(request, ct);
         return Ok(result);
     }
 
@@ -71,7 +71,7 @@ public class ChatIntentController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Message))
             return BadRequest(new { error = "Message is required." });
 
-        var result = await _pharmacySelectionService.ExtractAsync(request, ct);
+        var result = await _pharmacySelectionExtractor.ExtractAsync(request, ct);
         return Ok(result);
     }
 
@@ -83,7 +83,7 @@ public class ChatIntentController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Message))
             return BadRequest(new { error = "Message is required." });
 
-        var result = await _planSelectionService.ExtractAsync(request, ct);
+        var result = await _planSelectionExtractor.ExtractAsync(request, ct);
         return Ok(result);
     }
 }

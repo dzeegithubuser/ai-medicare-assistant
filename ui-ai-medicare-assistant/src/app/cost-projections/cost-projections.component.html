@@ -11,11 +11,12 @@
   </div>
 
   @if (!data) {
-    <div class="flex flex-col items-center justify-center mt-20 text-gray-600">
-      <mat-icon class="!text-7xl !w-20 !h-20 mb-4 opacity-40">analytics</mat-icon>
-      <p class="text-lg font-medium">No cost projection data</p>
-      <p class="text-sm mt-1">Go back and select a plan to calculate costs</p>
-    </div>
+    <app-empty-state
+      icon="analytics"
+      title="No cost projection data"
+      subtitle="Go back and select a plan to calculate costs"
+      containerClass="mt-20"
+      iconClass="!text-7xl !w-20 !h-20 mb-4 opacity-40" />
   }
 
   @if (data && evaluation) {
@@ -108,7 +109,7 @@
         </mat-card-title>
       </mat-card-header>
       <mat-card-content class="!pt-2">
-        <div class="chart-container" style="height: 350px;">
+        <div class="chart-container">
           <canvas #medicareProjectionChart></canvas>
         </div>
         <!-- Summary Strip -->

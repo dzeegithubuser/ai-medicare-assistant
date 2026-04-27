@@ -18,6 +18,8 @@ import { InteractionAlertsComponent } from './interaction-alerts/interaction-ale
 import { DuplicateTherapyAlertsComponent } from './duplicate-therapy-alerts/duplicate-therapy-alerts.component';
 import { DrugSelectionPanelComponent, DrugSelectionState } from './drug-selection-panel/drug-selection-panel.component';
 import { SelectedDrugsSummaryComponent } from './selected-drugs-summary/selected-drugs-summary.component';
+import { EmptyStateComponent } from '../../shared/empty-state/empty-state.component';
+import { LoadingSpinnerComponent } from '../../shared/loading-spinner/loading-spinner.component';
 
 export interface FormulationSelection {
   drugName: string;
@@ -41,6 +43,7 @@ export interface ConfirmedDrug {
     MatFormFieldModule, MatInputModule,
     InteractionAlertsComponent, DuplicateTherapyAlertsComponent,
     DrugSelectionPanelComponent, SelectedDrugsSummaryComponent,
+    EmptyStateComponent, LoadingSpinnerComponent,
   ],
 })
 export class DrugsStepComponent implements OnInit {

@@ -22,9 +22,7 @@
   </div>
 
   @if (loading()) {
-    <div class="flex justify-center py-20">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
+    <app-loading-spinner [diameter]="40" containerClass="py-20" />
   } @else if (error()) {
     <div class="max-w-md mx-auto mt-16 p-8 rounded-2xl bg-white border border-gray-200 text-center">
       <mat-icon class="!text-5xl !w-14 !h-14 mb-3 text-amber-500">error_outline</mat-icon>

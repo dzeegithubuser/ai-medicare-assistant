@@ -31,34 +31,46 @@
 ### `SigninComponent` (`auth/signin/signin.component.ts`, `.html`, `.scss`)
 - **Role:** Sign-in page with email/password form.
 - **Features:** ReactiveFormsModule form with email + password fields, password visibility toggle, loading/error signal states, links to sign up and forgot password.
-- **Styling:** Centered card with cyan gradient background, pharmacy icon branding.
+- **Layout:** Uses `AuthFormShellComponent` for the card shell (gradient background, pharmacy icon, title, footer link). Form content projected into the shell.
 - **Flow:** Calls `authService.signIn()`, then `handleAuthSuccess()`, then navigates to `/`.
 
 ### `SignupComponent` (`auth/signup/signup.component.ts`, `.html`, `.scss`)
 - **Role:** Registration page with email, phone, password, confirmPassword fields.
-- **Features:** Password length validation (min 8), confirmPassword match validation, loading/error states.
+- **Features:** Password length validation (min 8), cross-field `passwordMatchValidator` from shared validators. Loading/error states.
+- **Layout:** Uses `AuthFormShellComponent` for the card shell.
 - **Flow:** Calls `authService.signUp()`, then `handleAuthSuccess()`, then navigates to `/`.
 
 ### `ForgotPasswordComponent` (`auth/forgot-password/forgot-password.component.ts`, `.html`, `.scss`)
 - **Role:** Password recovery page with email field.
 - **Features:** Shows success (green) or error (red) messages after submission.
-- **Styling:** Orange lock_reset icon, centered card layout.
+- **Layout:** Uses `AuthFormShellComponent` for the card shell. Orange lock_reset icon.
 
 ### `ResetPasswordComponent` (`auth/reset-password/reset-password.component.ts`, `.html`, `.scss`)
 - **Role:** Public page that email reset links land on (`/reset-password?token=...`). Allows users to choose a new password.
-- **Features:** Reads `?token=` from `ActivatedRoute.queryParamMap`; redirects to `/forgot-password` if token is missing. Cross-field password match validator. Success banner followed by auto-redirect to `/signin` after 2 s.
+- **Features:** Reads `?token=` from `ActivatedRoute.queryParamMap`; redirects to `/forgot-password` if token is missing. Cross-field `passwordMatchValidator` from shared validators. Success banner followed by auto-redirect to `/signin` after 2 s.
+- **Layout:** Uses `AuthFormShellComponent` for the card shell. Orange lock_reset icon.
 - **Flow:** Calls `authService.resetPassword({ token, newPassword, confirmPassword })`. Signals: `loading`, `error`, `successMessage`, password visibility toggles.
-- **Styling:** Cyan gradient background, orange lock_reset icon (same palette as ForgotPasswordComponent).
 
 ### `ChangePasswordComponent` (`auth/change-password/change-password.component.ts`, `.html`, `.scss`)
 - **Role:** Authenticated page at `/change-password` where logged-in users update their password from the dashboard menu.
-- **Features:** Three-field form: `oldPassword`, `newPassword` (min 8), `confirmPassword`. Cross-field password match validator. Success banner followed by auto-redirect to `/` (dashboard) after 2 s. Cancel button returns immediately to dashboard.
+- **Features:** Three-field form: `oldPassword`, `newPassword` (min 8), `confirmPassword`. Cross-field `passwordMatchValidator` from shared validators. Success banner followed by auto-redirect to `/` (dashboard) after 2 s. Cancel button returns immediately to dashboard.
+- **Layout:** Uses `AuthFormShellComponent` for the card shell. Indigo lock icon.
 - **Flow:** Calls `authService.changePassword({ oldPassword, newPassword, confirmPassword })`. Backend verifies old password via BCrypt before updating. Auth interceptor automatically attaches Bearer token — no manual header needed.
-- **Styling:** Cyan gradient background, indigo lock icon (visually distinct from the orange reset icon).
 
 ### `VerifyEmailComponent` (`auth/verify-email/verify-email.component.ts`, `.html`, `.scss`)
 - **Role:** Public page at `/verify-email` where email verification links land. Verifies the user's email address token.
+- **Layout:** Uses `AuthFormShellComponent` for the card shell.
 - **Flow:** Calls `authService.verifyEmail()` or `authService.resendVerification()` via `POST /api/auth/verify-email` and `POST /api/auth/resend-verification`.
+
+### `AuthFormShellComponent` (`shared/auth-form-shell/auth-form-shell.component.ts`)
+- **Role:** Reusable card shell for all authentication forms. Provides consistent gradient background, icon, title, subtitle, projected form content, and footer link.
+- **Inputs:** `icon` (Material icon name), `title`, `subtitle` (optional), `footerText` (optional), `footerLink` (optional router path), `footerLinkText` (optional).
+- **Template:** Centered card with cyan gradient top section, icon circle, title, content projection slot, and optional footer with router link.
+- **Used By:** SigninComponent, SignupComponent, ForgotPasswordComponent, ResetPasswordComponent, ChangePasswordComponent, VerifyEmailComponent.
+
+### `passwordMatchValidator` (`shared/validators/password-match.validator.ts`)
+- **Role:** Shared cross-field `ValidatorFn` that checks `newPassword === confirmPassword` and sets `passwordMismatch` error.
+- **Used By:** SignupComponent, ResetPasswordComponent, ChangePasswordComponent.
 
 ### `UserProfileComponent` (`user-profile/user-profile.component.ts`, `.html`, `.scss`)
 - **Role:** Consolidated single-form profile. Routed at **`/profile`** (dashboard, full-width profile) and **`/medicare-analysis/profile`** (same component embedded in `AnalysisShellComponent` as analysis step 1). When the URL contains `/medicare-analysis/profile`, `MedicareStateService.currentStep` is set to `1`.

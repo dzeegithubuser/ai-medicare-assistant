@@ -143,6 +143,17 @@
 - **Helpers:** `buildPlans()` maps selected plans with expanded fields (deductible, starRating, totalPrescriptionCost, planExpenses, unavailableDrugs) from `PharmacyWiseRecommendation`. `buildCostSnapshot()` maps yearly details + full AI evaluation object.
 - **Injection:** Injects `MedicareStateService`, `ProfileService`, `RecommendationService`.
 
+### `ChartBuilderService` (`services/chart-builder.service.ts`)
+- **Role:** Centralized Chart.js 4.x registration and chart creation service. Registers all controllers (`LineController`, `BarController`, `DoughnutController`), elements (`ArcElement`, `LineElement`, `BarElement`, `PointElement`), scales (`CategoryScale`, `LinearScale`), and plugins (`Tooltip`, `Legend`, `Filler`) once at service construction — replaces 5× duplicated `Chart.register()` blocks across components.
+- **Methods:** `buildChart(canvas: HTMLCanvasElement, config: ChartConfiguration)` → `Chart` — creates and returns a new Chart.js instance with the given configuration. Components call `chartBuilder.buildChart()` instead of `new Chart()`.
+- **Used By:** `CostProjectionsComponent`, `LtcProjectionStepComponent`, `RecDetailMedicareComponent`, `RecDetailLtcComponent`, `TabCostAnalysisComponent`.
+
+### `SessionStorageService` (`services/session-storage.service.ts`)
+- **Role:** Typed wrapper around `sessionStorage` with a centralized key registry (`SESSION_KEYS` constant object).
+- **`SESSION_KEYS`:** `AUTH_TOKEN`, `AUTH_USER`, `AUTH_TOKEN_TS`, `DRUG_STATE`, `CONFIRMED_DRUGS`, `CHAT_MESSAGES`, `FORMULATION_SEL`, `FP_DRUG_SEL`, `DRUG_QUANTITIES` — single source of truth for all session key names.
+- **Methods:** `get<T>(key)` → parsed JSON or null, `getString(key)` → raw string or null, `set(key, value)` → JSON-serializes and stores, `remove(key)` → removes single key, `removeMany(keys)` → removes multiple keys, `clear()` → clears all session storage.
+- **Pattern:** Available for new code. Existing direct `sessionStorage` calls can be incrementally migrated to use this service.
+
 ---
 
 ← [Saved Data & LTC Components](ch02-05-components-saved-ltc.md) | [Chapter 2 — Frontend Architecture (Index)](../ch02-frontend-architecture/ch02-frontend-architecture.md) | [Next → Guards & Models](ch02-07-guards-models.md)

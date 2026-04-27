@@ -7,20 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RecommendationResponse } from '../../../models/recommendation.model';
-import {
-  Chart, ChartConfiguration,
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler,
-} from 'chart.js';
-
-Chart.register(
-  LineController, BarController, DoughnutController, ArcElement,
-  LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale,
-  Tooltip, Legend, Filler,
-);
+import { Chart, ChartConfiguration } from 'chart.js';
+import { ChartBuilderService } from '../../../services/chart-builder.service';
 
 @Component({
   selector: 'app-rec-detail-ltc',
@@ -32,6 +20,7 @@ Chart.register(
 })
 export class RecDetailLtcComponent implements OnDestroy {
   private cdr = inject(ChangeDetectorRef);
+  private chartBuilder = inject(ChartBuilderService);
 
   readonly rec = input.required<RecommendationResponse>();
 

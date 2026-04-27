@@ -17,9 +17,9 @@
     { title: 'Health', icon: 'favorite', color: 'rose', rows: healthRows() },
     { title: 'Financial', icon: 'account_balance', color: 'amber', rows: financialRows() }
   ]; track section.title) {
-    <mat-card class="!rounded-xl !shadow-sm">
+    <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300">
       <mat-card-content class="!p-0">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-gray-50/60 rounded-t-xl">
           <div class="w-7 h-7 rounded-lg flex items-center justify-center"
                [class]="'bg-' + section.color + '-100'">
             <mat-icon class="!text-base"
@@ -40,7 +40,7 @@
             </thead>
             <tbody>
               @for (row of section.rows; track row.label) {
-                <tr class="border-b border-gray-100" [class.bg-amber-50/50]="row.left !== row.right">
+                <tr class="border-b border-gray-300" [class.bg-amber-50/50]="row.left !== row.right">
                   <td class="py-2.5 px-4"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
                   <td class="py-2.5 px-4 font-medium text-gray-700">{{ row.label }}</td>
                   <td class="py-2.5 px-4 text-gray-900">{{ row.left }}</td>

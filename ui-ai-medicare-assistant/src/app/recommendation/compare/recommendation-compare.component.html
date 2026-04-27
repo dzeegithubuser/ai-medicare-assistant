@@ -22,7 +22,7 @@
   } @else if (left(); as l) {
     @if (right(); as r) {
       <!-- ═══ Merged Comparison Card ═══ -->
-      <mat-card class="!rounded-xl !shadow-sm mb-5">
+      <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300 mb-5">
         <mat-card-content class="!p-5">
 
           <!-- Row 1 — Names + Arrow + Badges -->
@@ -59,7 +59,7 @@
 
           <!-- Row 2 — Plan pills -->
           @if (l.planSelections.length || r.planSelections.length) {
-            <div class="grid grid-cols-[1fr_auto_1fr] gap-4 mt-3 pt-3 border-t border-gray-100">
+            <div class="grid grid-cols-[1fr_auto_1fr] gap-4 mt-3 pt-3 border-t border-gray-300">
               <div class="flex flex-wrap gap-1">
                 @for (p of l.planSelections; track $index) {
                   <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium max-w-[200px]"

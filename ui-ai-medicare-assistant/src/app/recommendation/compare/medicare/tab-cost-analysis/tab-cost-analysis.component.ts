@@ -13,16 +13,8 @@ import {
   CHART_COLOR_A, CHART_COLOR_A_BG, CHART_COLOR_A_FILL,
   CHART_COLOR_B, CHART_COLOR_B_BG, CHART_COLOR_B_FILL,
 } from '../../compare-helpers';
-import {
-  Chart, ChartConfiguration,
-  LineController, BarController, LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale, Tooltip, Legend, Filler,
-} from 'chart.js';
-
-Chart.register(
-  LineController, BarController, LineElement, BarElement, PointElement,
-  CategoryScale, LinearScale, Tooltip, Legend, Filler,
-);
+import { Chart, ChartConfiguration } from 'chart.js';
+import { ChartBuilderService } from '../../../../services/chart-builder.service';
 
 @Component({
   selector: 'app-compare-tab-cost-analysis',
@@ -33,6 +25,7 @@ Chart.register(
 })
 export class TabCostAnalysisComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
+  private chartBuilder = inject(ChartBuilderService);
 
   readonly left = input.required<RecommendationResponse>();
   readonly right = input.required<RecommendationResponse>();

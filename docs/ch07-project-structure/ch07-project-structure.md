@@ -66,13 +66,32 @@ app/
     analysis-snapshot.service.ts    → Assembles full analysis snapshot (profile, drugs, pharmacies, plans, cost) and saves via RecommendationService
     ltc-analysis-snapshot.service.ts → Assembles LTC analysis snapshot and saves as recommendation
     plan-card-enrichment.service.ts → Pure computation service — derives display fields (formatted plan IDs, carrier names, surcharges, OOP, pharmacy/drug ratios, Medigap cents→dollars) from raw API responses for Part D, Medigap, and MA cards
+    chart-builder.service.ts        → Centralized Chart.js registration and chart creation. Registers all controllers (Line, Bar, Doughnut), elements, scales, tooltip, legend, filler once. Components call buildChart(canvas, config) instead of manual Chart.register() + new Chart(). Used by CostProjections, LtcProjectionStep, RecDetailMedicare, RecDetailLtc, TabCostAnalysis
+    session-storage.service.ts      → Typed sessionStorage wrapper with SESSION_KEYS registry. Methods: get<T>, getString, set, remove, removeMany, clear. Centralizes all 9+ session key names (AUTH_TOKEN, AUTH_USER, AUTH_TOKEN_TS, DRUG_STATE, CONFIRMED_DRUGS, CHAT_MESSAGES, FORMULATION_SEL, FP_DRUG_SEL, DRUG_QUANTITIES)
     font-size.service.ts            → User font size preference management
     theme.service.ts                → Theme/dark mode management
     error-notification.service.ts    → Opens ErrorDialogComponent via MatDialog for global API error popups (singleton, dedup guard)
     http-loader.service.ts          → Global HTTP loading state (signal-based — true when any HTTP request is in-flight)
   shared/
+    auth-form-shell/
+      auth-form-shell.component.ts → Shared auth form shell — reusable card layout with gradient background, icon, title, subtitle, form projection, and footer link. Used by Signin, Signup, ForgotPassword, ResetPassword, ChangePassword, VerifyEmail
+    validators/
+      password-match.validator.ts  → Shared cross-field password match validator (passwordMatchValidator). Used by Signup, ResetPassword, ChangePassword
+    loading-spinner/
+      loading-spinner.component.ts → Shared loading spinner with optional message text input. Replaces inline spinner markup across components
+    empty-state/
+      empty-state.component.ts    → Shared empty state card with icon, title, and subtitle inputs. Replaces inline empty-state markup
+    error-alert/
+      error-alert.component.ts    → Shared error alert banner with message input. Replaces inline error markup
+    kpi-card/
+      kpi-card.component.ts       → Shared KPI metric card with label, value, icon, and color inputs. Replaces inline KPI card markup
+    section-header/
+      section-header.component.ts → Shared section header with icon, title, and subtitle inputs. Replaces inline header markup
     error-dialog/
       error-dialog.component.ts   → Standalone Material Dialog for global API error popups (red icon, friendly message, collapsible technical details, themed OK button)
+    styles/
+      _tab-active.scss            → Shared SCSS mixin for active mat-tab styling (cyan-600 background, white text/icon, rounded top corners). Used by compare-medicare, compare-ltc, compare-cross, rec-detail-medicare, rec-detail-ltc
+      _chart-container.scss       → Shared SCSS mixin for chart container (position: relative, configurable height, default 320px). Used by cost-projections, ltc-projection-step, recommendation-detail, rec-detail-medicare, rec-detail-ltc
   interceptors/
     auth.interceptor.ts           → HttpInterceptorFn — attaches Bearer token to requests
     http-error.interceptor.ts     → HttpInterceptorFn — global API error handler (catches HttpErrorResponse, maps status codes to user-friendly messages, opens ErrorDialogComponent via ErrorNotificationService)
@@ -187,6 +206,20 @@ app/
     markdown.pipe.ts                  → Markdown rendering pipe
   utils/
     pharmacy-chat-resolve.ts          → Pharmacy chat resolution utility
+
+  ── Test Files (Vitest) ──
+  services/
+    auth.service.spec.ts              → AuthService unit tests (12 tests)
+    drug-state.service.spec.ts        → MedicareStateService unit tests (22 tests)
+  chat/
+    chat-send-guards.spec.ts          → Chat send guard computed signal tests (5 tests)
+    chat.component.spec.ts            → ChatComponent unit tests — creation, chatSendBlocked computed (12 tests)
+  user-profile/
+    user-profile.component.spec.ts    → UserProfileComponent unit tests — form validation, defaults, Medicare age, MAGI tiers, unsaved changes (23 tests)
+  cost-projections/
+    cost-projections.component.spec.ts → CostProjectionsComponent unit tests — creation, bundleLabel, expenseTableRow, presentValue, helpers (20 tests)
+  recommendation/detail/medicare/
+    rec-detail-medicare.component.spec.ts → RecDetailMedicareComponent unit tests — formatters, URL helpers, bundleLabel, computed props (23 tests)
 
 environments/
   environment.ts                  → Production config

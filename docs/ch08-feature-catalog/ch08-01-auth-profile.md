@@ -27,14 +27,16 @@
 ---
 
 ## ✅ Frontend Auth Components & Routing
-- **Components:** SigninComponent, SignupComponent, ForgotPasswordComponent, ResetPasswordComponent, ChangePasswordComponent.
+- **Components:** SigninComponent, SignupComponent, ForgotPasswordComponent, ResetPasswordComponent, ChangePasswordComponent, VerifyEmailComponent.
+- **Shared Shell:** All auth components use `AuthFormShellComponent` — a reusable card shell providing consistent gradient background, icon, title, subtitle, form content projection, and footer link. Eliminates duplicated layout markup across 6 auth forms.
+- **Shared Validator:** `passwordMatchValidator` (from `shared/validators/`) — cross-field `ValidatorFn` used by SignupComponent, ResetPasswordComponent, and ChangePasswordComponent.
 - **ResetPasswordComponent:** Public route `/reset-password`. Reads `?token=` from URL; redirects to `/forgot-password` if missing. Two-field form (newPassword + confirmPassword with cross-field match validator). On success shows green banner then auto-navigates to `/signin` after 2 s.
 - **ChangePasswordComponent:** Authenticated route `/change-password` (inside `authGuard` dashboard children). Three-field form (oldPassword + newPassword + confirmPassword). On success shows green banner then auto-navigates to `/` (dashboard) after 2 s. Cancel button returns immediately.
 - **AuthService:** Signal-based state with `currentUser` and `isAuthenticated` signals, sessionStorage persistence (not localStorage — session ends on tab close). 1-hour token expiry with auto-refresh on activity.
 - **Auth Interceptor:** `HttpInterceptorFn` that attaches `Authorization: Bearer <token>` header — no manual header management needed in components or services.
 - **Auth Guard:** `CanActivateFn` protecting the Dashboard route.
 - **Routing:** Lazy-loaded via `loadComponent`. App component simplified to `<router-outlet />`.
-- **Styling:** Centered auth cards with cyan gradient background, pharmacy branding.
+- **Styling:** Auth forms use `AuthFormShellComponent` for consistent centered card layout with gradient background and pharmacy branding.
 
 ---
 

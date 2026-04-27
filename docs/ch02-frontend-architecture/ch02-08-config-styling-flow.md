@@ -52,6 +52,10 @@ A centralized `AppRoutes` constant prevents hard-coded path strings across compo
 - **Custom Scrollbars:** Thin 6px scrollbars with subtle gray thumb.
 - **Body:** `overflow: hidden` — each panel scrolls independently.
 - **Component Hosts:** `:host { display: block/flex; height: 100% }` for proper flex layout.
+- **Shared SCSS Partials** (`shared/styles/`):
+  - **`_tab-active.scss`** — Mixin `tab-active` for active mat-tab styling: cyan-600 background, white text/icon, rounded top corners. Used by compare-medicare, compare-ltc, compare-cross, rec-detail-medicare, rec-detail-ltc via `@use` + `@include`.
+  - **`_chart-container.scss`** — Mixin `chart-container($height: 320px)` for consistent chart container sizing (`position: relative; height: $height`). Used by cost-projections, ltc-projection-step, recommendation-detail, rec-detail-medicare, rec-detail-ltc.
+  - **Note:** `@use` statements must appear before all other rules (including `:host {}`) in component SCSS files.
 
 ---
 

@@ -14,7 +14,7 @@
 
       <!-- KPI Strip -->
       <mat-card class="!rounded-xl !shadow-sm !border !border-gray-200 overflow-hidden">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-gray-50/60">
           <mat-icon class="!text-base text-gray-600">insights</mat-icon>
           <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Cost Deltas&nbsp;(Left &minus; Right)</p>
         </div>
@@ -29,7 +29,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+              <tr class="border-b border-gray-300 hover:bg-gray-50/50">
                 <td class="py-2.5 px-3 font-medium text-gray-700">Total Cost</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ (l.ltcSnapshot?.totalCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ (r.ltcSnapshot?.totalCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
@@ -41,7 +41,7 @@
                   </div>
                 </td>
               </tr>
-              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+              <tr class="border-b border-gray-300 hover:bg-gray-50/50">
                 <td class="py-2.5 px-3 font-medium text-gray-700">Present Value</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ (l.ltcSnapshot?.totalPresentValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ (r.ltcSnapshot?.totalPresentValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
@@ -53,7 +53,7 @@
                   </div>
                 </td>
               </tr>
-              <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+              <tr class="border-b border-gray-300 hover:bg-gray-50/50">
                 <td class="py-2.5 px-3 font-medium text-gray-700">Avg Annual</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ (l.ltcSnapshot?.evaluation?.averageAnnualCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ (r.ltcSnapshot?.evaluation?.averageAnnualCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
@@ -117,7 +117,7 @@
                 </thead>
                 <tbody>
                   @for (row of profileDiffs(); track row.label) {
-                    <tr class="border-b border-gray-100 bg-amber-50/40">
+                    <tr class="border-b border-gray-300 bg-amber-50/40">
                       <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
                       <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
                       <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
@@ -232,7 +232,7 @@
     <div class="pt-4 space-y-4">
       <!-- Config Table -->
       <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50/60">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-gray-50/60">
           <div class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
             <mat-icon class="!text-base text-violet-600">settings</mat-icon>
           </div>
@@ -255,7 +255,7 @@
             </thead>
             <tbody>
               @for (row of careConfigRows(); track row.label) {
-                <tr class="border-b border-gray-100" [class.bg-amber-50/40]="row.left !== row.right">
+                <tr class="border-b border-gray-300" [class.bg-amber-50/40]="row.left !== row.right">
                   <td class="py-2.5 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
                   <td class="py-2.5 px-3 font-medium text-gray-700">{{ row.label }}</td>
                   <td class="py-2.5 px-3 text-gray-900 font-semibold">{{ row.left }}</td>
@@ -398,7 +398,7 @@
                     <p class="text-xs text-orange-700 uppercase font-semibold mb-2">{{ labelA }}</p>
                     <div class="space-y-2">
                       @for (tip of leftTips; track tip.title) {
-                        <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
+                        <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-300 bg-gray-50/50">
                           <mat-icon class="!text-base !text-green-600 mt-0.5">lightbulb</mat-icon>
                           <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-0.5">
@@ -420,7 +420,7 @@
                     <p class="text-xs text-green-700 uppercase font-semibold mb-2">{{ labelB }}</p>
                     <div class="space-y-2">
                       @for (tip of rightTips; track tip.title) {
-                        <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
+                        <div class="flex items-start gap-2 p-3 rounded-lg border border-gray-300 bg-gray-50/50">
                           <mat-icon class="!text-base !text-green-600 mt-0.5">lightbulb</mat-icon>
                           <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-0.5">

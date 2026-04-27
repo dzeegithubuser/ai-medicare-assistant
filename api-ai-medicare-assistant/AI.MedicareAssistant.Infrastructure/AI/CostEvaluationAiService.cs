@@ -1,23 +1,21 @@
-using System.Text.Json;
 using Domain.Interfaces;
 using Domain.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.AI;
 
 public class CostEvaluationAiService : ICostEvaluationAiService
 {
-    private readonly IChatClient _chatClient;
+    private readonly IAiCompletionService _aiService;
     private readonly PromptBuilder _promptBuilder;
     private readonly ILogger<CostEvaluationAiService> _logger;
 
     public CostEvaluationAiService(
-        IChatClient chatClient,
+        IAiCompletionService aiService,
         PromptBuilder promptBuilder,
         ILogger<CostEvaluationAiService> logger)
     {
-        _chatClient = chatClient;
+        _aiService = aiService;
         _promptBuilder = promptBuilder;
         _logger = logger;
     }
@@ -42,7 +40,7 @@ public class CostEvaluationAiService : ICostEvaluationAiService
             $"PartD OOP=${y.PartDOOP:F2}, Total AB/MA=${y.TotalABMedicareAdvantage:F2}, " +
             $"Dental Premium={y.DentalPremium:F2}, Dental OOP={y.DentalOOP:F2}");
 
-        var (systemPrompt, userPrompt) = _promptBuilder.BuildCostEvaluation(new Dictionary<string, string>
+        var (systemPrompt, userPrompt) = _promptBuilder.Build("cost-evaluation", new Dictionary<string, string>
         {
             ["{{PLAN_NAME}}"] = planName,
             ["{{PLAN_BUNDLE_CODE}}"] = planBundleCode,
@@ -61,34 +59,12 @@ public class CostEvaluationAiService : ICostEvaluationAiService
             ["{{YEARLY_BREAKDOWN}}"] = string.Join("\n", yearlyLines)
         });
 
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.System, systemPrompt),
-            new(ChatRole.User, userPrompt)
-        };
-
         _logger.LogInformation("Requesting AI cost evaluation for plan {PlanName}", planName);
 
         try
         {
-            var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-            var raw = aiResponse.Text?.Trim() ?? "{}";
-
-            // Strip markdown code fences if present
-            if (raw.StartsWith("```"))
-            {
-                var firstNewline = raw.IndexOf('\n');
-                var lastFence = raw.LastIndexOf("```");
-                if (firstNewline >= 0 && lastFence > firstNewline)
-                    raw = raw[(firstNewline + 1)..lastFence].Trim();
-            }
-
-            var result = JsonSerializer.Deserialize<CostEvaluation>(raw, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return result ?? new CostEvaluation();
+            var raw = await _aiService.CompleteAsync(systemPrompt, userPrompt, cancellationToken);
+            return AiResponseParser.ParseJsonWithFallback(raw, new CostEvaluation(), _logger);
         }
         catch (Exception ex)
         {

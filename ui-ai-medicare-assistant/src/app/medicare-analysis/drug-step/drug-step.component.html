@@ -72,18 +72,15 @@
 
 <!-- Loading State -->
 @if (state.isDrugDetailsLoading()) {
-  <div class="flex flex-col items-center justify-center py-16 gap-4">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p class="text-gray-500">Fetching drug details from formulary…</p>
-  </div>
+  <app-loading-spinner [diameter]="40" message="Fetching drug details from formulary…" containerClass="py-16" />
 }
 
 <!-- No Data State -->
 @if (!state.isDrugDetailsLoading() && !state.hasDrugDetails()) {
-  <div class="flex flex-col items-center justify-center py-16 gap-3 text-gray-600">
-    <mat-icon class="!text-5xl !w-12 !h-12">medication</mat-icon>
-    <p>No drug details available. Please confirm your drugs in the previous step.</p>
-  </div>
+  <app-empty-state
+    icon="medication"
+    title="No drug details available. Please confirm your drugs in the previous step."
+    iconClass="!text-5xl !w-12 !h-12" />
 }
 
 <!-- Drug Details Content -->

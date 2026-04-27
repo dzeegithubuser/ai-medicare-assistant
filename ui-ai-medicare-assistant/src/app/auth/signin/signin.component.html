@@ -1,21 +1,8 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-cyan-100">
-  <div class="w-full max-w-md mx-4">
-    <div class="bg-white rounded-2xl shadow-xl p-8">
-      <!-- Logo -->
-      <div class="flex flex-col items-center mb-8">
-        <div class="w-14 h-14 rounded-xl bg-cyan-600 flex items-center justify-center mb-3 shadow-lg">
-          <mat-icon class="!text-white !text-3xl !w-8 !h-8">local_pharmacy</mat-icon>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-800">Welcome Back</h1>
-        <p class="text-sm text-gray-500 mt-1">Sign in to AI Medicare Assistant</p>
-      </div>
+<app-auth-form-shell icon="local_pharmacy" iconBgClass="bg-cyan-600" title="Welcome Back" subtitle="Sign in to AI Medicare Assistant">
 
       <!-- Error Message -->
       @if (error()) {
-        <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-          <mat-icon class="!text-red-500 !text-lg !w-5 !h-5">error</mat-icon>
-          {{ error() }}
-        </div>
+        <app-error-alert [message]="error()" />
       }
 
       <!-- Form -->
@@ -59,6 +46,4 @@
         Don't have an account?
         <a routerLink="/signup" class="text-cyan-600 hover:text-cyan-700 font-semibold">Sign Up</a>
       </p>
-    </div>
-  </div>
-</div>
+</app-auth-form-shell>

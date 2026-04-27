@@ -1,18 +1,17 @@
 using Domain.Interfaces;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.AI;
 
 public class DrugAiService : IDrugAiService
 {
-    private readonly IChatClient _client;
+    private readonly IAiCompletionService _aiService;
     private readonly PromptBuilder _builder;
     private readonly ILogger<DrugAiService> _logger;
 
-    public DrugAiService(IChatClient client, PromptBuilder builder, ILogger<DrugAiService> logger)
+    public DrugAiService(IAiCompletionService aiService, PromptBuilder builder, ILogger<DrugAiService> logger)
     {
-        _client = client;
+        _aiService = aiService;
         _builder = builder;
         _logger = logger;
     }
@@ -23,19 +22,11 @@ public class DrugAiService : IDrugAiService
 
         try
         {
-            var prompts=_builder.Build(prescription);
+            var (system, user) = _builder.BuildDrugNormalization(prescription);
+            var response = await _aiService.CompleteAsync(system, user);
 
-            var messages=new List<ChatMessage>
-            {
-                new(ChatRole.System,prompts.system),
-                new(ChatRole.User,prompts.user)
-            };
-
-            var response=await _client.GetResponseAsync(messages);
-
-            _logger.LogInformation("AI response received ({Length} chars)", response.Text.Length);
-
-            return response.Text;
+            _logger.LogInformation("AI response received ({Length} chars)", response.Length);
+            return response;
         }
         catch (Exception ex)
         {
@@ -50,19 +41,15 @@ public class DrugAiService : IDrugAiService
 
         try
         {
-            var prompts = _builder.BuildDrugNameSuggestion(input);
-
-            var messages = new List<ChatMessage>
+            var (system, user) = _builder.Build("drug-name-suggestion", new Dictionary<string, string>
             {
-                new(ChatRole.System, prompts.system),
-                new(ChatRole.User, prompts.user)
-            };
+                ["{{INPUT}}"] = input
+            });
 
-            var response = await _client.GetResponseAsync(messages);
+            var response = await _aiService.CompleteAsync(system, user);
 
-            _logger.LogInformation("Drug name suggestions received ({Length} chars)", response.Text.Length);
-
-            return response.Text;
+            _logger.LogInformation("Drug name suggestions received ({Length} chars)", response.Length);
+            return response;
         }
         catch (Exception ex)
         {

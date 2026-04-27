@@ -1,24 +1,22 @@
 using System.Text;
-using System.Text.Json;
 using Domain.Interfaces;
 using Domain.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.AI;
 
 public class LtcEvaluationAiService : ILtcEvaluationAiService
 {
-    private readonly IChatClient _chatClient;
+    private readonly IAiCompletionService _aiService;
     private readonly PromptBuilder _promptBuilder;
     private readonly ILogger<LtcEvaluationAiService> _logger;
 
     public LtcEvaluationAiService(
-        IChatClient chatClient,
+        IAiCompletionService aiService,
         PromptBuilder promptBuilder,
         ILogger<LtcEvaluationAiService> logger)
     {
-        _chatClient = chatClient;
+        _aiService = aiService;
         _promptBuilder = promptBuilder;
         _logger = logger;
     }
@@ -44,7 +42,7 @@ public class LtcEvaluationAiService : ILtcEvaluationAiService
             _ => healthProfile.ToString()
         };
 
-        var (systemPrompt, userPrompt) = _promptBuilder.BuildLtcEvaluation(new Dictionary<string, string>
+        var (systemPrompt, userPrompt) = _promptBuilder.Build("ltc-evaluation", new Dictionary<string, string>
         {
             ["{{AGE}}"] = age.ToString(),
             ["{{GENDER}}"] = gender,
@@ -70,34 +68,12 @@ public class LtcEvaluationAiService : ILtcEvaluationAiService
             ["{{YEARLY_BREAKDOWN}}"] = yearlyBreakdown
         });
 
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.System, systemPrompt),
-            new(ChatRole.User, userPrompt)
-        };
-
         _logger.LogInformation("Requesting AI LTC cost evaluation for {State}, age {Age}", state, age);
 
         try
         {
-            var aiResponse = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-            var raw = aiResponse.Text?.Trim() ?? "{}";
-
-            // Strip markdown code fences if present
-            if (raw.StartsWith("```"))
-            {
-                var firstNewline = raw.IndexOf('\n');
-                var lastFence = raw.LastIndexOf("```");
-                if (firstNewline >= 0 && lastFence > firstNewline)
-                    raw = raw[(firstNewline + 1)..lastFence].Trim();
-            }
-
-            var result = JsonSerializer.Deserialize<LtcCostEvaluation>(raw, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return result ?? new LtcCostEvaluation();
+            var raw = await _aiService.CompleteAsync(systemPrompt, userPrompt, cancellationToken);
+            return AiResponseParser.ParseJsonWithFallback(raw, new LtcCostEvaluation(), _logger);
         }
         catch (Exception ex)
         {

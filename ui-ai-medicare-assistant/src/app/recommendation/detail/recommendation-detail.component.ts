@@ -12,6 +12,7 @@ import { RecommendationService } from '../../services/recommendation.service';
 import { RecommendationResponse } from '../../models/recommendation.model';
 import { RecDetailLtcComponent } from './ltc/rec-detail-ltc.component';
 import { RecDetailMedicareComponent } from './medicare/rec-detail-medicare.component';
+import { LoadingSpinnerComponent } from '../../shared/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-recommendation-detail',
@@ -22,6 +23,7 @@ import { RecDetailMedicareComponent } from './medicare/rec-detail-medicare.compo
     MatIconModule, MatButtonModule,
     MatTooltipModule, MatProgressSpinnerModule,
     RecDetailLtcComponent, RecDetailMedicareComponent,
+    LoadingSpinnerComponent,
   ],
   templateUrl: './recommendation-detail.component.html',
   styleUrls: ['./recommendation-detail.component.scss'],

@@ -1,0 +1,7 @@
+Analyze the following drugs for interactions and duplicate therapies.
+
+Rules:
+- Evaluate ALL pairwise interactions between the drugs.
+- Detect duplicate therapies where drugs share overlapping therapeutic classes.
+- If no interactions or duplicates exist, return empty arrays.
+- Do not invent interactions that are not clinically recognized.

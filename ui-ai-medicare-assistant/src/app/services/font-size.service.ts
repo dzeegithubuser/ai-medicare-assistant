@@ -4,7 +4,7 @@ const STORAGE_KEY = 'aimedicare_font_size';
 const SIZES = [16, 18, 20, 22, 24] as const;
 type FontSize = (typeof SIZES)[number];
 
-const DEFAULT_SIZE: FontSize = 18;
+const DEFAULT_SIZE: FontSize = 24;
 const MIN_SIZE = SIZES[0];
 const MAX_SIZE = SIZES[SIZES.length - 1];
 

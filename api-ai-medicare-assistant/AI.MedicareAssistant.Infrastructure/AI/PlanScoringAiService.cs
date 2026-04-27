@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Domain.Interfaces;
 using Domain.Models;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -9,18 +8,18 @@ namespace Infrastructure.AI;
 
 public class PlanScoringAiService : IPlanScoringAiService
 {
-    private readonly IChatClient _chatClient;
+    private readonly IAiCompletionService _aiService;
     private readonly IMemoryCache _cache;
     private readonly PromptBuilder _promptBuilder;
     private readonly ILogger<PlanScoringAiService> _logger;
 
     public PlanScoringAiService(
-        IChatClient chatClient,
+        IAiCompletionService aiService,
         IMemoryCache cache,
         PromptBuilder promptBuilder,
         ILogger<PlanScoringAiService> logger)
     {
-        _chatClient = chatClient;
+        _aiService = aiService;
         _cache = cache;
         _promptBuilder = promptBuilder;
         _logger = logger;
@@ -61,7 +60,7 @@ public class PlanScoringAiService : IPlanScoringAiService
             return $"- {d.DrugName}{genericNote}, RxCUI: {d.RxCui}{detailStr}";
         });
 
-        var (systemPrompt, userPrompt) = _promptBuilder.BuildPlanScoring(new Dictionary<string, string>
+        var (systemPrompt, userPrompt) = _promptBuilder.Build("plan-scoring", new Dictionary<string, string>
         {
             ["{{AGE}}"] = (request.Age ?? 65).ToString(),
             ["{{ZIP_CODE}}"] = request.ZipCode,
@@ -85,30 +84,11 @@ public class PlanScoringAiService : IPlanScoringAiService
 
         try
         {
-            var messages = new List<ChatMessage>
-            {
-                new(ChatRole.System, systemPrompt),
-                new(ChatRole.User, userPrompt)
-            };
+            var raw = await _aiService.CompleteAsync(systemPrompt, userPrompt, cancellationToken);
 
-            var response = await _chatClient.GetResponseAsync(messages, cancellationToken: cancellationToken);
-            var json = response.Text?.Trim() ?? "";
+            _logger.LogDebug("Plan scoring AI response: {Length} chars", raw.Length);
 
-            // Strip markdown fences if present
-            if (json.StartsWith("```"))
-            {
-                var firstNewline = json.IndexOf('\n');
-                var lastFence = json.LastIndexOf("```");
-                if (firstNewline > 0 && lastFence > firstNewline)
-                    json = json[(firstNewline + 1)..lastFence].Trim();
-            }
-
-            _logger.LogDebug("Plan scoring AI response: {Length} chars", json.Length);
-
-            var result = JsonSerializer.Deserialize<PlanRecommendationResult>(json, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var result = AiResponseParser.ParseJson<PlanRecommendationResult>(raw, _logger);
 
             if (result is null || result.RankedPlans.Count == 0)
             {
