@@ -1,4 +1,4 @@
-# AI Medicare Assistant — Enterprise Blueprint
+# Medicare Assistant — Enterprise Blueprint
 
 > A living technical reference organized as a book. Each chapter covers a distinct architectural concern — read sequentially for a full system overview, or jump to any chapter independently.
 

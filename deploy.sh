@@ -1,6 +1,6 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────
-# AI Medicare Assistant — One-command deploy
+# Medicare Assistant — One-command deploy
 # Usage: ./deploy.sh [--build] [--down] [--logs]
 # ─────────────────────────────────────────────────
 set -e

@@ -11,7 +11,7 @@
 - **State:** Injects `MedicareStateService`, `ProfileService`, `AuthService`, `ChatIntentService`, `ChatWizardService`, `ChatRouterService`, `ChatNavigationFlowService`, `ChatDrugFlowService`, `ChatProfileService`, `ChatDrugSelectionService`, `ChatPharmacySelectionService`, `RecommendationStateService`, `Router`.
 - **Features:**
   - Chat header with AI Assistant branding, icon, and **wizard step indicator** (Profile › Drugs & Pharmacy › Plans › Analysis) — visible when wizard mode is `MEDICARE_ANALYSIS`. Current step highlighted cyan, completed steps green with check icon.
-  - Startup greeting on first load ("Hello! I'm your AI Medicare Assistant. What would you like to do today?").
+  - Startup greeting on first load ("Hello! I'm your Medicare Assistant. What would you like to do today?").
   - **Mode Selection Buttons:** Two Material cards appear after the greeting — "Medicare Analysis" (starts guided wizard) and "Long Term Analysis" (coming soon). Cards hidden after selection. Only shown when `profileService.isProfileComplete()` is true — a constructor `effect()` watches the profile signal and shows buttons once the profile API resolves.
   - **Medicare Analysis Start:** Clicking "Medicare Analysis" starts the wizard immediately (no saved-analysis/prescription pre-check UI).
   - **Fresh Start Enforcement:** On mode selection, chat clears carry-forward flow state (`drugDetails`, `confirmedDrugNames`, `selectedLookupPharmacies`, `pharmacySelectionConfirmed`, plan selections) before starting wizard.

@@ -50,7 +50,15 @@ export class CompareCrossComponent {
 
   readonly leftLifetime = computed(() => this.lifetimeCost(this.left(), this.leftType()));
   readonly rightLifetime = computed(() => this.lifetimeCost(this.right(), this.rightType()));
+  private presentValue(rec: RecommendationResponse, type: RecommendationCategory): number {
+    return type === 'longterm'
+      ? (rec.ltcSnapshot?.totalPresentValue ?? 0)
+      : (rec.lastCostSnapshot?.presentValue ?? 0);
+  }
 
+  readonly leftPV = computed(() => this.presentValue(this.left(), this.leftType()));
+  readonly rightPV = computed(() => this.presentValue(this.right(), this.rightType()));
+  readonly pvDelta = computed(() => this.leftPV() - this.rightPV());
   // ── Profile rows ─────────────────────────────────────────────────────────
   readonly profileRows = computed(() =>
     buildProfileRows(this.left().profile, this.right().profile));

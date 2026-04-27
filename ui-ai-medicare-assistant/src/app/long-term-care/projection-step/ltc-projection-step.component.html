@@ -31,13 +31,6 @@
             <p class="text-xs text-gray-500 mt-1">Today's dollars</p>
           </div>
         </mat-card>
-        <mat-card class="!rounded-2xl !border !border-cyan-100 !shadow-sm">
-          <div class="p-4">
-            <p class="text-xs uppercase tracking-wide text-cyan-600">Avg Annual Cost</p>
-            <p class="text-xl font-bold text-gray-900">{{ ev.lifetimeSummary.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
-            <p class="text-xs text-gray-500 mt-1">Per year</p>
-          </div>
-        </mat-card>
         @if (projection(); as p) {
           <mat-card class="!rounded-2xl !border !border-amber-100 !shadow-sm">
             <div class="p-4">

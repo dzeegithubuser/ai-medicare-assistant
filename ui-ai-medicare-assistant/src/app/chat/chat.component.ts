@@ -257,7 +257,7 @@ export class ChatComponent implements OnInit {
     // Show a placeholder greeting immediately while profile loads (only once per login session)
     if (this.startupGreetingPending) {
       this.state.addAssistantMessage(
-        "Hello! I'm your AI Medicare Assistant. Analysing your profile, please wait..."
+        "Hello! I'm your Medicare Assistant. Analysing your profile, please wait..."
       );
     }
 
@@ -326,7 +326,7 @@ export class ChatComponent implements OnInit {
   // ── Startup ───────────────────────────────────────────────────────────────
 
   private buildGreeting(): string {
-    return "Hello! I'm your AI Medicare Assistant.\n\n" +
+    return "Hello! I'm your Medicare Assistant.\n\n" +
       "**What would you like to do today?** Choose one of the action cards below.";
   }
 

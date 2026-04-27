@@ -14,12 +14,16 @@ import { buildProfileRows, LABEL_A, LABEL_B } from '../compare-helpers';
 export class TabProfileComponent {
   readonly left = input.required<RecommendationResponse>();
   readonly right = input.required<RecommendationResponse>();
+  readonly excludeLabels = input<string[]>([]);
 
   readonly labelA = LABEL_A;
   readonly labelB = LABEL_B;
 
-  readonly profileRows = computed(() =>
-    buildProfileRows(this.left().profile, this.right().profile));
+  readonly profileRows = computed(() => {
+    const rows = buildProfileRows(this.left().profile, this.right().profile);
+    const exclude = this.excludeLabels();
+    return exclude.length ? rows.filter(r => !exclude.includes(r.label)) : rows;
+  });
 
   readonly personalRows = computed(() => this.profileRows().filter(r => r.group === 'personal'));
   readonly locationRows = computed(() => this.profileRows().filter(r => r.group === 'location'));

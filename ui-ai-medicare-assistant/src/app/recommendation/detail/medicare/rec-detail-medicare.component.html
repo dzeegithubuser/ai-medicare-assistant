@@ -25,7 +25,8 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
     </ng-template>
-    <div class="pt-5 space-y-4">
+    <div class="pt-5">
+      <div class="space-y-4">
       <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div class="flex items-center gap-2 mb-3">
           <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center"><mat-icon class="!text-base text-indigo-600">badge</mat-icon></div>
@@ -47,7 +48,7 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div class="sm:col-span-3"><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Address</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.addressLine1 }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">City</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.city }}</p></div>
-          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">State</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.state }}</p></div>
+          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">State</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtState(rec().profile.state) }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">ZIP</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.zipCode }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">County</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.county }} ({{ rec().profile.countyCode }})</p></div>
         </div>
@@ -69,6 +70,7 @@
           }
         </div>
       </div>
+      </div>
     </div>
   </mat-tab>
 
@@ -77,96 +79,83 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">list_alt</mat-icon> Details</span>
     </ng-template>
-    <div class="pt-4 space-y-8">
+    <div class="pt-4 space-y-5">
 
-      <!-- Prescriptions panel -->
-      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-blue-200 !border-l-4 !border-l-blue-500">
-        <mat-expansion-panel-header>
-          <mat-panel-title class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-            <mat-icon class="!text-base text-blue-600">medication</mat-icon>
-            Prescriptions
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{{ rec().drugList.length }}</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        @if (rec().drugList.length === 0) {
-          <app-empty-state
-            icon="medication"
-            title="No prescriptions recorded"
-            containerClass="py-8"
-            iconClass="!text-4xl !w-10 !h-10 mb-2 opacity-40"
-            titleClass="text-sm" />
-        } @else {
-          <div class="flex flex-wrap gap-3 pb-2">
-            @for (drug of rec().drugList; track drug.drugName + drug.dosage) {
-              <div class="bg-white rounded-xl p-3 border border-blue-100 w-56 shrink-0">
-                <div class="flex items-center gap-2 mb-2">
-                  <mat-icon class="text-blue-700 !text-base !w-4 !h-4">medication</mat-icon>
-                  <span class="text-xs font-bold text-gray-900 truncate">{{ drug.drugName }}</span>
-                  @if (drug.drugType) {
-                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
-                      [class]="drug.drugType === 'Generic' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'">
-                      {{ drug.drugType }}
-                    </span>
-                  }
-                </div>
-                <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                  @if (drug.dosage) {
-                    <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ drug.dosage }}</span></div>
-                  }
-                  <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ drug.quantity }}/mo</span></div>
-                  @if (drug.rxcui) {
-                    <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ drug.rxcui }}</span></div>
-                  }
-                  @if (drug.refillFrequency) {
-                    <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ drug.refillFrequency }}d</span></div>
-                  }
-                </div>
-              </div>
-            }
+      <!-- ═══ Prescriptions ═══ -->
+      <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300 !border-t-4 !border-t-indigo-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-indigo-50/60 rounded-t-xl">
+            <mat-icon class="!text-base text-indigo-600">medication</mat-icon>
+            <p class="text-sm font-semibold text-gray-800">Prescriptions</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ rec().drugList.length }}</span>
           </div>
-        }
-      </mat-expansion-panel>
-
-      <!-- Pharmacy panel -->
-      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-emerald-200 !border-l-4 !border-l-emerald-500">
-        <mat-expansion-panel-header>
-          <mat-panel-title class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-            <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
-            Pharmacy
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">{{ rec().pharmacies.length + (rec().mailOrderPharmacy ? 1 : 0) }}</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        @if (!rec().pharmacies.length) {
-          <app-empty-state
-            icon="storefront"
-            title="No pharmacy recorded"
-            containerClass="py-8"
-            iconClass="!text-4xl !w-10 !h-10 mb-2 opacity-40"
-            titleClass="text-sm" />
-        } @else {
-          <div class="flex flex-wrap gap-3 pb-2">
-            @for (ph of rec().pharmacies; track ph.npi) {
-              <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm w-64 shrink-0">
-                <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                    <mat-icon class="!text-base text-emerald-600">storefront</mat-icon>
+          @if (rec().drugList.length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (drug of rec().drugList; track drug.drugName + drug.dosage) {
+                <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">medication</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ drug.drugName }}</span>
+                    @if (drug.drugType) {
+                      <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
+                        [class]="drug.drugType === 'Generic' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'">
+                        {{ drug.drugType }}
+                      </span>
+                    }
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 mb-0.5">
-                      <p class="text-xs font-semibold text-gray-900 truncate">{{ ph.name }}</p>
-                      <span class="text-xs px-1.5 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700 shrink-0">{{ ph.pharmacyType }}</span>
-                    </div>
-                    <p class="text-xs text-gray-500">{{ ph.address }}</p>
-                    <p class="text-xs text-gray-500">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</p>
-                    <div class="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-gray-500">
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    @if (drug.dosage) {
+                      <div><span class="text-gray-600">Strength:</span> <span class="text-gray-700 font-medium">{{ drug.dosage }}</span></div>
+                    }
+                    <div><span class="text-gray-600">Qty:</span> <span class="text-gray-700 font-medium">{{ drug.quantity }}/mo</span></div>
+                    @if (drug.rxcui) {
+                      <div><span class="text-gray-600">RxCUI:</span> <span class="text-gray-700 font-mono">{{ drug.rxcui }}</span></div>
+                    }
+                    @if (drug.refillFrequency) {
+                      <div><span class="text-gray-600">Refill:</span> <span class="text-gray-700 font-medium">{{ drug.refillFrequency }}d</span></div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">info</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No prescriptions recorded</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- ═══ Pharmacy ═══ -->
+      <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300 !border-t-4 !border-t-indigo-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-indigo-50/60 rounded-t-xl">
+            <mat-icon class="!text-base text-indigo-600">local_pharmacy</mat-icon>
+            <p class="text-sm font-semibold text-gray-800">Pharmacy</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ rec().pharmacies.length + (rec().mailOrderPharmacy ? 1 : 0) }}</span>
+          </div>
+          @if (rec().pharmacies.length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (ph of rec().pharmacies; track ph.npi) {
+                <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">storefront</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ ph.name }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0 bg-indigo-100 text-indigo-700">{{ ph.pharmacyType }}</span>
+                  </div>
+                  <div class="grid grid-cols-1 gap-y-1 text-xs">
+                    <div><span class="text-gray-600">Address:</span> <span class="text-gray-700 font-medium">{{ ph.address }}</span></div>
+                    <div><span class="text-gray-600">City:</span> <span class="text-gray-700 font-medium">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</span></div>
+                    <div class="flex items-center gap-3 mt-1">
                       @if (ph.phone) {
-                        <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">phone</mat-icon> {{ ph.phone }}</span>
+                        <span class="text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">phone</mat-icon> {{ ph.phone }}</span>
                       }
                       @if (ph.distance != null) {
-                        <span class="inline-flex items-center gap-0.5"><mat-icon class="!text-xs">pin_drop</mat-icon> {{ ph.distance | number:'1.1-1' }} mi</span>
+                        <span class="text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">place</mat-icon>{{ ph.distance | number:'1.1-1' }} mi</span>
                       }
                     </div>
-                    <div class="flex gap-1.5 mt-2">
+                    <div class="flex gap-1.5 mt-1.5">
                       <a class="flex-1 h-6 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-1 transition-colors text-xs font-medium text-blue-600"
                          [href]="getSpotOnMapUrl(ph)" target="_blank" rel="noopener noreferrer">
                         <mat-icon class="!text-xs !w-3 !h-3">place</mat-icon> Map
@@ -178,118 +167,103 @@
                     </div>
                   </div>
                 </div>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">info</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No pharmacy recorded</p>
+            </div>
+          }
+          @if (rec().mailOrderPharmacy; as mo) {
+            <div class="px-4 pb-4">
+              <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-indigo-100">
+                <mat-icon class="!text-sm text-green-600">local_shipping</mat-icon>
+                <span class="text-xs text-green-700 font-medium">Mail-Order: {{ mo.name }}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ml-auto"
+                      [class]="mo.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+                  {{ mo.enabled ? 'Enabled' : 'Disabled' }}
+                </span>
               </div>
-            }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
 
-            @if (rec().mailOrderPharmacy; as mo) {
-              <div class="rounded-xl border border-gray-200 bg-white p-3 shadow-sm w-56 shrink-0">
-                <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                    <mat-icon class="!text-base text-blue-600">local_shipping</mat-icon>
+      <!-- ═══ Plans ═══ -->
+      <mat-card class="!rounded-xl !shadow-sm !border !border-gray-300 !border-t-4 !border-t-indigo-400">
+        <mat-card-content class="!p-0">
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-indigo-50/60 rounded-t-xl">
+            <mat-icon class="!text-base text-indigo-600">shield</mat-icon>
+            <p class="text-sm font-semibold text-gray-800">Plans</p>
+            <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ rec().planSelections.length }} plan(s)</span>
+          </div>
+          @if (rec().planSelections.length) {
+            <div class="p-4 flex flex-wrap gap-3">
+              @for (plan of rec().planSelections; track plan.planId + plan.planType) {
+                <div class="bg-white rounded-xl p-3 border border-indigo-100 w-72 shrink-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">shield</mat-icon>
+                    <span class="text-xs font-bold text-gray-900 truncate">{{ plan.planName }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0 bg-indigo-100 text-indigo-700">{{ plan.planType }}</span>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 mb-0.5">
-                      <p class="text-xs font-semibold text-gray-900 truncate">{{ mo.name }}</p>
-                      <span class="text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0"
-                            [class]="mo.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
-                        {{ mo.enabled ? 'Enabled' : 'Disabled' }}
+                  <div class="flex items-center gap-1 mb-2 flex-wrap text-xs">
+                    @if (plan.carrier) {
+                      <span class="text-gray-500">{{ plan.carrier }}</span>
+                    }
+                    @if (plan.medigapPlanType) {
+                      <span class="px-1 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Plan {{ plan.medigapPlanType }}</span>
+                    }
+                    @if (plan.prescriptionDrugCovered) {
+                      <span class="text-green-600 inline-flex items-center gap-0.5"><mat-icon class="!text-xs !w-3 !h-3">check</mat-icon> Part D</span>
+                    }
+                  </div>
+                  <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    <div><span class="text-gray-600">Premium:</span> <span class="text-gray-700 font-medium">{{ plan.monthlyPremium | currency:'USD':'symbol':'1.2-2' }}</span></div>
+                    <div><span class="text-gray-600">Deductible:</span> <span class="text-gray-700 font-medium">{{ plan.deductible | currency:'USD':'symbol':'1.0-0' }}</span></div>
+                    <div>
+                      <span class="text-gray-600">Stars:</span>
+                      <span class="inline-flex items-center gap-0.5 ml-0.5">
+                        @for (filled of starArray(plan.starRating); track $index) {
+                          <mat-icon class="!text-xs" [class.text-amber-400]="filled" [class.text-gray-500]="!filled">star</mat-icon>
+                        }
+                        <span class="text-gray-500 ml-0.5">{{ plan.starRating.toFixed(1) }}</span>
                       </span>
                     </div>
-                    <p class="text-xs text-gray-500">Mail Order</p>
-                    <p class="text-xs text-gray-600">NPI: {{ mo.npi }}</p>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </mat-expansion-panel>
-
-      <!-- Plans panel -->
-      <mat-expansion-panel [expanded]="true" class="!rounded-xl !shadow-md !border !border-purple-200 !border-l-4 !border-l-purple-500">
-        <mat-expansion-panel-header>
-          <mat-panel-title class="flex items-center gap-2 text-sm font-semibold text-gray-800">
-            <mat-icon class="!text-base text-purple-600">health_and_safety</mat-icon>
-            Plans
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">{{ rec().planSelections.length }}</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        @if (rec().planSelections.length === 0) {
-          <app-empty-state
-            icon="health_and_safety"
-            title="No plans recorded"
-            containerClass="py-8"
-            iconClass="!text-4xl !w-10 !h-10 mb-2 opacity-40"
-            titleClass="text-sm" />
-        } @else {
-          <div class="flex flex-wrap gap-3 pb-2">
-            @for (plan of rec().planSelections; track plan.planId + plan.planType) {
-              <div class="rounded-lg border p-3 w-64 shrink-0"
-                   [class]="plan.planType === 'Medicare Advantage' ? 'border-purple-400 bg-purple-50 ring-2 ring-purple-300' : plan.planType === 'Part D (Gap)' ? 'border-orange-400 bg-orange-50 ring-2 ring-orange-300' : plan.planType === 'Part D' ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-300' : 'border-cyan-600 bg-cyan-50 ring-2 ring-cyan-200'">
-                <div class="flex items-start justify-between mb-2">
-                  <div class="min-w-0 flex-1">
-                    <h4 class="text-xs font-semibold text-gray-800 leading-tight">{{ plan.planName }}</h4>
-                    <div class="flex items-center gap-1 mt-0.5 flex-wrap">
-                      <span class="text-xs text-gray-500">{{ plan.planType }}</span>
-                      @if (plan.planId) {
-                        <span class="text-xs text-gray-600">·</span>
-                        <span class="text-xs text-gray-500 font-medium">{{ plan.planId }}</span>
-                      }
-                      @if (plan.carrier) {
-                        <span class="text-xs text-gray-600">·</span>
-                        <span class="text-xs text-gray-600 font-medium">{{ plan.carrier }}</span>
-                      }
-                      @if (plan.medigapPlanType) {
-                        <span class="text-xs px-1 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Plan {{ plan.medigapPlanType }}</span>
-                      }
-                      @if (plan.prescriptionDrugCovered) {
-                        <span class="text-xs text-green-600 inline-flex items-center gap-0.5"><mat-icon class="!text-xs !w-3 !h-3">check</mat-icon> Part D</span>
-                      }
+                    <div>
+                      <span class="text-gray-600">Rx:</span>
+                      <span class="ml-0.5" [class]="plan.prescriptionDrugCovered ? 'text-green-700' : 'text-red-600'">
+                        {{ plan.prescriptionDrugCovered ? 'Covered' : 'Not Covered' }}
+                      </span>
                     </div>
+                    @if (plan.totalPrescriptionCost) {
+                      <div><span class="text-gray-600">Rx Cost:</span> <span class="text-gray-700 font-medium">{{ plan.totalPrescriptionCost | currency:'USD':'symbol':'1.0-0' }}</span></div>
+                    }
+                    @if (plan.totalPlanCost) {
+                      <div><span class="text-gray-600">Total Cost:</span> <span class="text-gray-700 font-medium">{{ plan.totalPlanCost | currency:'USD':'symbol':'1.0-0' }}</span></div>
+                    }
                   </div>
-                  <div class="flex items-center gap-0.5 text-xs shrink-0 ml-1">
-                    <mat-icon class="!text-amber-400 !text-xs !w-3 !h-3">star</mat-icon>
-                    <span class="text-gray-600">{{ plan.starRating }}</span>
-                  </div>
-                </div>
-                <div class="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-black/10">
-                  <div class="text-center">
-                    <p class="text-xs text-gray-500">Premium</p>
-                    <p class="text-xs font-semibold" [class.text-green-600]="plan.monthlyPremium === 0">{{ plan.monthlyPremium | currency }}</p>
-                  </div>
-                  <div class="text-center">
-                    <p class="text-xs text-gray-500">Deductible</p>
-                    <p class="text-xs font-semibold">{{ plan.deductible | currency }}</p>
-                  </div>
-                  <div class="text-center">
-                    <p class="text-xs text-gray-500">Rx OOP</p>
-                    <p class="text-xs font-semibold">{{ plan.totalPrescriptionCost | currency }}</p>
-                  </div>
-                  <div class="text-center">
-                    <p class="text-xs text-gray-500">Rx</p>
-                    <div class="flex items-center gap-0.5 mt-0.5">
-                      <mat-icon class="!text-xs !w-3 !h-3" [class]="plan.prescriptionDrugCovered ? 'text-green-600' : 'text-red-500'">
-                        {{ plan.prescriptionDrugCovered ? 'check_circle' : 'cancel' }}
-                      </mat-icon>
-                      <span class="text-xs" [class]="plan.prescriptionDrugCovered ? 'text-green-700' : 'text-red-600'">{{ plan.prescriptionDrugCovered ? 'Yes' : 'No' }}</span>
+                  @if (plan.unavailableDrugs?.length) {
+                    <div class="mt-2 pt-2 border-t border-gray-300">
+                      <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Unavailable Drugs</p>
+                      <div class="flex flex-wrap gap-1">
+                        @for (drug of plan.unavailableDrugs; track drug) {
+                          <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">{{ drug }}</span>
+                        }
+                      </div>
                     </div>
-                  </div>
-                  <div class="text-center">
-                    <p class="text-xs text-gray-500">Total</p>
-                    <p class="text-xs font-bold text-indigo-700">{{ plan.totalPlanCost | currency }}</p>
-                  </div>
+                  }
                 </div>
-                @if (plan.unavailableDrugs?.length) {
-                  <p class="text-xs text-red-500 mt-1.5 flex items-center gap-0.5">
-                    <mat-icon class="!text-xs !w-3 !h-3">warning</mat-icon>
-                    {{ plan.unavailableDrugs!.join(', ') }} not covered
-                  </p>
-                }
-              </div>
-            }
-          </div>
-        }
-      </mat-expansion-panel>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-center">
+              <mat-icon class="!text-2xl text-gray-500">info</mat-icon>
+              <p class="text-xs text-gray-600 mt-1">No plans recorded</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
 
     </div>
   </mat-tab>

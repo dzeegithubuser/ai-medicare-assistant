@@ -75,7 +75,6 @@ export class CompareCrossMetricsComponent {
     return [
       { label: 'Lifetime Cost', left: this.fmt(this.lifetimeCost(l, lt)), right: this.fmt(this.lifetimeCost(r, rt)) },
       { label: 'Present Value', left: this.fmt(this.presentValue(l, lt)), right: this.fmt(this.presentValue(r, rt)) },
-      { label: 'Avg Annual Cost', left: this.fmt(this.avgAnnualCost(l, lt), '1.2-2'), right: this.fmt(this.avgAnnualCost(r, rt), '1.2-2') },
     ];
   });
 

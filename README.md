@@ -1,4 +1,4 @@
-# AI Medicare Assistant
+# Medicare Assistant
 
 A ChatGPT-style Medicare healthcare assistant that helps users understand their prescriptions, find affordable pharmacies, and choose the right Medicare plan. Built with **Angular 21** on the frontend and **.NET 10 Clean Architecture** on the backend.
 

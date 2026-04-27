@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────
-# AI Medicare Assistant — One-command deploy (Windows)
+# Medicare Assistant — One-command deploy (Windows)
 # Usage: .\deploy.ps1 [-Action build|down|logs|restart]
 # ─────────────────────────────────────────────────
 param(

@@ -6,7 +6,7 @@ using MongoDB.Driver;
 namespace Infrastructure.Data;
 
 /// <summary>
-/// Provides typed access to MongoDB collections for the AI Medicare Assistant.
+/// Provides typed access to MongoDB collections for the Medicare Assistant.
 /// </summary>
 public class MongoDbContext
 {

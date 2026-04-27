@@ -58,12 +58,27 @@
                     {{ rightLifetime() | currency:'USD':'symbol':'1.0-0' }}
                   </td>
                   <td class="px-4 py-2.5 text-right">
-                    <span class="inline-flex items-center justify-end gap-1 font-bold"
-                          [class]="costDelta() <= 0 ? 'text-green-700' : 'text-red-700'">
-                      <mat-icon class="!text-xs">{{ deltaIcon(costDelta()) }}</mat-icon>
-                      {{ costDelta() | currency:'USD':'symbol':'1.0-0' }}
-                      <span class="text-xs font-normal">({{ deltaLabel(costDelta()) }})</span>
-                    </span>
+                    @if (costDelta() !== 0) {
+                      <span class="font-bold text-amber-700">Yes</span>
+                    } @else {
+                      <span class="text-gray-400">—</span>
+                    }
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-200 hover:bg-gray-50/60 transition-colors">
+                  <td class="px-4 py-2.5 font-medium text-gray-700">Present Value</td>
+                  <td class="px-4 py-2.5 text-right font-semibold text-indigo-700">
+                    {{ leftPV() | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="px-4 py-2.5 text-right font-semibold text-cyan-700">
+                    {{ rightPV() | currency:'USD':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="px-4 py-2.5 text-right">
+                    @if (pvDelta() !== 0) {
+                      <span class="font-bold text-amber-700">Yes</span>
+                    } @else {
+                      <span class="text-gray-400">—</span>
+                    }
                   </td>
                 </tr>
               </tbody>
@@ -138,7 +153,7 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
     </ng-template>
-    <app-compare-tab-profile [left]="l" [right]="r" />
+    <app-compare-tab-profile [left]="l" [right]="r" [excludeLabels]="['Concierge', 'Coverage Year']" />
   </mat-tab>
 
   <!-- Tab: Cost Summary -->

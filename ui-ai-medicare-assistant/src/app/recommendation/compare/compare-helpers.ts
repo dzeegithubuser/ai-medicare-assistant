@@ -96,20 +96,42 @@ function fmtConcierge(v: number, amt: number | null): string {
 }
 function fmtTaxFiling(v: string): string { return TAX_FILING_LABELS[v] ?? v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 
+export function fmtMagiTier(v: string): string {
+  return /^\d+$/.test(v) ? `Tier ${v}` : v;
+}
+
+const STATE_NAMES: Record<string, string> = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',
+  CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',
+  HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',
+  KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',
+  MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',
+  MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',
+  NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',
+  OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
+  SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',
+  VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',
+  DC:'District of Columbia',
+};
+
+export function fmtState(code: string): string {
+  return STATE_NAMES[code?.toUpperCase()] ?? code;
+}
+
 export function buildProfileRows(l: ProfileSnapshotDto, r: ProfileSnapshotDto): ProfileRow[] {
   return [
     { label: 'Name', left: `${l.firstName} ${l.lastName}`, right: `${r.firstName} ${r.lastName}`, icon: 'person', group: 'personal' },
     { label: 'Date of Birth', left: l.dateOfBirth, right: r.dateOfBirth, icon: 'cake', group: 'personal' },
     { label: 'Gender', left: fmtGender(l.gender), right: fmtGender(r.gender), icon: 'wc', group: 'personal' },
     { label: 'ZIP Code', left: l.zipCode, right: r.zipCode, icon: 'location_on', group: 'location' },
-    { label: 'State', left: l.state, right: r.state, icon: 'map', group: 'location' },
+    { label: 'State', left: fmtState(l.state), right: fmtState(r.state), icon: 'map', group: 'location' },
     { label: 'County', left: l.county || l.countyCode, right: r.county || r.countyCode, icon: 'place', group: 'location' },
     { label: 'Health Grade', left: fmtHealth(l.healthCondition), right: fmtHealth(r.healthCondition), icon: 'favorite', group: 'health' },
     { label: 'Life Expectancy', left: `${l.lifeExpectancy} yrs`, right: `${r.lifeExpectancy} yrs`, icon: 'hourglass_top', group: 'health' },
     { label: 'Tobacco Use', left: fmtTobacco(l.tobaccoStatus), right: fmtTobacco(r.tobaccoStatus), icon: 'smoke_free', group: 'health' },
     { label: 'Concierge', left: fmtConcierge(l.concierge, l.conciergeAmount), right: fmtConcierge(r.concierge, r.conciergeAmount), icon: 'medical_services', group: 'health' },
     { label: 'Tax Filing', left: fmtTaxFiling(l.taxFilingStatus), right: fmtTaxFiling(r.taxFilingStatus), icon: 'receipt', group: 'financial' },
-    { label: 'MAGI Tier', left: l.magiTier, right: r.magiTier, icon: 'account_balance', group: 'financial' },
+    { label: 'MAGI Tier', left: fmtMagiTier(l.magiTier), right: fmtMagiTier(r.magiTier), icon: 'account_balance', group: 'financial' },
     { label: 'Coverage Year', left: `${l.coverageYear}`, right: `${r.coverageYear}`, icon: 'calendar_today', group: 'financial' },
   ];
 }

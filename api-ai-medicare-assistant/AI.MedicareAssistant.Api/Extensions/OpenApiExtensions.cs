@@ -14,7 +14,7 @@ internal static class OpenApiExtensions
             {
                 doc.Info = new()
                 {
-                    Title       = "AI Medicare Assistant API",
+                    Title       = "Medicare Assistant API",
                     Version     = "v1",
                     Description = "Medicare drug analysis, plan recommendation, and cost projection API."
                 };
@@ -57,7 +57,7 @@ internal static class OpenApiExtensions
         app.MapOpenApi("/openapi/v1.json");
         app.MapScalarApiReference(options =>
         {
-            options.Title             = "AI Medicare Assistant API";
+            options.Title             = "Medicare Assistant API";
             options.Theme             = ScalarTheme.DeepSpace;
             options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
             options.Authentication    = new ScalarAuthenticationOptions

@@ -7,10 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { RecommendationResponse } from '../../../models/recommendation.model';
 import { IndividualMedicareDetail, CostCategory, ExpenseTableRow } from '../../../models/cost-projection.model';
 import { EmptyStateComponent } from '../../../shared/empty-state/empty-state.component';
+import { fmtMagiTier, fmtState, starArray } from '../../compare/compare-helpers';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { ChartBuilderService } from '../../../services/chart-builder.service';
 
@@ -24,7 +24,7 @@ const COST_TAB_INDEX = 2;
   imports: [
     CommonModule, CurrencyPipe, DatePipe, DecimalPipe,
     MatIconModule, MatButtonModule, MatCardModule,
-    MatTabsModule, MatExpansionModule,
+    MatTabsModule,
     EmptyStateComponent,
   ],
   templateUrl: './rec-detail-medicare.component.html',
@@ -99,9 +99,9 @@ export class RecDetailMedicareComponent implements OnDestroy {
     return map[v] ?? v;
   }
 
-  fmtMagiTier(v: string): string {
-    return /^\d+$/.test(v) ? `Tier ${v}` : v;
-  }
+  fmtMagiTier = fmtMagiTier;
+  fmtState = fmtState;
+  starArray = starArray;
 
   getTrajectoryIcon(t: string): string {
     switch (t) { case 'Rising': return 'trending_up'; case 'Declining': return 'trending_down'; case 'Stable': return 'trending_flat'; default: return 'swap_vert'; }

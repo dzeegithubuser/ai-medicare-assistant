@@ -10,7 +10,7 @@
 
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
-| 12a.1 | Startup greeting | Fresh page load, no messages | Assistant message: "Hello! I'm your AI Medicare Assistant..." + two mode selection cards visible. |
+| 12a.1 | Startup greeting | Fresh page load, no messages | Assistant message: "Hello! I'm your Medicare Assistant..." + two mode selection cards visible. |
 | 12a.2 | Long Term Analysis | Click "Long Term Analysis" | LTC wizard starts. User message "Long Term Analysis" added. Assistant announces LTC profile step. Navigated to `/long-term-care/profile` (if profile incomplete) or shows profile review (if complete). |
 | 12a.3 | Start Medicare wizard | Click "Medicare Analysis" | User message "Medicare Analysis" added. Wizard starts immediately (no recommendation fetch gate). Mode buttons hidden. |
 | 12a.4 | Fresh-state reset on click | Have prior confirmed drugs/pharmacies/plans in state, then click "Medicare Analysis" | Prior carried flow state is cleared (`drugDetails`, `confirmedDrugNames`, selected lookup pharmacies, pharmacy-confirmed flag, plan selections). |

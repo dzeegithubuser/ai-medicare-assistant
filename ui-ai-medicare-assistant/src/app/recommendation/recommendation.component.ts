@@ -193,10 +193,10 @@ export class RecommendationComponent implements OnInit {
 
   fmtHealthProfile(v?: number): string {
     const labels: Record<number, string> = {
-      1: 'Best Health', 2: 'Good Health', 3: 'Average Health',
-      4: 'Below Average', 5: 'Poor Health',
+      1: 'Best', 2: 'Good', 3: 'Average',
+      4: 'Basic', 5: 'Minimum',
     };
-    return v != null ? (labels[v] ?? `Health ${v}`) : '—';
+    return v != null ? (labels[v] ?? `Level ${v}`) : '—';
   }
 
   // ── Filter / Sort / Pagination methods ───────────────────────────────────

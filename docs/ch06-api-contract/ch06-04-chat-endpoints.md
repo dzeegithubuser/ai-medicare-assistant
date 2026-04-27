@@ -20,7 +20,7 @@
   "messages": [
     {
       "role": "assistant",
-      "content": "Hello! I'm your AI Medicare Assistant.",
+      "content": "Hello! I'm your Medicare Assistant.",
       "timestamp": "2026-04-06T10:15:32.000Z"
     }
   ],

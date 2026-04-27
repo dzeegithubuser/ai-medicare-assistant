@@ -6,23 +6,23 @@
   <!-- ═══ Prescriptions Section ═══ -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <!-- Left plan drugs -->
-    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-blue-400">
+    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
       <mat-card-content class="!p-0">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-blue-50/60 rounded-t-xl">
-          <mat-icon class="!text-base text-blue-600">list_alt</mat-icon>
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-indigo-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-indigo-600">list_alt</mat-icon>
           <p class="text-sm font-semibold text-orange-800">{{ labelA }} — All Drugs</p>
-          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{{ l.drugList.length }}</span>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ l.drugList.length }}</span>
         </div>
         @if (l.drugList.length) {
           <div class="p-4 flex flex-wrap gap-3">
             @for (d of l.drugList; track d.drugName) {
-              <div class="bg-white rounded-xl p-3 border border-blue-100 w-64 shrink-0">
+              <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
                 <div class="flex items-center gap-2 mb-2">
-                  <mat-icon class="text-blue-700 !text-base !w-4 !h-4">medication</mat-icon>
+                  <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">medication</mat-icon>
                   <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
                   @if (d.drugType) {
                     <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
-                      [class]="d.drugType === 'Generic' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'">
+                      [class]="d.drugType === 'Generic' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'">
                       {{ d.drugType }}
                     </span>
                   }
@@ -52,23 +52,23 @@
     </mat-card>
 
     <!-- Right plan drugs -->
-    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-purple-400">
+    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
       <mat-card-content class="!p-0">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-purple-50/60 rounded-t-xl">
-          <mat-icon class="!text-base text-purple-600">list_alt</mat-icon>
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-cyan-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-cyan-600">list_alt</mat-icon>
           <p class="text-sm font-semibold text-green-800">{{ labelB }} — All Drugs</p>
-          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">{{ r.drugList.length }}</span>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ r.drugList.length }}</span>
         </div>
         @if (r.drugList.length) {
           <div class="p-4 flex flex-wrap gap-3">
             @for (d of r.drugList; track d.drugName) {
-              <div class="bg-white rounded-xl p-3 border border-purple-100 w-64 shrink-0">
+              <div class="bg-white rounded-xl p-3 border border-cyan-100 w-64 shrink-0">
                 <div class="flex items-center gap-2 mb-2">
-                  <mat-icon class="text-purple-700 !text-base !w-4 !h-4">medication</mat-icon>
+                  <mat-icon class="text-cyan-700 !text-base !w-4 !h-4">medication</mat-icon>
                   <span class="text-xs font-bold text-gray-900 truncate">{{ d.drugName }}</span>
                   @if (d.drugType) {
                     <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase shrink-0"
-                      [class]="d.drugType === 'Generic' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'">
+                      [class]="d.drugType === 'Generic' ? 'bg-cyan-100 text-cyan-700' : 'bg-amber-100 text-amber-700'">
                       {{ d.drugType }}
                     </span>
                   }
@@ -101,26 +101,26 @@
   <!-- ═══ Pharmacy Section ═══ -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <!-- Left pharmacies -->
-    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-emerald-400">
+    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-indigo-400">
       <mat-card-content class="!p-0">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-emerald-50/60 rounded-t-xl">
-          <mat-icon class="!text-base text-emerald-600">local_pharmacy</mat-icon>
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-indigo-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-indigo-600">local_pharmacy</mat-icon>
           <p class="text-sm font-semibold text-orange-800">{{ labelA }} — Pharmacies</p>
-          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">{{ l.pharmacies.length }}</span>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">{{ l.pharmacies.length }}</span>
         </div>
         @if (l.pharmacies.length) {
           <div class="p-4 flex flex-wrap gap-3">
             @for (ph of l.pharmacies; track ph.npi) {
-              <div class="bg-white rounded-xl p-3 border border-emerald-100 w-64 shrink-0">
+              <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
                 <div class="flex items-center gap-2 mb-2">
-                  <mat-icon class="text-emerald-700 !text-base !w-4 !h-4">storefront</mat-icon>
+                  <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">storefront</mat-icon>
                   <span class="text-xs font-bold text-gray-900 truncate">{{ ph.name }}</span>
                 </div>
                 <div class="grid grid-cols-1 gap-y-1 text-xs">
                   <div><span class="text-gray-600">Address:</span> <span class="text-gray-700 font-medium">{{ ph.address }}</span></div>
                   <div><span class="text-gray-600">City:</span> <span class="text-gray-700 font-medium">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</span></div>
                   <div class="flex items-center gap-3 mt-1">
-                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase bg-emerald-100 text-emerald-700">{{ ph.pharmacyType }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase bg-indigo-100 text-indigo-700">{{ ph.pharmacyType }}</span>
                     @if (ph.distance) {
                       <span class="text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">place</mat-icon>{{ ph.distance.toFixed(1) }} mi</span>
                     }
@@ -137,7 +137,7 @@
         }
         @if (l.mailOrderPharmacy?.enabled) {
           <div class="px-4 pb-4">
-            <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-emerald-100">
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-indigo-100">
               <mat-icon class="!text-sm text-green-600">local_shipping</mat-icon>
               <span class="text-xs text-green-700 font-medium">Mail-Order: {{ l.mailOrderPharmacy?.name }}</span>
             </div>
@@ -147,26 +147,26 @@
     </mat-card>
 
     <!-- Right pharmacies -->
-    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-teal-400">
+    <mat-card class="!rounded-xl !shadow-sm !border-t-4 !border-t-cyan-400">
       <mat-card-content class="!p-0">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-teal-50/60 rounded-t-xl">
-          <mat-icon class="!text-base text-teal-600">local_pharmacy</mat-icon>
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-300 bg-cyan-50/60 rounded-t-xl">
+          <mat-icon class="!text-base text-cyan-600">local_pharmacy</mat-icon>
           <p class="text-sm font-semibold text-green-800">{{ labelB }} — Pharmacies</p>
-          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-medium">{{ r.pharmacies.length }}</span>
+          <span class="ml-auto text-xs px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">{{ r.pharmacies.length }}</span>
         </div>
         @if (r.pharmacies.length) {
           <div class="p-4 flex flex-wrap gap-3">
             @for (ph of r.pharmacies; track ph.npi) {
-              <div class="bg-white rounded-xl p-3 border border-teal-100 w-64 shrink-0">
+              <div class="bg-white rounded-xl p-3 border border-cyan-100 w-64 shrink-0">
                 <div class="flex items-center gap-2 mb-2">
-                  <mat-icon class="text-teal-700 !text-base !w-4 !h-4">storefront</mat-icon>
+                  <mat-icon class="text-cyan-700 !text-base !w-4 !h-4">storefront</mat-icon>
                   <span class="text-xs font-bold text-gray-900 truncate">{{ ph.name }}</span>
                 </div>
                 <div class="grid grid-cols-1 gap-y-1 text-xs">
                   <div><span class="text-gray-600">Address:</span> <span class="text-gray-700 font-medium">{{ ph.address }}</span></div>
                   <div><span class="text-gray-600">City:</span> <span class="text-gray-700 font-medium">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</span></div>
                   <div class="flex items-center gap-3 mt-1">
-                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase bg-teal-100 text-teal-700">{{ ph.pharmacyType }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase bg-cyan-100 text-cyan-700">{{ ph.pharmacyType }}</span>
                     @if (ph.distance) {
                       <span class="text-gray-500 flex items-center gap-0.5"><mat-icon class="!text-xs text-gray-600">place</mat-icon>{{ ph.distance.toFixed(1) }} mi</span>
                     }
@@ -183,7 +183,7 @@
         }
         @if (r.mailOrderPharmacy?.enabled) {
           <div class="px-4 pb-4">
-            <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-teal-100">
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-cyan-100">
               <mat-icon class="!text-sm text-green-600">local_shipping</mat-icon>
               <span class="text-xs text-green-700 font-medium">Mail-Order: {{ r.mailOrderPharmacy?.name }}</span>
             </div>

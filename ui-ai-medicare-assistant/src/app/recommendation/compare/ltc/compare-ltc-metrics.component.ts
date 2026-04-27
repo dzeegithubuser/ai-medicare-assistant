@@ -57,7 +57,6 @@ export class CompareLtcMetricsComponent {
     return [
       { label: 'Lifetime Cost', left: this.fmt(leftTotal), right: this.fmt(rightTotal) },
       { label: 'Present Value', left: this.fmt(leftPV), right: this.fmt(rightPV) },
-      { label: 'Avg Annual Cost', left: this.fmt(leftAvg, '1.2-2'), right: this.fmt(rightAvg, '1.2-2') },
     ];
   });
 

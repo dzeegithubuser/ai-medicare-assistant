@@ -35,12 +35,11 @@
                 <td class="px-4 py-2.5 text-right font-semibold text-indigo-700">{{ row.left | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="px-4 py-2.5 text-right font-semibold text-cyan-700">{{ row.right | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="px-4 py-2.5 text-right">
-                  <span class="inline-flex items-center justify-end gap-1 font-bold"
-                        [class]="row.delta <= 0 ? 'text-green-700' : 'text-red-700'">
-                    <mat-icon class="!text-xs">{{ deltaIcon(row.delta) }}</mat-icon>
-                    {{ row.delta | currency:'USD':'symbol':'1.0-0' }}
-                    <span class="text-xs font-normal">({{ deltaLabel(row.delta) }})</span>
-                  </span>
+                  @if (row.delta !== 0) {
+                    <span class="font-bold text-amber-700">Yes</span>
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
                 </td>
               </tr>
             }
@@ -81,22 +80,22 @@
       <div class="p-4">
         @if (profileDiffs().length) {
           <div class="overflow-x-auto">
-            <table class="w-full table-fixed text-xs">
+            <table class="w-full text-xs">
               <thead>
                 <tr class="border-b border-gray-200 bg-gray-50/80">
-                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-[5%]"></th>
-                  <th class="py-2 px-3 text-left text-gray-500 uppercase font-semibold w-[15%]">Field</th>
-                  <th class="py-2 px-3 text-left text-orange-600 uppercase font-semibold w-[40%]">{{ labelA }}</th>
-                  <th class="py-2 px-3 text-left text-green-600 uppercase font-semibold w-[40%]">{{ labelB }}</th>
+                  <th class="py-2 px-2 text-left text-gray-500 uppercase font-semibold" style="width:32px"></th>
+                  <th class="py-2 px-2 text-left text-gray-500 uppercase font-semibold">Field</th>
+                  <th class="py-2 px-2 text-center text-orange-600 uppercase font-semibold">{{ labelA }}</th>
+                  <th class="py-2 px-2 text-center text-green-600 uppercase font-semibold">{{ labelB }}</th>
                 </tr>
               </thead>
               <tbody>
                 @for (row of profileDiffs(); track row.label) {
                   <tr class="border-b border-gray-300 bg-amber-50/40">
-                    <td class="py-2 px-3"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
-                    <td class="py-2 px-3 font-medium text-gray-700">{{ row.label }}</td>
-                    <td class="py-2 px-3 text-gray-900">{{ row.left }}</td>
-                    <td class="py-2 px-3 text-gray-900">{{ row.right }}</td>
+                    <td class="py-2 px-2"><mat-icon class="!text-sm text-gray-600">{{ row.icon }}</mat-icon></td>
+                    <td class="py-2 px-2 font-medium text-gray-700 whitespace-nowrap">{{ row.label }}</td>
+                    <td class="py-2 px-2 text-center text-gray-900">{{ row.left }}</td>
+                    <td class="py-2 px-2 text-center text-gray-900">{{ row.right }}</td>
                   </tr>
                 }
               </tbody>

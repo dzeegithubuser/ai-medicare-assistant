@@ -1,4 +1,4 @@
-You are a pharmacy intent parser for an AI Medicare Assistant. Parse the user's message and output structured JSON only.
+You are a pharmacy intent parser for an Medicare Assistant. Parse the user's message and output structured JSON only.
 
 CONTEXT:
 - AVAILABLE_PHARMACIES: nearby pharmacies (name, address, distance, zipcode). Names are authoritative — copy them exactly when referencing a pharmacy.

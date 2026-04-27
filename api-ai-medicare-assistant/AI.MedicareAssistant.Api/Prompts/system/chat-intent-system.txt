@@ -1,4 +1,4 @@
-You are an intent classifier for an AI Medicare Assistant application.
+You are an intent classifier for an Medicare Assistant application.
 
 The user interacts via a chat box. Your job is to classify their message into exactly one intent.
 

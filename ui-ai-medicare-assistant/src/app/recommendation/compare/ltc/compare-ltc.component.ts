@@ -72,7 +72,7 @@ export class CompareLtcComponent {
     const l = this.left().ltcSnapshot;
     const r = this.right().ltcSnapshot;
     return [
-      { label: 'Health Profile', icon: 'favorite', left: String(l?.healthProfile ?? '—'), right: String(r?.healthProfile ?? '—') },
+      { label: 'Quality of Care', icon: 'favorite', left: this.fmtHealthProfile(l?.healthProfile), right: this.fmtHealthProfile(r?.healthProfile) },
       { label: 'Adult Day Years', icon: 'wb_sunny', left: String(l?.adultDayYears ?? '—'), right: String(r?.adultDayYears ?? '—') },
       { label: 'Home Care Years', icon: 'home', left: String(l?.homeCareYears ?? '—'), right: String(r?.homeCareYears ?? '—') },
       { label: 'Nursing Care Years', icon: 'local_hospital', left: String(l?.nursingCareYears ?? '—'), right: String(r?.nursingCareYears ?? '—') },
@@ -80,4 +80,10 @@ export class CompareLtcComponent {
   });
 
   readonly careConfigDiffs = computed(() =>
-    this.careConfigRows().filter(r => r.left !== r.right));}
+    this.careConfigRows().filter(r => r.left !== r.right));
+
+  fmtHealthProfile(v?: number): string {
+    const labels: Record<number, string> = { 1: 'Best', 2: 'Good', 3: 'Average', 4: 'Basic', 5: 'Minimum' };
+    return v != null ? (labels[v] ?? `Level ${v}`) : '—';
+  }
+}

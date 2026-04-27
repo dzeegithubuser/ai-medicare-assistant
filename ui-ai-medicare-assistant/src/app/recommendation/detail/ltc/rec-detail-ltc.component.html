@@ -11,10 +11,6 @@
     </div>
     @if (ltc.evaluation; as ev) {
       <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
-        <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">Avg Annual</p>
-        <p class="text-base font-bold text-cyan-700">{{ ev.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
-      </div>
-      <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
         <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">Projection</p>
         <p class="text-base font-bold text-indigo-700">{{ ev.projectionYears }} yrs</p>
       </div>
@@ -30,7 +26,8 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
     </ng-template>
-    <div class="pt-5 space-y-4">
+    <div class="pt-5">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div class="flex items-center gap-2 mb-3">
           <div class="w-7 h-7 rounded-lg bg-indigo-100 flex items-center justify-center"><mat-icon class="!text-base text-indigo-600">badge</mat-icon></div>
@@ -40,7 +37,6 @@
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Name</p><p class="text-sm font-medium text-gray-900 mt-0.5">{{ rec().profile.firstName }} {{ rec().profile.lastName }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Date of birth</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.dateOfBirth }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Gender</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtGender(rec().profile.gender) }}</p></div>
-          <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Coverage year</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.coverageYear }}</p></div>
         </div>
       </div>
 
@@ -69,10 +65,8 @@
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Tobacco</p><p class="text-sm text-gray-700 mt-0.5">{{ rec().profile.tobaccoStatus === 0 ? 'No' : 'Yes' }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Tax filing</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtTaxFiling(rec().profile.taxFilingStatus) }}</p></div>
           <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">MAGI tier</p><p class="text-sm text-gray-700 mt-0.5">{{ fmtMagiTier(rec().profile.magiTier) }}</p></div>
-          @if (rec().profile.concierge) {
-            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Concierge</p><p class="text-sm text-gray-700 mt-0.5">Yes &mdash; {{ rec().profile.conciergeAmount | currency:'USD':'symbol':'1.0-0' }}</p></div>
-          }
         </div>
+      </div>
       </div>
     </div>
   </mat-tab>
@@ -91,7 +85,7 @@
             <p class="text-sm font-semibold text-gray-800">Care Configuration</p>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Health Profile</p><p class="text-sm font-medium text-gray-900 mt-0.5">{{ fmtHealth(ltc.healthProfile) }}</p></div>
+            <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Quality of Care</p><p class="text-sm font-medium text-gray-900 mt-0.5">{{ fmtHealthProfile(ltc.healthProfile) }}</p></div>
             <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Adult Day</p><p class="text-sm text-gray-700 mt-0.5">{{ ltc.adultDayYears }} yr{{ ltc.adultDayYears === 1 ? '' : 's' }}</p></div>
             <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Home Care</p><p class="text-sm text-gray-700 mt-0.5">{{ ltc.homeCareYears }} yr{{ ltc.homeCareYears === 1 ? '' : 's' }}</p></div>
             <div><p class="text-xs text-gray-600 uppercase font-semibold tracking-wide">Nursing Care</p><p class="text-sm text-gray-700 mt-0.5">{{ ltc.nursingCareYears }} yr{{ ltc.nursingCareYears === 1 ? '' : 's' }}</p></div>
@@ -113,13 +107,6 @@
                 <p class="text-xs uppercase tracking-wide text-emerald-600">Total Present Value</p>
                 <p class="text-xl font-bold text-gray-900">{{ ev.totalPresentValue | currency:'USD':'symbol':'1.0-0' }}</p>
                 <p class="text-xs text-gray-500 mt-1">Today's dollars</p>
-              </div>
-            </mat-card>
-            <mat-card class="!rounded-2xl !border !border-cyan-100 !shadow-sm">
-              <div class="p-4">
-                <p class="text-xs uppercase tracking-wide text-cyan-600">Avg Annual Cost</p>
-                <p class="text-xl font-bold text-gray-900">{{ ev.averageAnnualCost | currency:'USD':'symbol':'1.0-0' }}</p>
-                <p class="text-xs text-gray-500 mt-1">Per year</p>
               </div>
             </mat-card>
             @if (ltc.projection; as proj) {

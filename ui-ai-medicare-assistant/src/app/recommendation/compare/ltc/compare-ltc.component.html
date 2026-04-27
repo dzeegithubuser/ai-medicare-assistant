@@ -34,11 +34,11 @@
                 <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ (l.ltcSnapshot?.totalCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ (r.ltcSnapshot?.totalCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right">
-                  <span class="font-bold" [class]="costDelta() <= 0 ? 'text-green-700' : 'text-red-700'">{{ costDelta() | currency:'USD':'symbol':'1.0-0' }}</span>
-                  <div class="flex items-center justify-end gap-0.5 mt-0.5">
-                    <mat-icon class="!text-xs" [class]="costDelta() <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaIcon(costDelta()) }}</mat-icon>
-                    <span class="text-xs" [class]="costDelta() <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaLabel(costDelta()) }}</span>
-                  </div>
+                  @if (costDelta() !== 0) {
+                    <span class="font-bold text-amber-700">Yes</span>
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
                 </td>
               </tr>
               <tr class="border-b border-gray-300 hover:bg-gray-50/50">
@@ -46,23 +46,11 @@
                 <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ (l.ltcSnapshot?.totalPresentValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ (r.ltcSnapshot?.totalPresentValue ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
                 <td class="py-2.5 px-3 text-right">
-                  <span class="font-bold" [class]="pvDelta() <= 0 ? 'text-green-700' : 'text-red-700'">{{ pvDelta() | currency:'USD':'symbol':'1.0-0' }}</span>
-                  <div class="flex items-center justify-end gap-0.5 mt-0.5">
-                    <mat-icon class="!text-xs" [class]="pvDelta() <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaIcon(pvDelta()) }}</mat-icon>
-                    <span class="text-xs" [class]="pvDelta() <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaLabel(pvDelta()) }}</span>
-                  </div>
-                </td>
-              </tr>
-              <tr class="border-b border-gray-300 hover:bg-gray-50/50">
-                <td class="py-2.5 px-3 font-medium text-gray-700">Avg Annual</td>
-                <td class="py-2.5 px-3 text-right font-semibold text-indigo-700">{{ (l.ltcSnapshot?.evaluation?.averageAnnualCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="py-2.5 px-3 text-right font-semibold text-cyan-700">{{ (r.ltcSnapshot?.evaluation?.averageAnnualCost ?? 0) | currency:'USD':'symbol':'1.0-0' }}</td>
-                <td class="py-2.5 px-3 text-right">
-                  <span class="font-bold" [class]="avgAnnualDelta() <= 0 ? 'text-green-700' : 'text-red-700'">{{ avgAnnualDelta() | currency:'USD':'symbol':'1.0-0' }}</span>
-                  <div class="flex items-center justify-end gap-0.5 mt-0.5">
-                    <mat-icon class="!text-xs" [class]="avgAnnualDelta() <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaIcon(avgAnnualDelta()) }}</mat-icon>
-                    <span class="text-xs" [class]="avgAnnualDelta() <= 0 ? 'text-green-600' : 'text-red-600'">{{ deltaLabel(avgAnnualDelta()) }}</span>
-                  </div>
+                  @if (pvDelta() !== 0) {
+                    <span class="font-bold text-amber-700">Yes</span>
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
                 </td>
               </tr>
               <tr class="hover:bg-gray-50/50">
@@ -221,7 +209,7 @@
     <ng-template mat-tab-label>
       <span class="inline-flex items-center gap-1.5"><mat-icon class="!text-lg">person</mat-icon> Profile</span>
     </ng-template>
-    <app-compare-tab-profile [left]="l" [right]="r" />
+    <app-compare-tab-profile [left]="l" [right]="r" [excludeLabels]="['Concierge', 'Coverage Year']" />
   </mat-tab>
 
   <!-- Tab: Care Config -->

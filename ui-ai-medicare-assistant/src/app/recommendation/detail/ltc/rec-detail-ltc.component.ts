@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RecommendationResponse } from '../../../models/recommendation.model';
 import { Chart, ChartConfiguration } from 'chart.js';
+import { fmtMagiTier, fmtState } from '../../compare/compare-helpers';
 import { ChartBuilderService } from '../../../services/chart-builder.service';
 
 @Component({
@@ -60,6 +61,11 @@ export class RecDetailLtcComponent implements OnDestroy {
     return labels[v] ?? String(v);
   }
 
+  fmtHealthProfile(v?: number): string {
+    const labels: Record<number, string> = { 1: 'Best', 2: 'Good', 3: 'Average', 4: 'Basic', 5: 'Minimum' };
+    return v != null ? (labels[v] ?? `Level ${v}`) : '—';
+  }
+
   fmtTaxFiling(v: string): string {
     const map: Record<string, string> = {
       'MARRIED_FILING_JOINTLY': 'Married Filing Jointly',
@@ -71,26 +77,8 @@ export class RecDetailLtcComponent implements OnDestroy {
     return map[v] ?? v;
   }
 
-  fmtMagiTier(v: string): string {
-    return /^\d+$/.test(v) ? `Tier ${v}` : v;
-  }
-
-  fmtState(code: string): string {
-    const states: Record<string, string> = {
-      AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',
-      CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',
-      HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',
-      KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',
-      MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',
-      MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',
-      NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',
-      OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
-      SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',
-      VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',
-      DC:'District of Columbia',
-    };
-    return states[code?.toUpperCase()] ?? code;
-  }
+  fmtMagiTier = fmtMagiTier;
+  fmtState = fmtState;
 
   getTrajectoryIcon(t: string): string {
     switch (t) { case 'Rising': return 'trending_up'; case 'Declining': return 'trending_down'; case 'Stable': return 'trending_flat'; default: return 'swap_vert'; }
