@@ -14,9 +14,9 @@
 | 8.4 | [Cost Projections & Persistence](ch08-04-cost-persistence.md) | Lifetime cost projections, snapshots, save/load, saved data page | 8 |
 | 8.5 | [Chat Features](ch08-05-chat-features.md) | Intent routing, wizard, chat-based profile/drug/pharmacy/plan selection | 9 |
 | 8.6 | [LTC](ch08-06-ltc.md) | Long Term Care wizard, LTC chat integration | 2 |
-| 8.7 | [Infrastructure](ch08-07-infrastructure.md) | MongoDB, logging, session lifecycle, reactivity fixes, disclaimers | 7 |
+| 8.7 | [Infrastructure](ch08-07-infrastructure.md) | MongoDB, logging, session lifecycle, reactivity fixes, HTTP subscription guards, disclaimers | 8 |
 
-**Total: 56 features across 7 files**
+**Total: 57 features across 7 files**
 
 ---
 

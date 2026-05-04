@@ -50,6 +50,24 @@
 
 ---
 
+## ✅ HTTP Subscription Storm Audit & Fixes
+
+- **What:** Codebase-wide audit for unguarded HTTP subscription patterns — the same class of bug as the magi-tiers infinite API call storm. Identified and fixed 6 additional unguarded patterns across 5 files.
+- **Root Cause Class:** Angular effects, multi-path reactive triggers, and `valueChanges` pipes firing `.subscribe()` on HTTP observables without cancellation/dedup, causing overlapping or stacking requests that race and overwrite each other.
+- **Fixes Applied:**
+  1. **`PlanRecommendationComponent.persistCurrentSelectionSnapshot()`** (HIGH) — Effect listening to 7 signals fires `saveCurrentPlans()` HTTP on every plan/pharmacy/section change. Added `persistSub?: Subscription` with `unsubscribe()` before each new call. The fingerprint dedup prevents identical payloads but rapid distinct changes still stacked.
+  2. **`UserProfileComponent.onFilingStatusChange()`** (MEDIUM) — MAGI tier HTTP triggered from 3 paths (prefill, initial load, `valueChanges`) with no cancellation. Added `magiTiersSub?: Subscription` with `unsubscribe()` before each call. Service-layer cache (added in prior fix) provides additional protection.
+  3. **`UserProfileComponent.fetchCountyData()`** (MEDIUM) — ZIP lookup HTTP inside `valueChanges` pipe used `debounceTime(500)` + `distinctUntilChanged` but inner `.subscribe()` was not switched — fast edits could overlap. Added `countyLookupSub?: Subscription` with `unsubscribe()` before each call.
+  4. **`DashboardComponent` router.events → hydrateChatSession$()** (MEDIUM) — Nested `subscribe()` could start multiple SignalR hydrate/connect chains on rapid route transitions. Added `isHydrating` boolean guard preventing re-entry until current hydration completes.
+  5. **`ChatProfileEditFlowService.routeToProfileExtraction()`** (MEDIUM) — `extractProfile()` → nested `getMagiTiers()` chain with no cancellation. Quick successive profile chat edits could cause late extraction responses to mutate pending state. Added `extractionSub?: Subscription` with `unsubscribe()` before each call.
+  6. **`ReferenceDataService.load()`** (LOW) — Boolean `loaded()` gate but no in-flight guard. Multiple components calling `load()` before first response could fire duplicate GETs. Added `loading` boolean alongside `loaded` signal.
+- **Pattern:** All fixes follow the "cancel-before-fire" pattern — store a `Subscription` reference, call `unsubscribe()` before starting a new HTTP call, then assign the new subscription. For services, a simple boolean in-flight guard prevents concurrent requests.
+- **Files Changed:** `plan-recommendation.component.ts`, `user-profile.component.ts`, `dashboard.component.ts`, `chat-profile-edit-flow.service.ts`, `reference-data.service.ts` (+ prior fixes in `chat.component.ts`, `county-lookup.service.ts`).
+- **Build:** Passes with zero errors (only pre-existing bundle size warning).
+- **Tests:** All existing tests continue to pass (1 passing test file / 5 tests; 6 pre-existing Vitest config failures unchanged).
+
+---
+
 ## ✅ Signal-Based Confirmed Drugs (Reactivity Fix)
 - **What:** `MedicareStateService.confirmedDrugs` changed from plain `Set<string>` to `signal(new Set<string>())` to fix Angular signal reactivity. Plain `Set.add/delete` mutations are invisible to `computed()` signals — the reference doesn't change, so dependents never recompute.
 - **Fix:** `confirmDrug(name)` and `unconfirmDrug(name)` helper methods create a new `Set` reference on each call (copy + add/delete + set). `resetAll()` uses `confirmedDrugs.set(new Set())` instead of `.clear()`.

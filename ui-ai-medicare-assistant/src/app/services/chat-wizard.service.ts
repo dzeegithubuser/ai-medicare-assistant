@@ -49,8 +49,28 @@ export class ChatWizardService {
    */
   readonly medicareEntryRequest = signal(0);
 
+  /** Last entry request id already consumed by ChatComponent. */
+  private handledMedicareEntryRequest = signal(0);
+
+  /** True when a new saved-page Medicare entry request is waiting to be consumed. */
+  readonly hasPendingMedicareEntryRequest = computed(
+    () => this.medicareEntryRequest() > this.handledMedicareEntryRequest()
+  );
+
   requestMedicareAnalysisEntry(): void {
     this.medicareEntryRequest.update(n => n + 1);
+  }
+
+  /**
+   * Marks the latest external Medicare entry request as consumed.
+   * Returns true only once per request id.
+   */
+  consumeMedicareEntryRequest(): boolean {
+    const requestId = this.medicareEntryRequest();
+    const handledId = this.handledMedicareEntryRequest();
+    if (requestId === 0 || requestId <= handledId) return false;
+    this.handledMedicareEntryRequest.set(requestId);
+    return true;
   }
 
   /**
@@ -126,6 +146,7 @@ export class ChatWizardService {
     this.medicareProfileIntroComplete.set(false);
     this.ltcProfileIntroComplete.set(false);
     this.medicareEntryRequest.set(0);
+    this.handledMedicareEntryRequest.set(0);
     this.lastAnnouncedStep.set(null);
     // Only show mode buttons if profile is already complete
     this.showModeButtons.set(this.profileService.isProfileComplete());

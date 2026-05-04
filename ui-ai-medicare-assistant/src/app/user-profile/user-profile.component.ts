@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ProfileService } from '../services/profile.service';
 import { ReferenceDataService } from '../services/reference-data.service';
 import { CountyLookupService, CountyCodeEntry } from '../services/county-lookup.service';
@@ -46,6 +46,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private lastHandledChatSaveId = this.profileService.chatSaveRequestId();
   private lastHandledChatDiscardId = this.profileService.chatDiscardRequestId();
+  private countyLookupSub?: Subscription;
+  private magiTiersSub?: Subscription;
 
   saving = signal(false);
   isEditMode = signal(true);
@@ -342,7 +344,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       return;
     }
     this.loadingMagiTiers.set(true);
-    this.countyService.getMagiTiers(status, coverageYear).subscribe({
+    this.magiTiersSub?.unsubscribe();
+    this.magiTiersSub = this.countyService.getMagiTiers(status, coverageYear).subscribe({
       next: (tiers) => {
         this.magiTiers.set(tiers);
         const currentTier = this.form.controls.magiTier.value;
@@ -369,7 +372,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.counties.set([]);
     this.allCountyEntries.set([]);
 
-    this.countyService.getCountyCodeList(zipCode).subscribe({
+    this.countyLookupSub?.unsubscribe();
+    this.countyLookupSub = this.countyService.getCountyCodeList(zipCode).subscribe({
       next: (entries) => {
         if (entries.length === 0) {
           this.loadingCounty.set(false);

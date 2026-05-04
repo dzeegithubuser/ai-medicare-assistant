@@ -9,8 +9,8 @@
 ```
 index.html                        → HTML shell with Google Fonts + Material Icons
 main.ts                           → Bootstrap App with appConfig
-styles.scss                       → Tailwind CSS import + custom scrollbar styles
-material-theme.scss               → Angular Material M3 theme (cyan/orange)
+styles.scss                       → Tailwind CSS import + theme color/font CSS custom properties (4 themes) + custom scrollbar styles
+material-theme.scss               → Angular Material M3 theme (4 themes: Navy & Gold, Lavender Calm, Teal Medical, AiVante Professional) with per-theme color overrides + AiVante typography overrides
 app/
   app.ts                          → Root component (router-outlet only)
   app.config.ts                   → Angular providers (router, httpClient + httpLoaderInterceptor + authInterceptor + httpErrorInterceptor)
@@ -34,8 +34,8 @@ app/
     drug-state.service.ts         → Signal-based shared state (class: MedicareStateService)
     auth.service.ts               → Signal-based auth state (JWT token, user, signIn/signUp/signOut)
     profile.service.ts            → Signal-based profile state orchestrator (load + save + updateState)
-    county-lookup.service.ts      → ZIP-based county code lookup with caching + MAGI tiers
-    reference-data.service.ts     → Signal-based master data service (fetches + caches /api/reference-data)
+    county-lookup.service.ts      → ZIP-based county code lookup with caching + MAGI tiers (with response cache Map for dedup)
+    reference-data.service.ts     → Signal-based master data service (fetches + caches /api/reference-data, with in-flight loading guard)
     prescription.service.ts        → HTTP service for /api/prescription (save + list)
     plan-recommendation.service.ts → HTTP service for /api/plan-recommendation (recommend, checkLis, getGapAdvice, evaluateCosts)
     medicare-advantage-plan.service.ts → HTTP service for /api/MedicareAdvantagePlan/recommend
@@ -53,7 +53,7 @@ app/
     chat-pharmacy-selection-flow.service.ts → Pharmacy selection flow (select, remove, list)
     chat-plan-selection-flow.service.ts → Plan selection flow (select, remove, switch section)
     chat-profile.service.ts         → Profile field extraction via /api/chat/extract-profile
-    chat-profile-edit-flow.service.ts → Chat-driven profile edit flow (collect fields, submit)
+    chat-profile-edit-flow.service.ts → Chat-driven profile edit flow (collect fields, submit, with extraction cancellation guard)
     chat-navigation-flow.service.ts → Chat navigation actions (route user to steps)
     chat-analysis-selection-hydration.service.ts → Hydrates wizard selections from active recommendation or userAnalysisSelections MongoDB on bootstrap
     chat-intent-phrase.service.ts   → Generates human-readable chat replies for specific intents
@@ -69,7 +69,7 @@ app/
     chart-builder.service.ts        → Centralized Chart.js registration and chart creation. Registers all controllers (Line, Bar, Doughnut), elements, scales, tooltip, legend, filler once. Components call buildChart(canvas, config) instead of manual Chart.register() + new Chart(). Used by CostProjections, LtcProjectionStep, RecDetailMedicare, RecDetailLtc, TabCostAnalysis
     session-storage.service.ts      → Typed sessionStorage wrapper with SESSION_KEYS registry. Methods: get<T>, getString, set, remove, removeMany, clear. Centralizes all 9+ session key names (AUTH_TOKEN, AUTH_USER, AUTH_TOKEN_TS, DRUG_STATE, CONFIRMED_DRUGS, CHAT_MESSAGES, FORMULATION_SEL, FP_DRUG_SEL, DRUG_QUANTITIES)
     font-size.service.ts            → User font size preference management
-    theme.service.ts                → Theme/dark mode management
+    theme.service.ts                → Theme management (4 themes: navy, lavender, teal, aivante) with signal-based switching + localStorage persistence
     error-notification.service.ts    → Opens ErrorDialogComponent via MatDialog for global API error popups (singleton, dedup guard)
     http-loader.service.ts          → Global HTTP loading state (signal-based — true when any HTTP request is in-flight)
   shared/
@@ -113,11 +113,11 @@ app/
     change-password/
       change-password.component.ts/html/scss → Change password form (old + new + confirm, [Authorize])
   dashboard/
-    dashboard.component.ts        → Authenticated shell (header + split layout + initial post-login route handling)
+    dashboard.component.ts        → Authenticated shell (header + split layout + initial post-login route handling + SignalR hydration guard)
     dashboard.component.html      → Child router-outlet left panel + chat right panel
     dashboard.component.scss      → Host styling + slideIn animation
   user-profile/
-    user-profile.component.ts     → Consolidated single-form profile (all fields in one form)
+    user-profile.component.ts     → Consolidated single-form profile (all fields in one form, with ZIP/MAGI subscription cancellation guards)
     user-profile.component.html   → Profile form template
     user-profile.component.scss   → Profile form styling
   chat/
@@ -148,7 +148,7 @@ app/
   data/
     tooltips.ts                        → Centralized tooltip/description data (plan types, pharmacy types, formulary tiers, network types, coverage info, gap coverage)
   plan-recommendation/
-    plan-recommendation.component.ts/html → Plan recommendation shell (MA, Part D, Medigap plan slots + tabs) with PlanCardEnrichmentService integration (computed enrichment maps for all card types)
+    plan-recommendation.component.ts/html → Plan recommendation shell (MA, Part D, Medigap plan slots + tabs) with PlanCardEnrichmentService integration (computed enrichment maps for all card types) + cancel-before-fire autosave guard
     plan-recommendation.component.scss → Plan recommendation layout styling
     recommendation-card/
       recommendation-card.component.ts/html → Individual plan card (plan details, costs, benefits grid) — accepts `enriched` input (EnrichedPartDCard | EnrichedMACard) and `cardType` ('partd' | 'ma') for enriched display of Part D surcharge, Rx OOP, drugs covered, pharmacies in network, insurance carrier, formatted plan ID, MA surcharges, healthcare OOP

@@ -20,6 +20,7 @@ import { PlanCardEnrichmentService } from '../services/plan-card-enrichment.serv
 import { PartDPlanRecommendationRequest, RecommendationListItem, PharmacyWiseRecommendation, EnrichedPartDCard, EnrichedMACard } from '../models/part-d-plan.model';
 import { MedigapPlanQuotesRequest, MedigapPlan, EnrichedMedigapCard } from '../models/medigap-plan.model';
 import { MedicareAdvantagePlanRequest } from '../models/medicare-advantage-plan.model';
+import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { CalculateCostsRequest } from '../models/cost-projection.model';
 import { PrescriptionService } from '../services/prescription.service';
@@ -77,6 +78,7 @@ export class PlanRecommendationComponent implements OnInit {
   // Cost projection loading
   costLoading = signal(false);
   private lastCurrentSelectionSnapshotFingerprint: string | null = null;
+  private persistSub?: Subscription;
 
   // Computed: does selected MA plan include Part D?
   readonly maIncludesPartD = computed(() => {
@@ -860,7 +862,8 @@ export class PlanRecommendationComponent implements OnInit {
     });
     if (this.lastCurrentSelectionSnapshotFingerprint === fingerprint) return;
     this.lastCurrentSelectionSnapshotFingerprint = fingerprint;
-    this.prescriptionService.saveCurrentPlans(plans, activeSection).subscribe({ error: () => {} });
+    this.persistSub?.unsubscribe();
+    this.persistSub = this.prescriptionService.saveCurrentPlans(plans, activeSection).subscribe({ error: () => {} });
   }
 
   private buildPartDRequest(profile: any, _ma: boolean): PartDPlanRecommendationRequest {

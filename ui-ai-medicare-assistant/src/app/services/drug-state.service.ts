@@ -235,6 +235,8 @@ export class MedicareStateService {
   /** @deprecated Inject ChatStateService directly instead. */
   removeAssistantMessagesContaining(text: string) { this.chatState.removeAssistantMessagesContaining(text); }
   /** @deprecated Inject ChatStateService directly instead. */
+  removeAssistantMessagesContainingAny(texts: string[]) { this.chatState.removeAssistantMessagesContainingAny(texts); }
+  /** @deprecated Inject ChatStateService directly instead. */
   hydrateMessagesFromServer(msgs: ChatMessage[]) { this.chatState.hydrateMessagesFromServer(msgs); }
   /** @deprecated Inject ChatStateService directly instead. */
   setLoading(loading: boolean) { this.chatState.setLoading(loading); }

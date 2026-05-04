@@ -20,7 +20,7 @@
   - Ribbon appears above the cards when ≥1 item is in the basket. At 2 items, **Compare Now** button navigates to `/saved/compare`.
   - Compare is type-aware — Medicare analyses and Long Term Care analyses are compared separately.
 - **Card Layout (two-column bottom section):** Row 1: status icon + analysis name (uppercase) + type/status badges. Row 2: saved date. Bottom section uses a flex row: left column holds stats (drug count, plan count, lifetime total for Medicare; quality of care label, care type chips for LTC) and selected plan chips; right column holds stacked "View details" and "Compare" action buttons. Cards use `items-stretch` grid with `flex-col` for equal height across rows.
-- **Themed Background:** Page background uses `bg-[var(--app-bg)]` CSS variable to respect the active theme (Navy & Gold, Lavender Calm, or Teal Medical).
+- **Themed Background:** Page background uses `bg-[var(--app-bg)]` CSS variable to respect the active theme (Navy & Gold, Lavender Calm, Teal Medical, or AiVante Professional).
 - **Empty State:** Shows "No saved analyses" guidance when the full list is empty; "No results" when filters return nothing.
 - **Back button:** Navigates to `/medicare-analysis`.
 - **Pattern:** Standalone, OnPush.

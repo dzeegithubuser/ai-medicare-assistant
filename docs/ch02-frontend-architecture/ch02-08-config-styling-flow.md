@@ -43,11 +43,16 @@ A centralized `AppRoutes` constant prevents hard-coded path strings across compo
 ### Environments
 - `environment.ts` / `environment.development.ts`: `apiUrl`, `appName`.
 
+### Reactive Safety Patterns
+- **Cancel-before-fire:** Components with effect-driven or multi-path HTTP calls use `Subscription` fields (`persistSub`, `magiTiersSub`, `countyLookupSub`, `extractionSub`, `magiTiersSub` in `ChatComponent`) that are unsubscribed before each new HTTP call, preventing request storms from signal churn or rapid user interaction.
+- **In-flight guards:** `DashboardComponent` uses an `isHydrating` boolean to prevent parallel SignalR hydration chains on rapid route transitions. `ReferenceDataService` uses a `loading` boolean alongside its `loaded` signal to prevent duplicate GETs before the first response returns.
+- **Service-layer caching:** `CountyLookupService.getMagiTiers()` caches responses in a `Map` keyed by `filingStatus|coverageYear` to avoid redundant HTTP calls across components.
+
 ---
 
 ## Styling Strategy
 
-- **Material Theme:** M3 theming via `mat.theme()` — cyan primary, orange tertiary, Roboto font.
+- **Material Theme:** M3 theming via `mat.theme()` with 4 switchable themes (Navy & Gold, Lavender Calm, Teal Medical, AiVante Professional). Per-theme color overrides via `mat.theme-overrides()`. AiVante theme adds per-theme font switching (Open Sans body, Roboto Condensed headings) via `--app-font-body` / `--app-font-heading` CSS custom properties.
 - **Tailwind CSS 4:** Imported via `@import "tailwindcss"` in `styles.scss`, processed by `@tailwindcss/postcss`.
 - **Custom Scrollbars:** Thin 6px scrollbars with subtle gray thumb.
 - **Body:** `overflow: hidden` — each panel scrolls independently.

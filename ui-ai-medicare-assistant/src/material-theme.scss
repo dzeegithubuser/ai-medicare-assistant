@@ -84,6 +84,46 @@ html[data-theme="teal"] {
   ));
 }
 
+// ─── AiVante Professional Theme ──────────────────────────────────────────────
+html[data-theme="aivante"] {
+  @include mat.theme((
+    color: (
+      primary: mat.$blue-palette,
+      tertiary: mat.$orange-palette,
+    ),
+  ));
+  // Override M3 system tokens with exact AiVante colors
+  @include mat.theme-overrides((
+    primary:              #3f5364,
+    on-primary:           #ffffff,
+    primary-container:    #d4dce4,
+    on-primary-container: #233040,
+    primary-fixed:        #d4dce4,
+    primary-fixed-dim:    #b0bfcd,
+    secondary:            #fd7800,
+    on-secondary:         #ffffff,
+    tertiary:             #fd7800,
+    on-tertiary:          #ffffff,
+    surface-tint:         #3f5364,
+  ));
+  // AiVante typography: Open Sans body, Roboto Condensed headings
+  --mat-sys-body-large-font: var(--app-font-body);
+  --mat-sys-body-medium-font: var(--app-font-body);
+  --mat-sys-body-small-font: var(--app-font-body);
+  --mat-sys-label-large-font: var(--app-font-body);
+  --mat-sys-label-medium-font: var(--app-font-body);
+  --mat-sys-label-small-font: var(--app-font-body);
+  --mat-sys-title-large-font: var(--app-font-heading);
+  --mat-sys-title-medium-font: var(--app-font-heading);
+  --mat-sys-title-small-font: var(--app-font-heading);
+  --mat-sys-headline-large-font: var(--app-font-heading);
+  --mat-sys-headline-medium-font: var(--app-font-heading);
+  --mat-sys-headline-small-font: var(--app-font-heading);
+  --mat-sys-display-large-font: var(--app-font-heading);
+  --mat-sys-display-medium-font: var(--app-font-heading);
+  --mat-sys-display-small-font: var(--app-font-heading);
+}
+
 :root {
   @include mat.form-field-overrides((
     container-height: 44px,
@@ -110,7 +150,11 @@ body {
   color-scheme: light;
   background-color: var(--app-bg, var(--mat-sys-surface));
   color: var(--app-text, var(--mat-sys-on-surface));
-  font: var(--mat-sys-body-medium);
+  font-family: var(--app-font-body, Roboto), sans-serif;
+  font-size: var(--mat-sys-body-medium-size);
+  font-weight: var(--mat-sys-body-medium-weight);
+  line-height: var(--mat-sys-body-medium-line-height);
+  letter-spacing: var(--mat-sys-body-medium-tracking);
   margin: 0;
   height: 100%;
   overflow: hidden;

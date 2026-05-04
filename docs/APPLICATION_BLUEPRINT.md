@@ -23,7 +23,7 @@ The codebase follows **Clean Architecture** on the backend (.NET 10) and **signa
 | 5  | [Data & Authentication](ch05-data-and-auth/ch05-data-and-auth.md) | MongoDB database schema and JWT authentication | `ch05-data-and-auth/` |
 | 6  | [API Contract](ch06-api-contract/ch06-api-contract.md) | Endpoints, request/response schemas, and examples — *6 sub-files, 40 endpoints* | `ch06-api-contract/` |
 | 7  | [Project Structure](ch07-project-structure/ch07-project-structure.md) | Full directory tree for frontend and backend | `ch07-project-structure/` |
-| 8  | [Feature Catalog](ch08-feature-catalog/ch08-feature-catalog.md) | Story of each implemented enhancement — *7 sub-files, 56 features* | `ch08-feature-catalog/` |
+| 8  | [Feature Catalog](ch08-feature-catalog/ch08-feature-catalog.md) | Story of each implemented enhancement — *7 sub-files, 57 features* | `ch08-feature-catalog/` |
 | 9  | [Roadmap](ch09-roadmap/ch09-roadmap.md) | Future enhancements and planned capabilities | `ch09-roadmap/` |
 | 10 | [Testing Scenarios](ch10-testing-scenarios/ch10-testing-scenarios.md) | Manual test matrix covering all features — *9 sub-files* | `ch10-testing-scenarios/` |
 

@@ -48,6 +48,7 @@ export class DashboardComponent implements OnInit {
 
   protected bootstrapReady = signal(false);
   protected showChat = signal(false);
+  private isHydrating = false;
 
   protected displayName = computed(() => {
     const profile = this.profileService.profile()?.profile;
@@ -68,8 +69,12 @@ export class DashboardComponent implements OnInit {
       const isAnalysis = this.isChatRoute(e.urlAfterRedirects);
       this.showChat.set(isAnalysis);
       // Connect SignalR lazily when first navigating into an analysis route
-      if (isAnalysis && !this.chatSignalR.isConnected()) {
-        this.hydrateChatSession$().pipe(catchError(() => of(null))).subscribe();
+      if (isAnalysis && !this.chatSignalR.isConnected() && !this.isHydrating) {
+        this.isHydrating = true;
+        this.hydrateChatSession$().pipe(catchError(() => of(null))).subscribe({
+          next: () => this.isHydrating = false,
+          error: () => this.isHydrating = false,
+        });
       }
     });
   }

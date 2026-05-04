@@ -91,9 +91,16 @@
   - File: `AI.MedicareAssistant.Infrastructure/AI/DrugAiService.cs`
   - Fix: Add `CancellationToken ct = default` parameter, forward to `GetResponseAsync`.
 
-- [ ] **20. Memory leak — unsubscribed router.events in ChatComponent** — No `takeUntilDestroyed` on `router.events.subscribe()`.
-  - File: `ui-ai-medicare-assistant/src/app/chat/chat.component.ts`
-  - Fix: Add `takeUntilDestroyed(this.destroyRef)`.
+- [x] **20. ~~Memory leak — unsubscribed router.events in ChatComponent~~** — RESOLVED: HTTP subscription storm audit performed across entire codebase. 6 unguarded subscription patterns fixed:
+  - `PlanRecommendationComponent.persistCurrentSelectionSnapshot()` — effect-driven `saveCurrentPlans()` with no cancellation → added `Subscription` cancel-before-fire pattern.
+  - `UserProfileComponent.onFilingStatusChange()` — MAGI tier HTTP with no cancellation → added `magiTiersSub?.unsubscribe()` before each call.
+  - `UserProfileComponent.fetchCountyData()` — ZIP lookup HTTP with no cancellation → added `countyLookupSub?.unsubscribe()` before each call.
+  - `DashboardComponent` — nested `subscribe()` inside `router.events` could start parallel SignalR hydrations → added `isHydrating` boolean guard.
+  - `ChatProfileEditFlowService.routeToProfileExtraction()` — uncanceled nested HTTP chains → added `extractionSub?.unsubscribe()` before each call.
+  - `ReferenceDataService.load()` — no in-flight guard → added `loading` boolean alongside `loaded` signal.
+  - Additionally, `CountyLookupService.getMagiTiers()` was given a response cache (`Map`) and `ChatComponent.postProfileReviewMessage()`/`postLtcProfileReviewMessage()` were given `Subscription` dedup fields.
+  - ~~File: `ui-ai-medicare-assistant/src/app/chat/chat.component.ts`~~
+  - ~~Fix: Add `takeUntilDestroyed(this.destroyRef)`.~~
 
 - [x] **21. ~~Generic Repository.UpdateAsync doesn't call Update()~~** — **RESOLVED:** `Repository<T>` (generic EF Core base) has been deleted. All repositories are now MongoDB-based.
   - ~~File: `AI.MedicareAssistant.Infrastructure/Repositories/Repository.cs`~~

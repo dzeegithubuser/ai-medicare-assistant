@@ -1,6 +1,6 @@
 import { Injectable, signal, effect } from '@angular/core';
 
-export type AppTheme = 'navy' | 'lavender' | 'teal';
+export type AppTheme = 'navy' | 'lavender' | 'teal' | 'aivante';
 
 export interface ThemeMeta {
   label: string;
@@ -8,7 +8,7 @@ export interface ThemeMeta {
   bgColor: string;
 }
 
-const THEMES: AppTheme[] = ['navy', 'lavender', 'teal'];
+const THEMES: AppTheme[] = ['navy', 'lavender', 'teal', 'aivante'];
 const STORAGE_KEY = 'aimedicare_theme';
 const DEFAULT_THEME: AppTheme = 'navy';
 
@@ -16,6 +16,7 @@ export const THEME_META: Record<AppTheme, ThemeMeta> = {
   navy:     { label: 'Navy & Gold',     primaryColor: '#1E3A5F', bgColor: '#F8F6F1' },
   lavender: { label: 'Lavender Calm',   primaryColor: '#5B4A8A', bgColor: '#F5F3FA' },
   teal:     { label: 'Teal Medical',    primaryColor: '#0D6E6E', bgColor: '#F0FAFA' },
+  aivante:  { label: 'AiVante Professional', primaryColor: '#3F5364', bgColor: '#F8F8F8' },
 };
 
 @Injectable({ providedIn: 'root' })

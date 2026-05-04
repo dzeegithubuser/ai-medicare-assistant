@@ -22,7 +22,7 @@ A ChatGPT-style Medicare healthcare assistant that helps users understand their 
 | | |
 |---|---|
 | Framework | Angular 21 (standalone components, signal-based reactivity) |
-| UI Library | Angular Material 21 (M3 theming, cyan/orange palette) |
+| UI Library | Angular Material 21 (M3 theming, 4 switchable themes with per-theme fonts) |
 | Styling | Tailwind CSS 4 (PostCSS plugin) |
 | Real-time | `@microsoft/signalr` WebSocket client |
 | Language | TypeScript 5.9 |

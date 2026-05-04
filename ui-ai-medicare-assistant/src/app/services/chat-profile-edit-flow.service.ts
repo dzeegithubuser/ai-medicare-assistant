@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ChatProfileService } from './chat-profile.service';
 import { ProfileService } from './profile.service';
 import { CountyLookupService } from './county-lookup.service';
@@ -22,6 +23,7 @@ export class ChatProfileEditFlowService {
   readonly pendingTaxFilingChoice = signal(false);
   readonly pendingMagiTierChoices = signal<LabelValuePair[]>([]);
   readonly hasUnsavedProfileChanges = signal(false);
+  private extractionSub?: Subscription;
 
   resolvePendingProfileUpdate(accept: boolean): boolean {
     const profile = this.pendingProfileUpdate();
@@ -93,7 +95,8 @@ export class ChatProfileEditFlowService {
     const missingFields = this.profileService.isProfileComplete()
       ? []
       : this.profileService.missingRequiredFields();
-    this.chatProfile.extractProfile({ message: text, missingFields }).subscribe({
+    this.extractionSub?.unsubscribe();
+    this.extractionSub = this.chatProfile.extractProfile({ message: text, missingFields }).subscribe({
       next: (res) => {
         this.state.setLoading(false);
         if (res.extractedFields && Object.keys(res.extractedFields).length > 0) {

@@ -20,6 +20,8 @@ html[data-theme="navy"] {
   --color-cyan-600: #1e3a5f;
   --color-cyan-700: #162d4a;
   --color-cyan-900: #0e1f35;
+  --app-font-body: 'Roboto', sans-serif;
+  --app-font-heading: 'Roboto', sans-serif;
 }
 
 /* Lavender Calm */
@@ -44,6 +46,20 @@ html[data-theme="teal"] {
   --color-cyan-600: #0d6e6e;
   --color-cyan-700: #0a5858;
   --color-cyan-900: #073e3e;
+}
+
+/* AiVante Professional */
+html[data-theme="aivante"] {
+  --app-bg: #f8f8f8;
+  --app-text: #333333;
+  --color-cyan-50: #ecf0f4;
+  --color-cyan-100: #d4dce4;
+  --color-cyan-200: #b0bfcd;
+  --color-cyan-600: #3f5364;
+  --color-cyan-700: #344757;
+  --color-cyan-900: #233040;
+  --app-font-body: 'Open Sans', sans-serif;
+  --app-font-heading: 'Roboto Condensed', sans-serif;
 }
 
 /* Custom scrollbar — wider for elderly users with motor impairment */

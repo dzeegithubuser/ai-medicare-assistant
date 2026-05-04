@@ -1,8 +1,9 @@
 import {
   Component, ChangeDetectionStrategy, computed, inject, viewChild,
-  ElementRef, effect, OnInit, signal, untracked, DestroyRef,
+  ElementRef, effect, OnInit, signal, DestroyRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -106,7 +107,6 @@ export class ChatComponent implements OnInit {
 
   private greetingShown = false;
   private startupGreetingPending = false;
-  private lastHandledMedicareEntryRequest = 0;
   private readonly loginGreetingKey = 'chat-login-greeting-shown';
   private readonly switchedToEditMsg = PROFILE_MESSAGES.SWITCHED_TO_EDIT;
   /** User is editing profile after review message (footer Continue is the only way to advance). */
@@ -117,6 +117,8 @@ export class ChatComponent implements OnInit {
   private storedDrugsAutoHydrateInFlight = false;
   private storedPharmacyAutoHydrateInFlight = false;
   private requestedActiveRecommendationForStoredPharmacy = false;
+  /** Guards against duplicate magi-tiers HTTP requests from racing callers. */
+  private magiTiersSub?: Subscription;
 
   constructor() {
     effect(() => {
@@ -205,11 +207,12 @@ export class ChatComponent implements OnInit {
 
     // Saved page (and similar) calls ChatWizardService.requestMedicareAnalysisEntry().
     effect(() => {
-      const n = this.wizard.medicareEntryRequest();
-      if (n === 0 || n === this.lastHandledMedicareEntryRequest) return;
-      this.lastHandledMedicareEntryRequest = n;
-      // Run untracked so this effect depends only on medicareEntryRequest.
-      untracked(() => this.beginMedicareAnalysisFlow(true));
+      this.wizard.medicareEntryRequest();
+      if (!this.wizard.consumeMedicareEntryRequest()) return;
+      // Defer to the next macrotask so the browser can paint the new route
+      // content before the heavy signal-write / sessionStorage burst runs.
+      // Without this, the old page remains visually frozen while JS blocks.
+      setTimeout(() => this.beginMedicareAnalysisFlow(true));
     });
   }
 
@@ -275,7 +278,7 @@ export class ChatComponent implements OnInit {
     }
 
     // Skip resume when a fresh entry request is pending (the entry effect will handle init).
-    const hasPendingMedicareEntry = this.wizard.medicareEntryRequest() > this.lastHandledMedicareEntryRequest;
+    const hasPendingMedicareEntry = this.wizard.hasPendingMedicareEntryRequest();
     if (isAnalysisPage && !hasPendingMedicareEntry && this.state.messages().length === 0) {
       this.wizard.resumeMedicareAnalysis();
       this.state.addAssistantMessage(this.buildAnalysisResumeMessage(currentUrl));
@@ -314,7 +317,7 @@ export class ChatComponent implements OnInit {
     if (this.wizard.currentStep() !== 'PROFILE_REVIEW') return;
     // Skip if a fresh Medicare entry request will be handled by the dedicated effect
     // (its async postProfileReviewMessage hasn't resolved yet so the message isn't in state).
-    if (this.wizard.medicareEntryRequest() > this.lastHandledMedicareEntryRequest) return;
+    if (this.wizard.hasPendingMedicareEntryRequest()) return;
     const hasReviewMessage = this.state
       .messages()
       .some((m) => m.role === 'assistant' && m.content.includes(PROFILE_MESSAGES.REVIEW_INTRO));
@@ -386,10 +389,14 @@ export class ChatComponent implements OnInit {
       this.state.addAssistantMessage(
         `${PROFILE_MESSAGES.REVIEW_INTRO}\n\n${PROFILE_MESSAGES.REVIEW_LOADING}\n\n${PROFILE_MESSAGES.REVIEW_QUESTION}`
       );
-      this.router.navigate([AppRoutes.abs.PROFILE]);
+      if (!this.router.url.startsWith(AppRoutes.abs.PROFILE)) {
+        this.router.navigate([AppRoutes.abs.PROFILE]);
+      }
       return;
     }
-    this.countyLookup.getMagiTiers(p.taxFilingStatus, p.coverageYear).subscribe({
+    // Cancel any in-flight magi-tiers request to prevent stacking.
+    this.magiTiersSub?.unsubscribe();
+    this.magiTiersSub = this.countyLookup.getMagiTiers(p.taxFilingStatus, p.coverageYear).subscribe({
       next: (tiers) => {
         const match = tiers.find((t) => String(t.value) === String(p.magiTier));
         const magiLabel = match?.label ?? p.magiTier;
@@ -397,14 +404,18 @@ export class ChatComponent implements OnInit {
         this.state.addAssistantMessage(
           `${PROFILE_MESSAGES.REVIEW_INTRO}\n\n${summary}\n\n${PROFILE_MESSAGES.REVIEW_QUESTION}`
         );
-        this.router.navigate([AppRoutes.abs.PROFILE]);
+        if (!this.router.url.startsWith(AppRoutes.abs.PROFILE)) {
+          this.router.navigate([AppRoutes.abs.PROFILE]);
+        }
       },
       error: () => {
         const summary = this.buildMedicareProfileSummaryMarkdown();
         this.state.addAssistantMessage(
           `${PROFILE_MESSAGES.REVIEW_INTRO}\n\n${summary}\n\n${PROFILE_MESSAGES.REVIEW_QUESTION}`
         );
-        this.router.navigate([AppRoutes.abs.PROFILE]);
+        if (!this.router.url.startsWith(AppRoutes.abs.PROFILE)) {
+          this.router.navigate([AppRoutes.abs.PROFILE]);
+        }
       },
     });
   }
@@ -418,7 +429,9 @@ export class ChatComponent implements OnInit {
       this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
       return;
     }
-    this.countyLookup.getMagiTiers(p.taxFilingStatus, p.coverageYear).subscribe({
+    // Cancel any in-flight magi-tiers request to prevent stacking.
+    this.magiTiersSub?.unsubscribe();
+    this.magiTiersSub = this.countyLookup.getMagiTiers(p.taxFilingStatus, p.coverageYear).subscribe({
       next: (tiers) => {
         const match = tiers.find((t) => String(t.value) === String(p.magiTier));
         const magiLabel = match?.label ?? p.magiTier;
@@ -520,17 +533,24 @@ export class ChatComponent implements OnInit {
     this.state.confirmedDrugNames.set(new Set());
     this.state.selectedLookupPharmacies.set([]);
     this.state.pharmacySelectionConfirmed.set(false);
-    this.state.resetPlanSelections();
+    // Clear plan signals directly (skip resetPlanSelections' internal persist —
+    // a single persistSelections() at the end covers everything).
+    this.state.selectedPartDPlan.set(null);
+    this.state.selectedMedigapPlan.set(null);
+    this.state.selectedMAPlan.set(null);
+    this.state.selectedMAGapPartDPlan.set(null);
     this.requestedActiveRecommendationForStoredDrugs = false;
     this.storedDrugsAutoHydrateInFlight = false;
     this.storedPharmacyAutoHydrateInFlight = false;
     this.requestedActiveRecommendationForStoredPharmacy = false;
     sessionStorage.removeItem(this.storedDrugsChoiceKey);
     sessionStorage.removeItem(this.storedPharmacyChoiceKey);
-    this.state.removeAssistantMessagesContaining(DRUG_MESSAGES.STORED_DRUGS_PROMPT);
-    this.state.removeAssistantMessagesContaining(DRUG_MESSAGES.STORED_DRUGS_AUTO_LOADED);
-    this.state.removeAssistantMessagesContaining(PHARMACY_MESSAGES.STORED_PHARMACY_PROMPT);
-    this.state.removeAssistantMessagesContaining(PHARMACY_MESSAGES.STORED_PHARMACY_AUTO_LOADED);
+    this.state.removeAssistantMessagesContainingAny([
+      DRUG_MESSAGES.STORED_DRUGS_PROMPT,
+      DRUG_MESSAGES.STORED_DRUGS_AUTO_LOADED,
+      PHARMACY_MESSAGES.STORED_PHARMACY_PROMPT,
+      PHARMACY_MESSAGES.STORED_PHARMACY_AUTO_LOADED,
+    ]);
     this.state.persistSelections();
     this.startFreshMedicareAnalysis();
   }

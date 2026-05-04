@@ -84,6 +84,8 @@ function createWizardMock() {
     medicareProfileIntroComplete: signal(false),
     ltcProfileIntroComplete: signal(false),
     hasNewStep: signal(false),
+    hasPendingMedicareEntryRequest: signal(false),
+    consumeMedicareEntryRequest: vi.fn(() => false),
     reset: vi.fn(),
     startMedicareAnalysis: vi.fn(),
     startLtcAnalysis: vi.fn(),

@@ -7,6 +7,7 @@ import { ReferenceData, MagiTierOption } from '../models/reference-data.model';
 export class ReferenceDataService {
   private data = signal<ReferenceData | null>(null);
   private loaded = signal(false);
+  private loading = false;
 
   readonly referenceData = this.data.asReadonly();
   readonly isLoaded = this.loaded.asReadonly();
@@ -28,13 +29,18 @@ export class ReferenceDataService {
 
   /** Loads reference data once — safe to call multiple times. */
   load(): void {
-    if (this.loaded()) return;
+    if (this.loaded() || this.loading) return;
+    this.loading = true;
     this.http.get<ReferenceData>(`${environment.apiUrl}/api/ReferenceData`).subscribe({
       next: (data) => {
         this.data.set(data);
         this.loaded.set(true);
+        this.loading = false;
       },
-      error: () => console.error('Failed to load reference data')
+      error: () => {
+        console.error('Failed to load reference data');
+        this.loading = false;
+      }
     });
   }
 

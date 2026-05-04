@@ -17,6 +17,7 @@ export interface CountyCodeEntry {
 @Injectable({ providedIn: 'root' })
 export class CountyLookupService {
   private cache = new Map<string, CountyCodeEntry[]>();
+  private magiCache = new Map<string, LabelValuePair[]>();
 
   constructor(private http: HttpClient) {}
 
@@ -42,10 +43,18 @@ export class CountyLookupService {
 
   getMagiTiers(filingStatus: string, coverageYear: number): Observable<LabelValuePair[]> {
     if (!filingStatus || !coverageYear) return of([]);
+    const cacheKey = `${filingStatus}|${coverageYear}`;
+    if (this.magiCache.has(cacheKey)) {
+      return of(this.magiCache.get(cacheKey)!);
+    }
     return this.http.get<LabelValuePair[]>(
       `${environment.apiUrl}/api/CountyLookup/constants/magi-tiers`,
       { params: { filingStatus, coverageYear: coverageYear.toString() } }
     ).pipe(
+      map(results => {
+        this.magiCache.set(cacheKey, results);
+        return results;
+      }),
       catchError(() => of([]))
     );
   }

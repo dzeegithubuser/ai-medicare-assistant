@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +16,7 @@ import { RecommendationSummaryResponse, RecommendationCategory } from '../models
 import { AppRoutes } from '../app-routes.const';
 import { EmptyStateComponent } from '../shared/empty-state/empty-state.component';
 import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-recommendation',
@@ -37,6 +38,7 @@ export class RecommendationComponent implements OnInit {
 
   readonly recommendations = signal<RecommendationSummaryResponse[]>([]);
   readonly loadingRecommendations = signal(true);
+  private recommendationsSub?: Subscription;
 
   // ── Filter / Sort / Pagination ─────────────────────────────────────────────
   readonly searchQuery = signal('');
@@ -136,9 +138,14 @@ export class RecommendationComponent implements OnInit {
     this.refreshRecommendations();
   }
 
+  ngOnDestroy() {
+    this.recommendationsSub?.unsubscribe();
+  }
+
   refreshRecommendations() {
+    this.recommendationsSub?.unsubscribe();
     this.loadingRecommendations.set(true);
-    this.recommendationService.getAll().subscribe({
+    this.recommendationsSub = this.recommendationService.getAll().subscribe({
       next: (data) => {
         this.recommendations.set(data);
         this.loadingRecommendations.set(false);

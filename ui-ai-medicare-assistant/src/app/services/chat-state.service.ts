@@ -76,6 +76,17 @@ export class ChatStateService {
     this.syncMessagesToServer();
   }
 
+  /** Batch variant: removes assistant messages containing ANY of the supplied texts in a single pass. */
+  removeAssistantMessagesContainingAny(texts: string[]) {
+    const needles = texts.filter(t => t?.trim());
+    if (needles.length === 0) return;
+    this.messages.update(msgs =>
+      msgs.filter(m => !(m.role === 'assistant' && needles.some(t => m.content.includes(t))))
+    );
+    this.persistMessages();
+    this.syncMessagesToServer();
+  }
+
   hydrateMessagesFromServer(messages: ChatMessage[]) {
     this.messages.set(messages);
     this.persistMessages();

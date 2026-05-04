@@ -14,7 +14,7 @@ ChatGPT-style Medicare healthcare assistant where users paste prescription lists
 
 ### Frontend
 - **Angular 21** (standalone components, signal-based reactivity)
-- **Angular Material 21** (M3 theming with cyan primary palette)
+- **Angular Material 21** (M3 theming with 4 switchable themes: Navy & Gold, Lavender Calm, Teal Medical, AiVante Professional)
 - **Tailwind CSS 4** (utility-first styling via PostCSS plugin)
 - **RxJS** (HTTP observables for API communication)
 - **@microsoft/signalr** (WebSocket client for real-time chat session sync)
