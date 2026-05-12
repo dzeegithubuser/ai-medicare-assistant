@@ -7,7 +7,7 @@
       { label: 'Out-of-Pocket', value: snap.lifetimeOop, color: 'text-amber-700' },
       { label: 'IRMAA Surcharges', value: snap.lifetimeIrmaa, color: 'text-red-700' },
       { label: 'Present Value', value: snap.presentValue, color: 'text-emerald-700' },
-      { label: 'Current Year', value: snap.currentYearTotal, color: 'text-cyan-700' }
+      { label: 'Current Year Expense', value: snap.currentYearTotal, color: 'text-cyan-700' }
     ]; track kpi.label) {
       <div class="rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
         <p class="text-xs text-gray-600 uppercase font-semibold tracking-wide leading-tight mb-1">{{ kpi.label }}</p>
@@ -137,7 +137,7 @@
           </div>
           @if (rec().pharmacies.length) {
             <div class="p-4 flex flex-wrap gap-3">
-              @for (ph of rec().pharmacies; track ph.npi) {
+              @for (ph of sortedPharmacies; track ph.npi) {
                 <div class="bg-white rounded-xl p-3 border border-indigo-100 w-64 shrink-0">
                   <div class="flex items-center gap-2 mb-2">
                     <mat-icon class="text-indigo-700 !text-base !w-4 !h-4">storefront</mat-icon>
@@ -222,7 +222,7 @@
                     <div><span class="text-gray-600">Premium:</span> <span class="text-gray-700 font-medium">{{ plan.monthlyPremium | currency:'USD':'symbol':'1.2-2' }}</span></div>
                     <div><span class="text-gray-600">Deductible:</span> <span class="text-gray-700 font-medium">{{ plan.deductible | currency:'USD':'symbol':'1.0-0' }}</span></div>
                     <div>
-                      <span class="text-gray-600">Stars:</span>
+                      <span class="text-gray-600">Ratings:</span>
                       <span class="inline-flex items-center gap-0.5 ml-0.5">
                         @for (filled of starArray(plan.starRating); track $index) {
                           <mat-icon class="!text-xs" [class.text-amber-400]="filled" [class.text-gray-500]="!filled">star</mat-icon>
@@ -245,7 +245,7 @@
                   </div>
                   @if (plan.unavailableDrugs?.length) {
                     <div class="mt-2 pt-2 border-t border-gray-300">
-                      <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Unavailable Drugs</p>
+                      <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Uncovered Drugs</p>
                       <div class="flex flex-wrap gap-1">
                         @for (drug of plan.unavailableDrugs; track drug) {
                           <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">{{ drug }}</span>

@@ -98,7 +98,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     magiTier: ['', Validators.required],
     gender: ['F', Validators.required],
     tobaccoStatus: [0, Validators.required],
-    dateOfBirth: [null as Date | null, [Validators.required, this.ageValidator(18)]],
+    dateOfBirth: [null as Date | null, [Validators.required, this.ageValidator(65, 120)]],
     concierge: [0, Validators.required],
     conciergeAmount: [null as number | null],
     alternateEmail: ['', Validators.email],
@@ -314,7 +314,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  private ageValidator(minAge: number) {
+  private ageValidator(minAge: number, maxAge: number) {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) return null;
       const dob = control.value instanceof Date ? control.value : new Date(control.value);
@@ -323,7 +323,9 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       let age = today.getFullYear() - dob.getFullYear();
       const m = today.getMonth() - dob.getMonth();
       if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-      return age >= minAge ? null : { minAge: { required: minAge, actual: age } };
+      if (age < minAge) return { minAge: { required: minAge, actual: age } };
+      if (age > maxAge) return { maxAge: { max: maxAge, actual: age } };
+      return null;
     };
   }
 

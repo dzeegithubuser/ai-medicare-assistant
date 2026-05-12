@@ -81,7 +81,9 @@
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           @if (form.controls.dateOfBirth.hasError('minAge')) {
-          <mat-error>Must be at least 18 years old</mat-error>
+          <mat-error>Age must be at least 65</mat-error>
+          } @else if (form.controls.dateOfBirth.hasError('maxAge')) {
+          <mat-error>Age must not exceed 120</mat-error>
           }
         </mat-form-field>
         @if (isMedicareAge()) {
