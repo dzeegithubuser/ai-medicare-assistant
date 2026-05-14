@@ -1,0 +1,227 @@
+<div class="h-full overflow-y-auto p-6 bg-[var(--app-bg)]">
+
+  <!-- ── Welcome Card ───────────────────────────────────────────────────── -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <p class="text-sm font-medium text-cyan-700 uppercase tracking-wide mb-1">Financial Planner Group</p>
+        @if (group(); as g) {
+          <h1 class="text-2xl font-bold text-gray-900">{{ g.name }}</h1>
+          <p class="text-sm text-gray-500 mt-1">{{ g.description || 'Manage planners and review activity across the group.' }}</p>
+        } @else {
+          <h1 class="text-2xl font-bold text-gray-900">My Group</h1>
+          <p class="text-sm text-gray-500 mt-1">Manage planners and review activity across the group.</p>
+        }
+      </div>
+      <div class="flex flex-wrap gap-2 shrink-0">
+        <button mat-flat-button color="primary" class="!rounded-lg !h-10 !px-4 !gap-1" (click)="openCreateFp()">
+          <mat-icon>person_add</mat-icon>Add planner
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm mb-3">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── List Header + Filter Bar ───────────────────────────────────────── -->
+  <div class="bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm">
+
+    <!-- Header row -->
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">
+          @switch (view()) {
+            @case ('planners')        { Financial Planners }
+            @case ('end-users')       { Group End-Users }
+            @case ('recommendations') { Group Recommendations }
+          }
+        </h2>
+        @if (!sourceLoading()) {
+          <p class="text-xs text-gray-500">
+            {{ totalItems() }} result{{ totalItems() === 1 ? '' : 's' }}
+            @if (searchQuery()) {
+              &middot;
+              <button class="text-cyan-600 hover:underline" (click)="clearFilters()">Clear filters</button>
+            }
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- View pills -->
+    <div class="flex flex-wrap gap-2 items-center mb-3">
+      <mat-button-toggle-group [value]="view()" (change)="setView($event.value)" class="density-compact">
+        @for (opt of viewOptions; track opt.value) {
+          <mat-button-toggle [value]="opt.value">
+            <mat-icon class="!text-base !w-4 !h-4 mr-1 align-middle">{{ opt.icon }}</mat-icon>
+            {{ opt.label }}
+          </mat-button-toggle>
+        }
+      </mat-button-toggle-group>
+    </div>
+
+    <!-- Filter / sort row -->
+    <div class="flex flex-wrap gap-2 items-center">
+      <mat-form-field appearance="outline" class="!w-64 density-compact" subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput placeholder="Search by name, email..." [value]="searchQuery()" (input)="setSearch($any($event.target).value)">
+      </mat-form-field>
+
+      <span class="flex-1"></span>
+
+      <mat-form-field appearance="outline" class="!w-44 density-compact" subscriptSizing="dynamic">
+        <mat-select [value]="sortBy()" (selectionChange)="setSortBy($event.value)">
+          <mat-option value="newest">Newest first</mat-option>
+          <mat-option value="oldest">Oldest first</mat-option>
+          <mat-option value="name-asc">Name A-Z</mat-option>
+          <mat-option value="name-desc">Name Z-A</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- ── Cards ──────────────────────────────────────────────────────────── -->
+  <div class="pt-1">
+    @if (sourceLoading()) {
+      <app-loading-spinner [diameter]="36" containerClass="py-12" />
+    } @else if (sourceEmpty()) {
+      <app-empty-state
+        [icon]="view() === 'planners' ? 'badge' : view() === 'end-users' ? 'group' : 'bookmarks'"
+        [title]="view() === 'planners' ? 'No planners yet' : view() === 'end-users' ? 'No end-users yet' : 'No recommendations yet'"
+        [subtitle]="view() === 'planners' ? 'Add your first financial planner to seed the group.' : view() === 'end-users' ? 'End-users appear once planners create them.' : 'Recommendations show up once your planners save analyses.'"
+        containerClass="py-16 px-4 bg-white rounded-xl border border-gray-200"
+        iconClass="!text-6xl !w-16 !h-16 mb-4 text-gray-500"
+        titleClass="text-xl font-semibold text-gray-700">
+        @if (view() === 'planners') {
+          <button mat-flat-button color="primary" class="!rounded-lg !mt-3 !px-4 !h-10 !gap-1" (click)="openCreateFp()">
+            <mat-icon>person_add</mat-icon>Add planner
+          </button>
+        }
+      </app-empty-state>
+    } @else if (totalItems() === 0) {
+      <app-empty-state
+        icon="search_off"
+        title="No matches"
+        subtitle="Try adjusting your search."
+        containerClass="py-12 px-4 bg-white rounded-xl border border-gray-200"
+        titleClass="text-lg font-semibold text-gray-700">
+        <button mat-stroked-button class="!rounded-lg !mt-3 !px-4 !h-10 !text-xs" (click)="clearFilters()">
+          <mat-icon class="!text-sm">filter_alt_off</mat-icon> Clear filters
+        </button>
+      </app-empty-state>
+    } @else {
+
+      <!-- Planners grid -->
+      @if (view() === 'planners') {
+        <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
+          @for (fp of pagedFps(); track fp.userId) {
+            <mat-card class="!rounded-xl !bg-white !border-l-4 !border-l-cyan-600 !border !border-gray-300 !shadow hover:!shadow-lg transition-all !flex !flex-col">
+              <mat-card-content class="!p-3 !flex !flex-col !flex-1">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-cyan-100">
+                    <mat-icon class="!text-cyan-700 !text-base">badge</mat-icon>
+                  </div>
+                  <h3 class="font-semibold text-gray-900 text-sm truncate flex-1">{{ fp.firstName }} {{ fp.lastName }}</h3>
+                  @if (fp.mustChangePassword) {
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700" matTooltip="First-login password change required">Pending</span>
+                  }
+                </div>
+
+                <p class="text-xs text-gray-500 mt-1.5 ml-10 truncate">{{ fp.email }} · {{ fp.phone || '—' }}</p>
+                <p class="text-xs text-gray-400 mt-0.5 ml-10">Joined {{ fp.createdAt | date:'MMM d, y' }}</p>
+
+                <div class="flex-1"></div>
+
+                <div class="mt-2 ml-10 flex justify-end">
+                  <button mat-stroked-button color="warn" class="!rounded-lg !h-9 !px-3 !gap-1"
+                          (click)="deleteFp(fp.userId, fp.firstName + ' ' + fp.lastName)">
+                    <mat-icon class="!text-base">delete_outline</mat-icon>
+                    <span class="text-xs">Delete</span>
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+
+      <!-- End-users grid -->
+      @if (view() === 'end-users') {
+        <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
+          @for (u of pagedEndUsers(); track u.userId) {
+            <mat-card class="!rounded-xl !bg-white !border-l-4 !border-l-cyan-600 !border !border-gray-300 !shadow hover:!shadow-lg transition-all !flex !flex-col">
+              <mat-card-content class="!p-3 !flex !flex-col !flex-1">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-indigo-100">
+                    <mat-icon class="!text-indigo-700 !text-base">person</mat-icon>
+                  </div>
+                  <h3 class="font-semibold text-gray-900 text-sm truncate flex-1">{{ u.firstName }} {{ u.lastName }}</h3>
+                </div>
+                <p class="text-xs text-gray-500 mt-1.5 ml-10 truncate">{{ u.email }}</p>
+                <p class="text-xs text-gray-400 mt-0.5 ml-10">Joined {{ u.createdAt | date:'MMM d, y' }}</p>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+
+      <!-- Recommendations grid -->
+      @if (view() === 'recommendations') {
+        <div class="grid gap-3 grid-cols-1 lg:grid-cols-2 items-stretch">
+          @for (g of pagedRecs(); track g.userId) {
+            <mat-card class="!rounded-xl !bg-white !border-l-4 !border-l-cyan-600 !border !border-gray-300 !shadow hover:!shadow-lg transition-all !flex !flex-col">
+              <mat-card-content class="!p-3 !flex !flex-col !flex-1">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-purple-100">
+                    <mat-icon class="!text-purple-700 !text-base">bookmarks</mat-icon>
+                  </div>
+                  <h3 class="font-semibold text-gray-900 text-sm truncate flex-1">{{ g.firstName }} {{ g.lastName }}</h3>
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">{{ g.recommendations.length }}</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1.5 ml-10 truncate">{{ g.email }}</p>
+
+                <div class="mt-2 ml-10 space-y-1">
+                  @for (rec of g.recommendations; track rec.id) {
+                    <div class="flex items-center justify-between gap-2 text-xs text-gray-700">
+                      <span class="truncate">{{ rec.name || '(unnamed)' }}</span>
+                      <span class="text-gray-400 shrink-0">{{ rec.createdAt | date:'MMM d, y' }}</span>
+                    </div>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+
+      <!-- ── Pagination ───────────────────────────────────────────────────── -->
+      @if (totalPages() > 1 || totalItems() > 6) {
+        <div class="flex items-center justify-between mt-3 bg-white rounded-xl border border-gray-200 px-4 py-2">
+          <p class="text-xs text-gray-500">
+            Showing {{ pageStart() }}–{{ pageEnd() }} of {{ totalItems() }}
+          </p>
+          <div class="flex items-center gap-1">
+            <mat-form-field appearance="outline" class="!w-28 density-compact mr-2" subscriptSizing="dynamic">
+              <mat-select [value]="pageSize()" (selectionChange)="setPageSize($event.value)">
+                <mat-option [value]="6">6 / page</mat-option>
+                <mat-option [value]="12">12 / page</mat-option>
+                <mat-option [value]="24">24 / page</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-icon-button class="!w-10 !h-10" [disabled]="currentPage() <= 1" (click)="prevPage()">
+              <mat-icon class="!text-base">chevron_left</mat-icon>
+            </button>
+            <span class="text-xs font-medium text-gray-700 px-1">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button mat-icon-button class="!w-10 !h-10" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+              <mat-icon class="!text-base">chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

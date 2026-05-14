@@ -26,7 +26,9 @@ internal static class AuthExtensions
                 ValidateAudience         = true,
                 ValidAudience            = configuration["Jwt:Audience"],
                 ValidateLifetime         = true,
-                ClockSkew                = TimeSpan.Zero
+                ClockSkew                = TimeSpan.Zero,
+                RoleClaimType            = System.Security.Claims.ClaimTypes.Role,
+                NameClaimType            = System.Security.Claims.ClaimTypes.NameIdentifier
             };
 
             // SignalR WebSocket connections send the JWT as a query-string parameter

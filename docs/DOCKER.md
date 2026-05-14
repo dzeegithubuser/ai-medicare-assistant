@@ -109,3 +109,12 @@
 | Variable                          | Description                    |
 |-----------------------------------|--------------------------------|
 | `CMS_MEDICARE_PART_D_SPENDING_URL`| CMS Part D spending data URL   |
+
+### Admin Seed
+| Variable         | Description                                                   |
+|------------------|---------------------------------------------------------------|
+| `ADMIN_EMAIL`    | Email for the seeded admin user (default: `admin@aivante.com`) |
+| `ADMIN_PHONE`    | Phone for the seeded admin user (default: `5550199999`)        |
+| `ADMIN_PASSWORD` | Gates the seed. Leave blank to skip (production-safe). Set to a strong password on first deploy against a fresh DB. |
+
+These map to `Seed__AdminEmail` / `Seed__AdminPhone` / `Seed__AdminPassword` on the `api` container via `docker-compose.yml`. Once the admin is seeded successfully you can blank `ADMIN_PASSWORD` — subsequent restarts log `Admin user … already exists; skipping seed.` See [ADMIN_SETUP.md](ADMIN_SETUP.md).

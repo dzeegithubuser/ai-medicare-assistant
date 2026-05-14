@@ -1,0 +1,59 @@
+<div class="p-6 w-[520px] max-w-[92vw]">
+  <div class="flex items-start gap-3 mb-4">
+    <div class="w-10 h-10 rounded-lg bg-cyan-100 flex items-center justify-center shrink-0">
+      <mat-icon class="!text-cyan-700">badge</mat-icon>
+    </div>
+    <div class="flex-1 min-w-0">
+      <h2 class="text-lg font-semibold text-gray-900 leading-tight">Add financial planner</h2>
+      <p class="text-xs text-gray-500 mt-0.5">They can create and manage end-users in your group.</p>
+    </div>
+    <button mat-icon-button type="button" class="!w-9 !h-9 -mt-1 -mr-2" (click)="cancel()">
+      <mat-icon class="!text-base">close</mat-icon>
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm mb-3">
+      {{ error() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+    <mat-form-field appearance="outline">
+      <mat-label>First name</mat-label>
+      <input matInput formControlName="firstName" autocomplete="off">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Last name</mat-label>
+      <input matInput formControlName="lastName" autocomplete="off">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" autocomplete="off">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Phone</mat-label>
+      <input matInput formControlName="phone" placeholder="(555) 123-4567" autocomplete="off">
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="sm:col-span-2">
+      <mat-label>Initial password</mat-label>
+      <input matInput formControlName="password" type="password" autocomplete="new-password">
+      <mat-hint>The planner must change this on first sign-in.</mat-hint>
+    </mat-form-field>
+
+    <div class="sm:col-span-2 flex justify-end gap-2 pt-3">
+      <button mat-stroked-button type="button" class="!rounded-lg !h-10 !px-4" (click)="cancel()">
+        Cancel
+      </button>
+      <button mat-flat-button color="primary" type="submit" class="!rounded-lg !h-10 !px-4 !gap-1"
+              [disabled]="form.invalid || submitting()">
+        @if (submitting()) {
+          <mat-spinner diameter="16" class="inline-block"></mat-spinner>
+        } @else {
+          <mat-icon>person_add</mat-icon>
+        }
+        <span>Create planner</span>
+      </button>
+    </div>
+  </form>
+</div>

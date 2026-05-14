@@ -1,7 +1,7 @@
 <div class="flex flex-col h-screen">
   <!-- Header -->
   <header class="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-cyan-700 to-cyan-600 text-white shadow-lg z-10">
-    <a class="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity" (click)="goToRecommendations()">
+    <a class="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity" (click)="goToLanding()">
       <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
         <mat-icon class="!text-white">local_pharmacy</mat-icon>
       </div>
@@ -11,13 +11,15 @@
     </a>
     <span class="flex-1"></span>
 
-    <!-- Recommendations / Dashboard -->
-    <button mat-button class="!text-white !rounded-lg hover:!bg-white/10 !text-sm !font-medium"
-            (click)="goToRecommendations()"
-            matTooltip="View saved recommendations">
-      <mat-icon class="!text-lg mr-1">folder_open</mat-icon>
-      Recommendations
-    </button>
+    <!-- Recommendations / Dashboard — only meaningful for the end-user role -->
+    @if (auth.currentRole() === 'user') {
+      <button mat-button class="!text-white !rounded-lg hover:!bg-white/10 !text-sm !font-medium"
+              (click)="goToRecommendations()"
+              matTooltip="View saved recommendations">
+        <mat-icon class="!text-lg mr-1">folder_open</mat-icon>
+        Recommendations
+      </button>
+    }
 
     <!-- Settings Menu -->
     <button mat-icon-button [matMenuTriggerFor]="settingsMenu" class="!text-white" matTooltip="Settings" aria-label="Settings">
@@ -94,6 +96,9 @@
       </button>
     </mat-menu>
   </header>
+
+  <!-- Impersonation banner — shown above the main layout when an FP is acting as an end-user -->
+  <app-impersonation-banner></app-impersonation-banner>
 
   <!-- Main Split Layout -->
   @if (bootstrapReady()) {

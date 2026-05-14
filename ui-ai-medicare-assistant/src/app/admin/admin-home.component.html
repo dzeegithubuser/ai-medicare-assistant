@@ -1,0 +1,157 @@
+<div class="h-full overflow-y-auto p-6 bg-[var(--app-bg)]">
+
+  <!-- ── Welcome Card ───────────────────────────────────────────────────── -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-5 mb-4 shadow-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <p class="text-sm font-medium text-cyan-700 uppercase tracking-wide mb-1">Admin Console</p>
+        <h1 class="text-2xl font-bold text-gray-900">FPG Admin Users</h1>
+        <p class="text-sm text-gray-500 mt-1">Seed new FPG-admin accounts. They sign in and manage their own planners and end-users.</p>
+      </div>
+      <div class="flex flex-wrap gap-2 shrink-0">
+        <button mat-flat-button color="primary" class="!rounded-lg !h-10 !px-4 !gap-1" (click)="openCreateUser()">
+          <mat-icon>person_add</mat-icon>New FPG admin
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded text-sm mb-3">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── List Header + Filter Bar ───────────────────────────────────────── -->
+  <div class="bg-white border border-gray-200 rounded-xl p-3 mb-3 shadow-sm">
+
+    <!-- Header row -->
+    <div class="flex items-center justify-between gap-2 mb-3">
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">FPG Admins</h2>
+        @if (!loading()) {
+          <p class="text-xs text-gray-500">
+            {{ totalItems() }} result{{ totalItems() === 1 ? '' : 's' }}
+            @if (searchQuery()) {
+              &middot;
+              <button class="text-cyan-600 hover:underline" (click)="clearFilters()">Clear filters</button>
+            }
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Filter / sort row -->
+    <div class="flex flex-wrap gap-2 items-center">
+      <mat-form-field appearance="outline" class="!w-64 density-compact" subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput placeholder="Search by name or email..." [value]="searchQuery()" (input)="setSearch($any($event.target).value)">
+      </mat-form-field>
+
+      <span class="flex-1"></span>
+
+      <mat-form-field appearance="outline" class="!w-44 density-compact" subscriptSizing="dynamic">
+        <mat-select [value]="sortBy()" (selectionChange)="setSortBy($event.value)">
+          <mat-option value="newest">Newest first</mat-option>
+          <mat-option value="oldest">Oldest first</mat-option>
+          <mat-option value="name-asc">Name A-Z</mat-option>
+          <mat-option value="name-desc">Name Z-A</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- ── Cards ──────────────────────────────────────────────────────────── -->
+  <div class="pt-1">
+    @if (loading()) {
+      <app-loading-spinner [diameter]="36" containerClass="py-12" />
+    } @else if (users().length === 0) {
+      <app-empty-state
+        icon="admin_panel_settings"
+        title="No FPG admins yet"
+        subtitle="Create your first FPG-admin user to seed the role hierarchy."
+        containerClass="py-16 px-4 bg-white rounded-xl border border-gray-200"
+        iconClass="!text-6xl !w-16 !h-16 mb-4 text-gray-500"
+        titleClass="text-xl font-semibold text-gray-700">
+        <button mat-flat-button color="primary" class="!rounded-lg !mt-3 !px-4 !h-10 !gap-1" (click)="openCreateUser()">
+          <mat-icon>person_add</mat-icon>New FPG admin
+        </button>
+      </app-empty-state>
+    } @else if (filtered().length === 0) {
+      <app-empty-state
+        icon="search_off"
+        title="No matching admins"
+        subtitle="Try adjusting your search."
+        containerClass="py-12 px-4 bg-white rounded-xl border border-gray-200"
+        titleClass="text-lg font-semibold text-gray-700">
+        <button mat-stroked-button class="!rounded-lg !mt-3 !px-4 !h-10 !text-xs" (click)="clearFilters()">
+          <mat-icon class="!text-sm">filter_alt_off</mat-icon> Clear filters
+        </button>
+      </app-empty-state>
+    } @else {
+      <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
+        @for (u of paged(); track u.userId) {
+          <mat-card class="!rounded-xl !bg-white !border-l-4 !border-l-cyan-600 !border !border-gray-300 !shadow hover:!shadow-lg transition-all !flex !flex-col">
+            <mat-card-content class="!p-3 !flex !flex-col !flex-1">
+
+              <!-- Row 1: icon + name + pending badge -->
+              <div class="flex items-center gap-2 min-w-0">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-cyan-100">
+                  <mat-icon class="!text-cyan-700 !text-base">admin_panel_settings</mat-icon>
+                </div>
+                <h3 class="font-semibold text-gray-900 text-sm truncate flex-1">{{ u.firstName }} {{ u.lastName }}</h3>
+                @if (u.mustChangePassword) {
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700 whitespace-nowrap"
+                        matTooltip="First-login password change required">Pending</span>
+                }
+              </div>
+
+              <!-- Row 2: email -->
+              <p class="text-xs text-gray-500 mt-1.5 ml-10 truncate">{{ u.email }}</p>
+
+              <!-- Row 3: joined date -->
+              <p class="text-xs text-gray-400 mt-0.5 ml-10">Joined {{ u.createdAt | date:'MMM d, y' }}</p>
+
+              <div class="flex-1"></div>
+
+              <!-- Row 4: actions -->
+              <div class="mt-2 ml-10 flex justify-end">
+                <button mat-stroked-button color="warn" class="!rounded-lg !h-9 !px-3 !gap-1"
+                        (click)="openDeleteUser(u)" matTooltip="Remove this FPG admin">
+                  <mat-icon class="!text-base">delete_outline</mat-icon>
+                  <span class="text-xs">Remove</span>
+                </button>
+              </div>
+
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <!-- ── Pagination ───────────────────────────────────────────────────── -->
+      @if (totalPages() > 1 || totalItems() > 6) {
+        <div class="flex items-center justify-between mt-3 bg-white rounded-xl border border-gray-200 px-4 py-2">
+          <p class="text-xs text-gray-500">
+            Showing {{ pageStart() }}–{{ pageEnd() }} of {{ totalItems() }}
+          </p>
+          <div class="flex items-center gap-1">
+            <mat-form-field appearance="outline" class="!w-28 density-compact mr-2" subscriptSizing="dynamic">
+              <mat-select [value]="pageSize()" (selectionChange)="setPageSize($event.value)">
+                <mat-option [value]="6">6 / page</mat-option>
+                <mat-option [value]="12">12 / page</mat-option>
+                <mat-option [value]="24">24 / page</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-icon-button class="!w-10 !h-10" [disabled]="currentPage() <= 1" (click)="prevPage()">
+              <mat-icon class="!text-base">chevron_left</mat-icon>
+            </button>
+            <span class="text-xs font-medium text-gray-700 px-1">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button mat-icon-button class="!w-10 !h-10" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">
+              <mat-icon class="!text-base">chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

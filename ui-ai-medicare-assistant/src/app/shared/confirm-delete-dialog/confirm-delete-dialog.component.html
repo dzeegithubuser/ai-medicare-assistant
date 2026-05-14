@@ -1,0 +1,42 @@
+<div class="p-6 w-[520px] max-w-[92vw]">
+  <div class="flex items-start gap-3 mb-4">
+    <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+      <mat-icon class="!text-red-600">warning</mat-icon>
+    </div>
+    <div class="flex-1 min-w-0">
+      <h2 class="text-lg font-semibold text-gray-900 leading-tight">{{ data.title }}</h2>
+      <p class="text-xs text-gray-500 mt-0.5 truncate">{{ data.subject }}</p>
+    </div>
+    <button mat-icon-button type="button" class="!w-9 !h-9 -mt-1 -mr-2" (click)="cancel()">
+      <mat-icon class="!text-base">close</mat-icon>
+    </button>
+  </div>
+
+  <div class="bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded text-sm mb-4">
+    <p class="font-medium mb-1">This cannot be undone.</p>
+    <p class="text-xs">{{ data.warning }}</p>
+  </div>
+
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>{{ inputLabel }}</mat-label>
+    <input matInput
+           [ngModel]="typedValue()"
+           (ngModelChange)="typedValue.set($event)"
+           (keydown.enter)="confirm()"
+           autocomplete="off"
+           autofocus>
+  </mat-form-field>
+
+  <div class="flex justify-end gap-2 pt-2">
+    <button mat-stroked-button type="button" class="!rounded-lg !h-10 !px-4" (click)="cancel()">
+      Cancel
+    </button>
+    <button mat-flat-button color="warn" type="button"
+            class="!rounded-lg !h-10 !px-4 !gap-1"
+            [disabled]="!canConfirm()"
+            (click)="confirm()">
+      <mat-icon>delete_outline</mat-icon>
+      <span>{{ confirmLabel }}</span>
+    </button>
+  </div>
+</div>

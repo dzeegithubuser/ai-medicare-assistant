@@ -8,21 +8,7 @@
 
 ## Authentication
 
-### `POST api/auth/signup`
-
-**Auth:** Public.
-
-**Request:**
-```json
-{ "email": "user@example.com", "phone": "5551234567", "password": "Secret123!", "confirmPassword": "Secret123!" }
-```
-
-**Response:**
-```json
-{ "success": true, "message": "Account created.", "token": "<jwt>" }
-```
-
----
+> **Public sign-up was removed.** All accounts are created top-down: the admin is seeded on startup, FPG-admins are created by the admin, FPs by FPGs, and end-users by FPs (`POST /api/financial-planner/me/end-users` — see [ch06-07](ch06-07-roles-impersonation-endpoints.md)). See [ADMIN_SETUP.md](../ADMIN_SETUP.md) for the full bootstrap flow.
 
 ### `POST api/auth/signin`
 
@@ -35,8 +21,24 @@
 
 **Response:**
 ```json
-{ "success": true, "message": "Sign-in successful.", "token": "<jwt>" }
+{
+  "success": true,
+  "message": "Signed in successfully.",
+  "token": "<jwt>",
+  "expiresAt": "2026-05-09T08:00:00Z",
+  "user": {
+    "id": "…",
+    "email": "user@example.com",
+    "phone": "5551234567",
+    "role": "user",
+    "fpgId": null,
+    "fpId": "…",
+    "mustChangePassword": false
+  }
+}
 ```
+
+The JWT carries `NameIdentifier`, `Email`, `Role`, `mustChangePassword`, `Jti`, plus `fpgId` (FPG/FP) / `fpId` (end-user) / `actingAs` (impersonation tokens) when applicable.
 
 ---
 
@@ -94,7 +96,13 @@
 
 **Response (success):**
 ```json
-{ "success": true, "message": "Password changed successfully." }
+{
+  "success": true,
+  "message": "Password changed successfully.",
+  "token": "<fresh-jwt>",
+  "expiresAt": "2026-05-09T08:00:00Z",
+  "user": { "id": "…", "email": "…", "role": "…", "mustChangePassword": false }
+}
 ```
 
 **Response (failure — wrong old password):**
@@ -106,6 +114,8 @@
 > - `newPassword` minimum length is 8 characters.
 > - `confirmPassword` must match `newPassword` (validated server-side via `[Compare]`).
 > - `userId` is extracted from the `NameIdentifier` claim in the Bearer JWT — no userId in the request body.
+> - On success the API **clears `MustChangePassword`** on the user document and **reissues a fresh JWT** with the flag cleared. The UI swaps tokens via `auth.handleAuthSuccess(res)` so the user is not forced to re-sign-in.
+> - While `mustChangePassword=true` is in the principal's claims, the global `MustChangePasswordFilter` rejects every endpoint other than this one with HTTP 401.
 
 ---
 

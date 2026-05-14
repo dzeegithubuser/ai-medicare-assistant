@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Text;
 using Application.DTOs;
+using Application.Interfaces;
 using Domain.Documents;
 using Domain.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
@@ -13,79 +14,29 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepo;
     private readonly IConfiguration _config;
     private readonly ILogger<AuthService> _logger;
     private readonly IMemoryCache _cache;
     private readonly IEmailService _emailService;
+    private readonly IJwtTokenIssuer _jwt;
 
     public AuthService(
         IUserRepository userRepo,
         IConfiguration config,
         ILogger<AuthService> logger,
         IMemoryCache cache,
-        IEmailService emailService)
+        IEmailService emailService,
+        IJwtTokenIssuer jwt)
     {
         _userRepo = userRepo;
         _config = config;
         _logger = logger;
         _cache = cache;
         _emailService = emailService;
-    }
-
-    public async Task<AuthResponse> SignUpAsync(SignUpRequest request)
-    {
-        _logger.LogInformation("Sign-up attempt for email {Email}", request.Email);
-
-        if (await _userRepo.EmailExistsAsync(request.Email))
-        {
-            _logger.LogWarning("Sign-up failed — email already registered: {Email}", request.Email);
-            return new AuthResponse { Success = false, Message = "Email already registered." };
-        }
-
-        var normalizedPhone = NormalizeUsPhone(request.Phone);
-
-        if (await _userRepo.PhoneExistsAsync(normalizedPhone))
-        {
-            _logger.LogWarning("Sign-up failed — phone already registered: {Phone}", normalizedPhone);
-            return new AuthResponse { Success = false, Message = "Phone number already registered." };
-        }
-
-        var user = new UserDocument
-        {
-            Email = request.Email.ToLowerInvariant(),
-            Phone = normalizedPhone,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            IsEmailVerified = false,
-            CreatedBy = request.Email.ToLowerInvariant(),
-            ModifiedBy = request.Email.ToLowerInvariant()
-        };
-
-        await _userRepo.CreateAsync(user);
-
-        var verificationToken = GenerateEmailVerificationToken(user);
-        var frontendBaseUrl = _config["Email:FrontendBaseUrl"] ?? "http://localhost:4200";
-        var verificationLink = $"{frontendBaseUrl}/verify-email?token={Uri.EscapeDataString(verificationToken)}";
-
-        try
-        {
-            await _emailService.SendEmailVerificationAsync(user.Email, user.Email, verificationLink);
-            _logger.LogInformation("Verification email sent to {Email}", user.Email);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send verification email to {Email}", user.Email);
-        }
-
-        _logger.LogInformation("User registered (pending verification): {UserId} ({Email})", user.UserId, user.Email);
-
-        return new AuthResponse
-        {
-            Success = true,
-            Message = "Registration successful. Please check your email to verify your account."
-        };
+        _jwt = jwt;
     }
 
     public async Task<AuthResponse> SignInAsync(SignInRequest request)
@@ -119,7 +70,7 @@ public class AuthService
             return new AuthResponse { Success = false, Message = "Please verify your email address before signing in. Check your inbox for the verification link." };
         }
 
-        var token = GenerateJwtToken(user);
+        var (token, expiresAt) = _jwt.Issue(user);
         totalSw.Stop();
         _logger.LogInformation(
             "Sign-in perf (success) lookupMs={LookupMs} verifyMs={VerifyMs} totalMs={TotalMs}",
@@ -132,7 +83,7 @@ public class AuthService
             Success = true,
             Message = "Signed in successfully.",
             Token = token,
-            ExpiresAt = DateTime.UtcNow.AddHours(GetTokenExpiryHours()),
+            ExpiresAt = expiresAt,
             User = MapToDto(user)
         };
     }
@@ -235,6 +186,7 @@ public class AuthService
         }
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.MustChangePassword = false;
         user.ModifiedBy = user.Email;
         user.UpdatedAt = DateTime.UtcNow;
 
@@ -242,30 +194,15 @@ public class AuthService
 
         _logger.LogInformation("Password changed successfully for user {UserId}", userId);
 
-        return new AuthResponse { Success = true, Message = "Password changed successfully." };
-    }
-
-    private string GenerateJwtToken(UserDocument user)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
+        var (token, expiresAt) = _jwt.Issue(user);
+        return new AuthResponse
         {
-            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            Success = true,
+            Message = "Password changed successfully.",
+            Token = token,
+            ExpiresAt = expiresAt,
+            User = MapToDto(user)
         };
-
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(GetTokenExpiryHours()),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public async Task<AuthResponse> VerifyEmailAsync(string token)
@@ -463,13 +400,14 @@ public class AuthService
         return digits.Length == 10 ? digits : phone.Trim();
     }
 
-    private int GetTokenExpiryHours() =>
-        int.TryParse(_config["Jwt:ExpiryHours"], out var hours) ? hours : 24;
-
     private static UserDto MapToDto(UserDocument user) => new()
     {
         Id = user.UserId,
         Email = user.Email,
-        Phone = user.Phone
+        Phone = user.Phone,
+        Role = user.Role,
+        FpgId = user.FpgId,
+        FpId = user.FpId,
+        MustChangePassword = user.MustChangePassword
     };
 }

@@ -6,11 +6,15 @@
 export const AppRoutes = {
   // Auth
   SIGNIN: 'signin',
-  SIGNUP: 'signup',
   FORGOT_PASSWORD: 'forgot-password',
   RESET_PASSWORD: 'reset-password',
   VERIFY_EMAIL: 'verify-email',
   CHANGE_PASSWORD: 'change-password',
+
+  // Role-based landing pages
+  ADMIN_HOME: 'admin',
+  FPG_HOME: 'fpg',
+  FP_HOME: 'fp',
 
   // Top-level dashboard children
   SAVED: 'saved',
@@ -44,6 +48,9 @@ export const AppRoutes = {
     COST_PROJECTIONS: '/medicare-analysis/cost-projections',
     SAVED: '/saved',
     CHANGE_PASSWORD: '/change-password',
+    ADMIN_HOME: '/admin',
+    FPG_HOME: '/fpg',
+    FP_HOME: '/fp',
     LTC: '/long-term-care',
     LTC_PROFILE: '/long-term-care/profile',
     LTC_CARE_TYPE: '/long-term-care/care-type',

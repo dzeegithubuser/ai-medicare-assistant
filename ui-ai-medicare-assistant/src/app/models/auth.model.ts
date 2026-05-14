@@ -1,10 +1,3 @@
-export interface SignUpRequest {
-  email: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-}
-
 export interface SignInRequest {
   email: string;
   password: string;
@@ -42,8 +35,24 @@ export interface AuthResponse {
   user?: AuthUser;
 }
 
+export type UserRole = 'admin' | 'financial_planner_group' | 'financial_planner' | 'user';
+
+export interface ImpersonationResponse {
+  token: string;
+  expiresAt: string;
+  actingAsUserId: string;
+  targetUserId: string;
+  targetEmail: string;
+  targetFirstName: string;
+  targetLastName: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
   phone: string;
+  role: UserRole;
+  fpgId?: string;
+  fpId?: string;
+  mustChangePassword: boolean;
 }

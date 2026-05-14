@@ -28,8 +28,11 @@ ChatGPT-style Medicare healthcare assistant where users paste prescription lists
 - **OpenAI GPT-4.1** integration (AI model, selectable via `"AiProvider"` config switch)
 - **Anthropic Claude Sonnet 4** integration (AI model via `IChatClient`, selectable via config)
 - **Google Gemini** integration (AI model via `IChatClient`, selectable via config)
-- **MongoDB.Driver 3.4** (single database for all data — users, profiles, sessions, prescriptions, plans)
-- **JWT Authentication** (sign up, sign in, forgot/reset password; hub auth via `access_token` query param)
+- **MongoDB.Driver 3.4** (single database for all data — `users` for login/identity, `userProfiles` for personal/medical/address, financial planner groups, sessions, prescriptions, plans)
+- **JWT Authentication** (sign in, forgot/reset/change/verify password — public sign-up removed; hub auth via `access_token` query param). Tokens issued through `IJwtTokenIssuer` carry `Role`, `mustChangePassword`, `fpgId?`, `fpId?`, `actingAs?` claims.
+- **Role-based access control** — 4 roles (`admin`, `financial_planner_group`, `financial_planner`, `user`) with `[Authorize(Roles=…)]` enforcement plus service-layer ownership checks. See [Chapter 5 — Roles & Authorization](../ch05-data-and-auth/ch05-data-and-auth.md#roles--authorization) and [ADMIN_SETUP.md](../ADMIN_SETUP.md).
+- **Impersonation** — FPs act as their end-users via short-lived 60-min JWT swap (`/api/impersonate` + `/api/impersonate/refresh`); every request under impersonation is logged with `ImpersonatedBy={fpId}` via Serilog enrichment middleware.
+- **First-login password change** — `MustChangePasswordFilter` (server) + `mustChangePasswordGuard` (UI) gate every other action until the default password is replaced.
 - **BCrypt** password hashing
 - **Serilog** structured logging (MongoDB primary sink via Serilog.Sinks.MongoDB v6 + console + daily rolling file fallback)
 - **Global Exception Handling** (middleware with custom exception hierarchy)
@@ -42,8 +45,12 @@ ChatGPT-style Medicare healthcare assistant where users paste prescription lists
 User
  ↓
 Angular Router (lazy-loaded routes)
- ├── /signin, /signup, /forgot-password (public)
- └── / → DashboardComponent (authGuard) — child routes:
+ ├── /signin, /forgot-password (public — sign-up removed)
+ └── / → DashboardComponent (authGuard + mustChangePasswordGuard) — child routes:
+      ├── /admin → AdminHomeComponent (roleGuard ['admin']) — list FPG-admin users + create new ones (auto-creates the underlying group)
+      ├── /fpg → FpgHomeComponent (roleGuard ['financial_planner_group']) — CRUD FPs in group + read-only group views
+      ├── /fp → FpHomeComponent (roleGuard ['financial_planner']) — list/create end-users, list/delete recommendations, "Continue as user" impersonation
+      ├── /change-password → ChangePasswordComponent (forced for users with MustChangePassword=true)
       ├── /profile → UserProfileComponent (onboarding or edit)
       ├── /medicare-analysis → AnalysisShellComponent (profileCompleteGuard) — 4-step shell (Profile → Drugs → Pharmacies → Plans) + cost projections route:
       │    ├── /medicare-analysis/profile → UserProfileComponent (same standalone component as `/profile`, shown inside the analysis stepper as step 1)
@@ -76,7 +83,7 @@ Angular Router (lazy-loaded routes)
       ├── ChatSessionController [Authorize] (MongoDB chat sessions — HTTP fallback for ui-state)
       ├── ChatHub [Authorize] (SignalR /hubs/chat — real-time message sync + session push)
       ├── CountyLookupController (ZIP-based county lookup + MAGI tiers)
-      ├── AuthController (signup, signin, forgot/reset-password, verify-email, resend-verification, change-password)
+      ├── AuthController (signin, forgot/reset-password, verify-email, resend-verification, change-password)
       ├── ReferenceDataController (public — master data for forms)
       ├── ProfileController [Authorize] (consolidated GET/POST)
       ├── LongTermCareController [Authorize] (POST /api/long-term-care — LTC projection)
@@ -84,10 +91,22 @@ Angular Router (lazy-loaded routes)
       ├── MedicareAdvantagePlanController [Authorize] (POST /api/MedicareAdvantagePlan/recommend)
       ├── MedigapPlanController [Authorize] (POST /api/MedigapPlan/quotes)
       ├── PartDPlanController [Authorize] (POST /api/PartDPlan/recommend)
+      ├── AdminController [Authorize(Roles=admin)] (FPG-admin user CRUD — `GET/POST /api/admin/fpg-admin-users`; legacy group endpoints retained for back-compat)
+      ├── FinancialPlannerGroupController [Authorize(Roles=fpg)] (FP CRUD + read-only group views)
+      ├── FinancialPlannerController [Authorize(Roles=fp)] (end-user create/list, recommendations grouped by user, delete)
+      ├── ImpersonationController [Authorize(+Role=fp on POST)] (POST /api/impersonate, POST /api/impersonate/refresh)
+      ├── MustChangePasswordFilter (global filter — blocks every action except /api/auth/change-password while flag set)
+      └── ImpersonationLoggingMiddleware (Serilog ImpersonatedBy enrichment)
 
            ↓
      Application Layer
-      ├── AuthService
+      ├── IAuthService / AuthService (sign-in, password flows, JWT issuance via IJwtTokenIssuer)
+      ├── IJwtTokenIssuer / JwtTokenIssuer (single source of truth for token claims: Role, mustChangePassword, fpgId, fpId, actingAs)
+      ├── IAdminService / AdminService (FPG-admin user list + create — auto-creates the underlying FinancialPlannerGroup; legacy group CRUD retained for back-compat)
+      ├── IFinancialPlannerGroupService / FinancialPlannerGroupService (FP CRUD scoped to group)
+      ├── IFinancialPlannerService / FinancialPlannerService (recommendations grouped by user, delete)
+      ├── IEndUserService / EndUserService (default password Aivante@1234 + dummy phone 55501XXXXX)
+      ├── IImpersonationService / ImpersonationService (60-min JWT issuance with mustChangePassword override)
       ├── ProfileService (consolidated profile CRUD)
       ├── PrescriptionService
       ├── CostProjectionService
@@ -100,8 +119,10 @@ Angular Router (lazy-loaded routes)
       └── PlanSelectionExtractService
            ↓  uses interfaces from
      Domain Layer (models + interfaces)
-      ├── IProfileRepository
-      ├── IUserRepository
+      ├── Constants/UserRoles
+      ├── Documents/UserDocument (login/identity: email, phone, passwordHash, role, FpgId, FpId, MustChangePassword, firstName/lastName), Documents/ProfileDocument (personal/medical/address — `userProfiles` collection), FinancialPlannerGroupDocument
+      ├── IProfileRepository (operates on ProfileDocument), IUserRepository (operates on UserDocument; + GetByFpId, GetByFpgIdAndRole, GetEndUsersByFpg, DeleteAsync), IFinancialPlannerGroupRepository
+      ├── IJwtTokenIssuer
       ├── IDrugAiService, IChatClient, IMedicareCostService
       ├── IFdaNdcService
       ├── ICmsPlanDataService, ICountyLookupService, IConstantsService
@@ -111,8 +132,10 @@ Angular Router (lazy-loaded routes)
       ├── IMongoRepositories (Prescription, ChatSession, UserAnalysisSelections, Recommendation, LtcSelections)
            ↑  implements interfaces
      Infrastructure Layer
-      ├── MongoProfileRepository
-      ├── MongoUserRepository
+      ├── MongoProfileRepository (operates on `userProfiles` collection)
+      ├── MongoUserRepository (operates on `users` collection), MongoFinancialPlannerGroupRepository
+      ├── Data/UserProfileSplitMigrationInitializer (IHostedService — one-shot migration that splits legacy unified user docs into `users` + `userProfiles`; idempotent via `schemaMigrations` marker collection)
+      ├── Data/AdminSeedInitializer (IHostedService — seeds admin@aivante.com when Seed:AdminPassword is set)
       ├── DrugAiService, AnthropicMeaiChatClient, GeminiChatClient
       ├── CmsMedicareCostService
       ├── FdaNdcService

@@ -3,12 +3,13 @@ using Domain.Documents;
 namespace Domain.Interfaces;
 
 /// <summary>
-/// Profile repository operating on the profile fields embedded in <see cref="UserDocument"/>.
+/// Repository over the <c>userProfiles</c> collection.
 /// </summary>
 public interface IProfileRepository
 {
-    Task<UserDocument?> GetByUserIdAsync(Guid userId);
-    Task<UserDocument> CreateAsync(UserDocument entity);
-    Task UpdateAsync(UserDocument entity);
+    Task<ProfileDocument?> GetByUserIdAsync(Guid userId);
+    Task<ProfileDocument> CreateAsync(ProfileDocument entity);
+    Task UpdateAsync(ProfileDocument entity);
     Task<bool> ExistsByUserIdAsync(Guid userId);
+    Task DeleteByUserIdAsync(Guid userId);
 }

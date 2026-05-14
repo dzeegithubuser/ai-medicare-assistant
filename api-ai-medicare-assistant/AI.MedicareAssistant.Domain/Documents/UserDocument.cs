@@ -1,12 +1,15 @@
+using Domain.Constants;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.Documents;
 
 /// <summary>
-/// MongoDB document combining the former MySQL User + Profile tables into a single document.
-/// Collection: <c>users</c>.
+/// MongoDB document for login / identity. Collection: <c>users</c>.
+/// Personal, medical, and address data live on <see cref="ProfileDocument"/> in <c>userProfiles</c>,
+/// joined by <see cref="UserId"/>.
 /// </summary>
+[BsonIgnoreExtraElements]
 public class UserDocument
 {
     [BsonId]
@@ -16,45 +19,31 @@ public class UserDocument
     /// <summary>Application-level Guid kept for FK compatibility with other collections.</summary>
     public Guid UserId { get; set; } = Guid.NewGuid();
 
-    // ── Auth fields (from User entity) ──
+    // ── Login credentials ──
 
     public string Email { get; set; } = "";
     public string Phone { get; set; } = "";
     public string PasswordHash { get; set; } = "";
     public bool IsEmailVerified { get; set; }
 
-    // ── Profile fields (from Profile entity) ──
+    /// <summary>True when the account was created with a default password and must reset on next sign-in.</summary>
+    public bool MustChangePassword { get; set; }
+
+    // ── Display identity (set at user-creation; editable through the profile screen) ──
 
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
-    public int CoverageYear { get; set; }
-    public int HealthCondition { get; set; } = 1;
-    public string TaxFilingStatus { get; set; } = "MARRIED_FILING_JOINTLY";
-    public string MagiTier { get; set; } = "";
-    public string Gender { get; set; } = "F";
-    public int TobaccoStatus { get; set; }
-    public string? DateOfBirth { get; set; }
-    public int Concierge { get; set; }
-    public decimal? ConciergeAmount { get; set; }
-    public string? AlternateEmail { get; set; }
-    public string? AlternateMobile { get; set; }
-    public int LifeExpectancy { get; set; } = 95;
 
-    // Address
-    public string AddressLine1 { get; set; } = "";
-    public string City { get; set; } = "";
-    public string State { get; set; } = "";
-    public string ZipCode { get; set; } = "";
-    public string County { get; set; } = "";
-    public string CountyCode { get; set; } = "";
-    public double? Latitude { get; set; }
-    public double? Longitude { get; set; }
+    // ── Role & hierarchy ──
 
-    /// <summary>MongoDB document Id for the user's current analysis drugs.</summary>
-    public string? CurrentPrescriptionDocumentId { get; set; }
+    /// <summary>Application role: <c>admin</c>, <c>financial_planner_group</c>, <c>financial_planner</c>, or <c>user</c>.</summary>
+    public string Role { get; set; } = UserRoles.User;
 
-    /// <summary>True once the profile section has been saved at least once.</summary>
-    public bool IsProfileComplete { get; set; }
+    /// <summary>For users with role <c>financial_planner</c>: the FPG they belong to.</summary>
+    public Guid? FpgId { get; set; }
+
+    /// <summary>For users with role <c>user</c>: the FP that created them.</summary>
+    public Guid? FpId { get; set; }
 
     // ── Audit fields ──
 

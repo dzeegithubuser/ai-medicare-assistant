@@ -17,18 +17,24 @@ public interface IUserAnalysisSelectionsRepository
 
     /// <summary>Replaces only the plans array and fpActiveSection. Drugs and pharmacies are untouched.</summary>
     Task UpdatePlansAsync(Guid userId, List<UserAnalysisPlanDoc> plans, string? fpActiveSection);
+
+    /// <summary>Deletes every analysis-selection document for the user (used by end-user cascade delete).</summary>
+    Task DeleteByUserIdAsync(Guid userId);
 }
 
 public interface IRecommendationRepository
 {
     Task<RecommendationDocument?> GetByUserIdAsync(Guid userId);
     Task<RecommendationDocument?> GetByIdAsync(string id, Guid userId);
+    Task<RecommendationDocument?> GetByIdAsync(string id);
     Task<List<RecommendationDocument>> GetAllByUserIdAsync(Guid userId);
+    Task<List<RecommendationDocument>> GetByUserIdsAsync(IEnumerable<Guid> userIds);
     Task<RecommendationDocument> CreateAsync(RecommendationDocument document);
     Task ReplaceAsync(RecommendationDocument document);
     Task<bool> ExistsByUserIdAsync(Guid userId);
     Task<bool> ExistsByNameAsync(Guid userId, string name);
     Task DeleteByUserIdAsync(Guid userId);
+    Task DeleteByIdAsync(string id);
 }
 
 public interface IChatSessionRepository
@@ -42,4 +48,7 @@ public interface ILtcSelectionsRepository
 {
     Task UpsertCurrentAsync(LtcCurrentSelectionsDocument document);
     Task<LtcCurrentSelectionsDocument?> GetCurrentAsync(Guid userId);
+
+    /// <summary>Deletes every LTC selection document for the user (used by end-user cascade delete).</summary>
+    Task DeleteByUserIdAsync(Guid userId);
 }

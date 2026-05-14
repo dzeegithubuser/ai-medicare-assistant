@@ -14,11 +14,12 @@ material-theme.scss               → Angular Material M3 theme (4 themes: Navy 
 app/
   app.ts                          → Root component (router-outlet only)
   app.config.ts                   → Angular providers (router, httpClient + httpLoaderInterceptor + authInterceptor + httpErrorInterceptor)
-  app.routes.ts                   → Lazy-loaded routes (signin, signup, forgot-password, dashboard) — uses AppRoutes constants
-  app-routes.const.ts              → Central route path registry (AppRoutes const with segment names + abs: { } absolute paths). All navigation and URL checks import from here — single place to rename any route
+  app.routes.ts                   → Lazy-loaded routes (signin, forgot-password, dashboard with role-aware children) — uses AppRoutes constants. Signup route removed. Dashboard parent runs authGuard + mustChangePasswordGuard; admin/fpg/fp children run roleGuard
+  app-routes.const.ts              → Central route path registry (AppRoutes const with segment names + abs: { } absolute paths). All navigation and URL checks import from here — single place to rename any route. Includes ADMIN_HOME, FPG_HOME, FP_HOME for role landings
   models/
     drug.model.ts                 → Drug, Formulation, DrugAnalysisResponse, DrugNameSuggestionResult, DrugNameSuggestion, DrugCandidate, DrugPrice, PharmacyWithPricing, PlanPharmacySearchRequest, PlanCoverageInput, PharmacyLookupEntry, PharmacyLookupResponse interfaces
-    auth.model.ts                 → Auth request/response, AuthUser interfaces
+    auth.model.ts                 → Auth request/response, AuthUser (with role/fpgId/fpId/mustChangePassword), UserRole union ('admin'|'financial_planner_group'|'financial_planner'|'user'), ImpersonationResponse interface
+    role-management.model.ts      → FpgSummary, UserSummary, FpSummary, EndUserSummary, RecommendationSummary, RecommendationByUser, plus Create/Update request types for admin / FPG / FP / end-user CRUD
     profile.model.ts              → UserProfileResponse, ProfileDto
     reference-data.model.ts       → ReferenceData, LabelValue, MagiTierOption, HouseholdSizeOption
     plan-recommendation.model.ts  → PlanRecommendationResult, RankedPlan (with extended benefit fields), PlanDrugCoverage
@@ -32,7 +33,10 @@ app/
   services/
     drug.service.ts               → HTTP service for /api/drug/suggest-names, /api/drug/analyze, /api/pharmacy/plan-search, /api/pharmacy/lookup
     drug-state.service.ts         → Signal-based shared state (class: MedicareStateService)
-    auth.service.ts               → Signal-based auth state (JWT token, user, signIn/signUp/signOut)
+    auth.service.ts               → Signal-based auth state (JWT token, user, currentRole signal, signIn/signOut). Impersonation methods: impersonate(targetUserId), refreshImpersonation(), exitImpersonation(), isImpersonating() signal-backed. Persists `auth_impersonation_expires` to sessionStorage so the banner+timer survive reload; gracefully restores FP creds when an expired impersonation is found at construction time
+    admin.service.ts              → HTTP wrappers for /api/admin (list/create FPGs, create initial FPG-admin user)
+    financial-planner-group.service.ts → HTTP wrappers for /api/financial-planner-group (group CRUD + read-only end-users / recommendations across the group)
+    financial-planner.service.ts  → HTTP wrappers for /api/financial-planner (end-user create/list, recommendations grouped by user, delete)
     profile.service.ts            → Signal-based profile state orchestrator (load + save + updateState)
     county-lookup.service.ts      → ZIP-based county code lookup with caching + MAGI tiers (with response cache Map for dedup)
     reference-data.service.ts     → Signal-based master data service (fetches + caches /api/reference-data, with in-flight loading guard)
@@ -89,6 +93,12 @@ app/
       section-header.component.ts → Shared section header with icon, title, and subtitle inputs. Replaces inline header markup
     error-dialog/
       error-dialog.component.ts   → Standalone Material Dialog for global API error popups (red icon, friendly message, collapsible technical details, themed OK button)
+    confirm-delete-dialog/
+      confirm-delete-dialog.component.ts/html → Standalone reusable type-to-confirm delete dialog. Accepts `{ title, subject, warning, confirmationToken, inputLabel?, confirmLabel? }` via `MAT_DIALOG_DATA`. The destructive button stays disabled until the user types the `confirmationToken` (case-insensitive, trimmed). Used by admin-home (delete FPG admin) and fp-home (delete end-user)
+    impersonation-banner/
+      impersonation-banner.component.ts → Amber banner shown above all dashboard routes while AuthService.isImpersonating() is true. "Exit impersonation" button restores FP creds + hard-reloads. Hosts the timer effect: schedules a warn dialog 5 min before expiry and an auto-exit at expiry, both reset when refresh updates the impersonationExpiresAt signal
+    impersonation-continue-dialog/
+      impersonation-continue-dialog.component.ts → Material dialog with live `m:ss` countdown. "Continue" → AuthService.refreshImpersonation(); "Exit" → AuthService.exitImpersonation()
     styles/
       _tab-active.scss            → Shared SCSS mixin for active mat-tab styling (cyan-600 background, white text/icon, rounded top corners). Used by compare-medicare, compare-ltc, compare-cross, rec-detail-medicare, rec-detail-ltc
       _chart-container.scss       → Shared SCSS mixin for chart container (position: relative, configurable height, default 320px). Used by cost-projections, ltc-projection-step, recommendation-detail, rec-detail-medicare, rec-detail-ltc
@@ -98,12 +108,12 @@ app/
   guards/
     auth.guard.ts                 → CanActivateFn — redirects unauthenticated to /signin
     profile-complete.guard.ts     → CanActivateFn — protects /medicare-analysis, redirects to /profile
-    dashboard-redirect.guard.ts   → CanActivateFn — auto-redirect for default child route
+    dashboard-redirect.guard.ts   → CanActivateFn — role-driven landing (admin → /admin, FPG → /fpg, FP → /fp, user → /saved)
+    must-change-password.guard.ts → CanActivateFn — redirects to /change-password while AuthUser.mustChangePassword is true (paired with server-side MustChangePasswordFilter)
+    role.guard.ts                 → CanActivateFn factory `roleGuard(allowed: UserRole[])` — gates routes by role, redirects to / on mismatch
   auth/
     signin/
-      signin.component.ts/html/scss   → Sign-in form (email + password)
-    signup/
-      signup.component.ts/html/scss   → Registration form (email, phone, password, confirm)
+      signin.component.ts/html/scss   → Sign-in form (email + password). Signup link removed; the only paths into the app are admin-seeded → admin → FPG → FP → end-user
     forgot-password/
       forgot-password.component.ts/html/scss → Forgot password form (email)
     reset-password/
@@ -113,9 +123,18 @@ app/
     change-password/
       change-password.component.ts/html/scss → Change password form (old + new + confirm, [Authorize])
   dashboard/
-    dashboard.component.ts        → Authenticated shell (header + split layout + initial post-login route handling + SignalR hydration guard)
-    dashboard.component.html      → Child router-outlet left panel + chat right panel
+    dashboard.component.ts        → Authenticated shell (header + split layout + initial post-login route handling + SignalR hydration guard). Imports ImpersonationBannerComponent
+    dashboard.component.html      → Child router-outlet left panel + chat right panel. ImpersonationBanner mounted above main layout. "Recommendations" header button gated to `auth.currentRole() === 'user'`
     dashboard.component.scss      → Host styling + slideIn animation
+  admin/
+    admin-home.component.ts/html  → Admin landing (`/admin`). Lists FPG-admin users (welcome banner + search/sort/pagination card grid). "New FPG admin" opens a create dialog; per-card "Remove" opens the shared type-to-confirm delete dialog and calls `DELETE /api/admin/fpg-admin-users/{userId}`. Standalone, OnPush, signals
+    create-admin-user-dialog.component.ts/html → MatDialog: creates an FPG admin via `POST /api/admin/fpg-admin-users`. No `groupId` injection — the group is hidden from the UI
+  fpg/
+    fpg-home.component.ts/html    → FPG landing (`/fpg`). Welcome banner + view-mode pills (Financial Planners / End-Users / Recommendations) + search/sort/pagination card grid. "Add planner" opens a dialog. Group end-users and group recommendations are lazy-loaded when their pill is selected
+    create-fp-dialog.component.ts/html → MatDialog: creates a financial planner via `POST /api/financial-planner-group/me/financial-planners`
+  fp/
+    fp-home.component.ts/html     → FP landing (`/fp`). Welcome banner + filter chips (All / Has analyses / No analyses) + search/sort/pagination card grid. Each user card has "Continue as user" (auto-impersonate, lands on `/saved`), a red "Remove" that opens the shared type-to-confirm dialog and calls `DELETE /api/financial-planner/me/end-users/{userId}` (cascade), and an expandable recommendations list with per-rec delete. "New user" opens a dialog that creates the user, immediately impersonates them, and lands on `/saved`
+    create-end-user-dialog.component.ts/html → MatDialog: creates an end-user via `POST /api/financial-planner/me/end-users` (default password `Aivante@1234`, randomized dummy phone, `MustChangePassword=true`)
   user-profile/
     user-profile.component.ts     → Consolidated single-form profile (all fields in one form, with ZIP/MAGI subscription cancellation guards)
     user-profile.component.html   → Profile form template
@@ -232,15 +251,22 @@ environments/
 
 ```
 AI.MedicareAssistant.Api/
-  Program.cs                      → App builder, DI, CORS, JWT, MongoDB, Serilog, middleware pipeline
+  Program.cs                      → App builder, DI, CORS, JWT, MongoDB, Serilog, middleware pipeline (UseAuthentication → UseMiddleware<ImpersonationLoggingMiddleware> → UseAuthorization)
   Middleware/
     GlobalExceptionMiddleware.cs   → Global exception handler (AppException → HTTP status + JSON)
+    ImpersonationLoggingMiddleware.cs → Pushes Serilog `ImpersonatedBy={fpUserId}` LogContext property when the principal carries an `actingAs` claim, so every log line emitted while impersonating records the FP's id
+  Filters/
+    MustChangePasswordFilter.cs   → Global IAsyncActionFilter (registered via AddControllers options). Throws UnauthorizedException on every authenticated action other than `/api/auth/change-password` while the principal's `mustChangePassword` claim is `"true"`
   Controllers/
     DrugController.cs             → Drug name suggestion REST endpoint
     PharmacyController.cs         → Pharmacy lookup (Financial Planner API)
     PlanRecommendationController.cs → Medicare plan cost evaluation
     PrescriptionController.cs     → [Authorize] Save + update current analysis selections (MongoDB)
-    AuthController.cs             → Sign up, sign in, forgot/reset password, verify email, resend verification, change password
+    AuthController.cs             → [Public] sign in, forgot/reset password, verify email, resend verification. [Authorize] change-password (clears MustChangePassword + reissues JWT). Sign-up endpoint removed
+    AdminController.cs            → [Authorize(Roles=admin)]. Primary: `GET/POST/DELETE api/admin/fpg-admin-users[/{userId}]` — direct FPG-admin user CRUD (backend auto-creates the underlying group; DELETE refuses with 409 if the group still has FPs). Legacy: `GET/POST api/admin/financial-planner-groups`, `POST api/admin/financial-planner-groups/{fpgId}/admin-user`
+    FinancialPlannerGroupController.cs → [Authorize(Roles=financial_planner_group)] FP CRUD scoped to caller's `fpgId` claim + read-only group end-users / recommendations
+    FinancialPlannerController.cs → [Authorize(Roles=financial_planner)] end-user list/create + cascade DELETE end-user (`DELETE /me/end-users/{endUserId}` wipes profile/chat/recs/analysis/LTC) + recommendations grouped by user + delete recommendation
+    ImpersonationController.cs    → [Authorize] base; POST `/api/impersonate` adds Roles=financial_planner. POST `/api/impersonate/refresh` accepts the impersonation token (Role=user) and reads `actingAs` claim to reissue
     ReferenceDataController.cs    → Public master data endpoint
     ProfileController.cs         → [Authorize] consolidated profile GET/POST
     CountyLookupController.cs     → ZIP-based county code lookup + MAGI tiers endpoint
@@ -262,8 +288,12 @@ AI.MedicareAssistant.Api/
   appsettings.json                → OpenAI + CMS + JWT + MongoDB configuration
 
 AI.MedicareAssistant.Domain/
+  Constants/
+    UserRoles.cs                  → Role string constants: Admin, FinancialPlannerGroup, FinancialPlanner, User. Used throughout (controllers, services, attributes)
   Documents/
-    UserDocument.cs               → MongoDB: merged user + profile document (email, phone, passwordHash, isEmailVerified, profile fields, isProfileComplete, timestamps)
+    UserDocument.cs               → MongoDB: login / identity document — `users` collection (email, phone, passwordHash, isEmailVerified, mustChangePassword, firstName, lastName, **role**, **fpgId**, **fpId**, audit). `[BsonIgnoreExtraElements]` for transition safety
+    ProfileDocument.cs            → MongoDB: personal / medical / address document — `userProfiles` collection (userId FK, coverageYear, healthCondition, taxFilingStatus, magiTier, gender, tobaccoStatus, dateOfBirth, lifeExpectancy, concierge fields, alternate contact, address, currentPrescriptionDocumentId, isProfileComplete, audit)
+    FinancialPlannerGroupDocument.cs → MongoDB: tenant entity (groupId, name, description, audit) — collection `financialPlannerGroups`
     ChatSessionDocument.cs        → MongoDB: chat session messages + UI state
     LtcCurrentSelectionsDocument.cs → MongoDB: per-user LTC care-type inputs + last projection result (collection ltcCurrentSelections)
     PrescriptionDocument.cs       → MongoDB: named prescription with embedded drug list
@@ -303,17 +333,31 @@ AI.MedicareAssistant.Domain/
     IMedicareAdvantagePlanService.cs → MA plan recommendation contract (RecommendAsync)
     IMedicareCostService.cs       → Medicare cost service contract
     IMedigapPlanQuotesService.cs  → Medigap plan quotes contract (GetQuotesAsync)
-    IMongoRepositories.cs         → MongoDB repository interfaces: IPrescriptionDocRepository, IChatSessionRepository, IUserAnalysisSelectionsRepository, IRecommendationRepository, ILtcSelectionsRepository
+    IMongoRepositories.cs         → MongoDB repository interfaces: IPrescriptionDocRepository, IChatSessionRepository (with `DeleteByUserIdAsync`), IUserAnalysisSelectionsRepository (with `DeleteByUserIdAsync` for cascade), IRecommendationRepository (with `DeleteByUserIdAsync` for cascade), ILtcSelectionsRepository (with `DeleteByUserIdAsync` for cascade)
     IPartDPlanRecommendationService.cs → Part D plan recommendation contract (RecommendAsync)
     IPharmacyLookupService.cs     → Financial Planner pharmacy lookup contract + request/response models
     IPlanScoringAiService.cs      → AI plan scoring + explanation contract
     IPresentValueService.cs       → Financial Planner expensesPresentValue API contract (CalculateAsync)
-    IProfileRepositories.cs       → IProfileRepository interface (operates on UserDocument)
-    IUserRepository.cs            → User data access contract (operates on UserDocument)
+    IProfileRepositories.cs       → IProfileRepository interface (operates on ProfileDocument against the `userProfiles` collection). Includes `DeleteByUserIdAsync` for end-user cascade delete
+    IUserRepository.cs            → User data access contract — login / identity (operates on UserDocument). Methods: GetByEmail/Phone/Id, Create, Update, Delete, EmailExists, PhoneExists, plus role-hierarchy queries GetByFpIdAsync, GetByFpgIdAndRoleAsync, GetEndUsersByFpgAsync (two-step join), GetAllByRoleAsync (admin-scope list-all-by-role)
+    IFinancialPlannerGroupRepository.cs → CRUD contract for FinancialPlannerGroupDocument (GetById, GetAll, Create, Update, Delete, ExistsByName)
+    IJwtTokenIssuer.cs            → Single point of truth for JWT issuance (used by sign-in, post-change-password reissue, and impersonation). `Issue(UserDocument, actingAs?, ttl?)` returns (Token, ExpiresAt)
 
 AI.MedicareAssistant.Application/
+  Interfaces/
+    IAuthService.cs               → Sign-in, password-flows, change-password, verify/resend (sign-up removed)
+    IAdminService.cs              → List/create FPGs, create initial FPG-admin user
+    IFinancialPlannerGroupService.cs → FP CRUD + group end-user/recommendation read-only views
+    IFinancialPlannerService.cs    → End-user list, recommendations grouped by user, delete recommendation
+    IEndUserService.cs            → Create end-user with default password + dummy phone
+    IImpersonationService.cs      → Issue 60-min impersonation token (with mustChangePassword override)
+    IChatIntentClassifier.cs, IDrugSelectionExtractor.cs, IPharmacySelectionExtractor.cs, IPlanSelectionExtractor.cs, IProfileExtractor.cs (existing AI extractor contracts)
   DTOs/
-    AuthDtos.cs                   → SignUpRequest, SignInRequest, ForgotPassword, ResetPassword, AuthResponse
+    AuthDtos.cs                   → SignInRequest, ForgotPassword, ResetPassword, ChangePassword, VerifyEmail, ResendVerification, AuthResponse, UserDto (now includes Role/FpgId/FpId/MustChangePassword). SignUpRequest removed
+    FinancialPlannerGroupDtos.cs  → FpgSummaryDto, CreateFpgRequest, CreateFpgAdminUserRequest, UserSummaryDto
+    FinancialPlannerDtos.cs       → FpSummaryDto, CreateFpRequest, UpdateFpRequest
+    EndUserDtos.cs                → EndUserSummaryDto, CreateEndUserRequest, RecommendationSummaryDto, RecommendationByUserDto
+    ImpersonationDtos.cs          → ImpersonateRequest, ImpersonationResponse
     PrescriptionDtos.cs           → SavePrescriptionRequest, PrescriptionDrugDto, PrescriptionResponse
     ProfileDtos.cs                → ProfileDto, UserProfileResponse
     ProfileExtractDtos.cs         → ProfileExtractRequest, ProfileExtractResponse (extracted fields + reply)
@@ -329,7 +373,13 @@ AI.MedicareAssistant.Application/
     PlanCardEnrichmentDtos.cs     → EnrichedPartDCard (planIdDisplay, insuranceCarrier, partDSurcharge, prescriptionOOP, pharmaciesInNetwork, drugsCovered), EnrichedMedigapCard (premiumMonthly, premiumAnnual, insuranceCarrier, partBSurcharge, healthcareOOP, remainingMonths), EnrichedMACard (planIdDisplay, insuranceCarrier, surcharges, prescriptionOOP, healthcareOOP, pharmaciesInNetwork, drugsCovered)
   Services/
     Pipeline/                     → (empty — pipeline steps removed)
-    AuthService.cs                → JWT auth logic
+    AuthService.cs                → IAuthService impl. Sign-in, password flows, change-password (clears MustChangePassword + reissues JWT). Delegates token issuance to IJwtTokenIssuer
+    JwtTokenIssuer.cs             → IJwtTokenIssuer impl. Builds claims (NameIdentifier, Email, Role, mustChangePassword, Jti, optional fpgId/fpId/actingAs), signs with HMAC-SHA256, configurable lifetime
+    AdminService.cs               → IAdminService impl. `ListFpgAdminUsersAsync` + `CreateFpgAdminUserAsync` (atomically auto-creates a `FinancialPlannerGroup` named `"{First} {Last}"` with numeric suffix on collision, fails after 50) + `DeleteFpgAdminUserAsync` (deletes the FPG admin and their auto-created group; throws `ConflictException` if the group still has FPs). Randomized 55501XXXXX dummy phone. Legacy `ListGroupsAsync` / `CreateGroupAsync` / `CreateGroupAdminUserAsync` retained for back-compat
+    FinancialPlannerGroupService.cs → IFinancialPlannerGroupService impl. Verifies `target.FpgId == callerFpgId` on every mutation. DeleteFinancialPlannerAsync rejects with 409 if FP still has end-users (no orphaning). Group views go through IRecommendationRepository.GetByUserIdsAsync
+    FinancialPlannerService.cs    → IFinancialPlannerService impl. Queries `WHERE FpId = caller.UserId`. DeleteRecommendationAsync verifies the rec's user belongs to the caller before deleting. **DeleteEndUserAsync** cascades through `IProfileRepository`, `IChatSessionRepository`, `IRecommendationRepository`, `IUserAnalysisSelectionsRepository`, `ILtcSelectionsRepository` (all expose `DeleteByUserIdAsync`) before deleting the user via `IUserRepository.DeleteAsync` — verifies caller owns the target first
+    EndUserService.cs             → IEndUserService impl. Creates end-user with default password Aivante@1234, randomized 55501XXXXX phone, MustChangePassword=true, FpId=caller.UserId. DefaultPassword constant lives here
+    ImpersonationService.cs       → IImpersonationService impl. Verifies caller is FP and target is one of their end-users, then clones the target user with `MustChangePassword=false` and issues a 60-min token via IJwtTokenIssuer with `actingAs = fpUserId`
     ChatIntentService.cs          → AI-powered chat intent classification (file-based prompt)
     ChatSessionService.cs         → Chat session persistence (get/update messages + ui-state)
     CostProjectionService.cs      → Orchestrates cost projections (profile → Financial Planner API → AI evaluation)
@@ -339,7 +389,7 @@ AI.MedicareAssistant.Application/
     PlanSelectionExtractService.cs → AI-powered plan selection extraction from chat
     PrescriptionService.cs        → Prescription save/list logic (MongoDB)
     ProfileExtractService.cs      → AI-powered profile field extraction from natural language
-    ProfileService.cs             → Consolidated profile CRUD (Get/Save/Delete)
+    ProfileService.cs             → Consolidated profile CRUD (Get/Save/Delete). Depends on IUserRepository (for firstName/lastName on the login doc) and IProfileRepository (for everything else on ProfileDocument). Lazily creates ProfileDocument on first save
     RecommendationService.cs      → CRUD for MongoDB RecommendationDocument (GetActive, GetAll, Create, UpdateProfile/Drugs/Pharmacies/Plans/CostSnapshot, Delete)
 
 AI.MedicareAssistant.Infrastructure/
@@ -376,13 +426,16 @@ AI.MedicareAssistant.Infrastructure/
     EmailService.cs               → Email delivery service (IEmailService)
     EmailSettings.cs              → Email configuration model
   Data/
-    MongoDbContext.cs             → MongoDB typed collection accessor (users, prescriptions, chatSessions, userAnalysisSelections, recommendations, ltcCurrentSelections + indexes)
+    MongoDbContext.cs             → MongoDB typed collection accessor (users, userProfiles, financialPlannerGroups, prescriptions, chatSessions, userAnalysisSelections, recommendations, ltcCurrentSelections + indexes including unique UserId on userProfiles, unique sparse UserId on chatSessions, unique GroupId/Name on financialPlannerGroups, non-unique FpId/FpgId/Role on users). Also exposes `UsersRaw` (BsonDocument view) used by the split migration. `MongoIndexInitializer` runs two cleanup helpers before creating indexes: `DropLegacyPascalCaseIndexesAsync` (drops any index whose name starts with an uppercase letter — stale from before the camelCase convention was registered) and `DropOptionDriftedIndexesAsync` (drops indexes whose options have drifted; currently handles `chatSessions.userId_1` which used to be non-sparse)
+    UserProfileSplitMigrationInitializer.cs → IHostedService. One-shot split migration. Scans legacy unified `users` documents, upserts profile fields into a `userProfiles` doc, then `$unset`s them on `users`. Idempotent — records completion in the `schemaMigrations` collection. Registered **before** MongoIndexInitializer so the unique-UserId index on `userProfiles` only sees post-split data
+    AdminSeedInitializer.cs       → IHostedService. Seeds the singleton admin user on startup if `Seed:AdminPassword` config is set; otherwise skips silently (production-safe by default). Email and phone are configurable via `Seed:AdminEmail` (default `admin@aivante.com`) and `Seed:AdminPhone` (default `5550199999`); in docker these map to `ADMIN_EMAIL` / `ADMIN_PHONE` / `ADMIN_PASSWORD` env vars. Seeds with MustChangePassword=true so the admin must reset on first sign-in. `DefaultAdminEmail` / `DefaultAdminPhone` constants exposed for tests
   Repositories/
     ChatSessionRepository.cs      → MongoDB: chat session CRUD (IChatSessionRepository)
     MongoRepositories.cs          → MongoDB repository implementations (prescriptions, userAnalysisSelections, ltcSelections)
-    MongoProfileRepository.cs     → MongoDB: profile CRUD on users collection (IProfileRepository)
-    MongoUserRepository.cs        → MongoDB: user CRUD on users collection (IUserRepository)
-    RecommendationRepository.cs   → MongoDB: recommendation CRUD (get/create/replace/delete) + unique userId index
+    MongoProfileRepository.cs     → MongoDB: profile CRUD on `userProfiles` collection (IProfileRepository). UpdateAsync is an upsert so ProfileDocument is created lazily on first save
+    MongoUserRepository.cs        → MongoDB: login / identity CRUD on `users` collection (IUserRepository) — includes role-hierarchy queries (GetByFpIdAsync, GetByFpgIdAndRoleAsync, GetEndUsersByFpgAsync, GetAllByRoleAsync) and DeleteAsync
+    MongoFinancialPlannerGroupRepository.cs → MongoDB: FPG CRUD on `financialPlannerGroups` collection (IFinancialPlannerGroupRepository)
+    RecommendationRepository.cs   → MongoDB: recommendation CRUD (get/create/replace/delete) + unique userId index. Adds GetByIdAsync(string id) (no owner filter, used by FP delete-with-verification flow), GetByUserIdsAsync (for group views), DeleteByIdAsync
 ```
 
 ---

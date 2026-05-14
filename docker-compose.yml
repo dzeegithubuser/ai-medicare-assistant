@@ -43,6 +43,10 @@ services:
       # CORS
       - Cors__AllowedOrigins__0=${CORS_ALLOWED_ORIGINS_0}
       - Cors__AllowedOrigins__1=${CORS_ALLOWED_ORIGINS_1}
+      # Admin seed (required to bootstrap; if AdminPassword is empty the seeder skips)
+      - Seed__AdminEmail=${ADMIN_EMAIL}
+      - Seed__AdminPhone=${ADMIN_PHONE}
+      - Seed__AdminPassword=${ADMIN_PASSWORD}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5024/api/ReferenceData"]

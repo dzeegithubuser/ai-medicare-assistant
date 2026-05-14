@@ -17,6 +17,7 @@
 | 7 | [Saved Data, Detail & Compare](ch10-07-saved-compare-detail.md) | `/saved`, `/saved/:id`, `/saved/compare` | 16, 25, 26, 27, 28, 29, 30 |
 | 8 | [LTC Analysis](ch10-08-ltc-analysis.md) | `/long-term-care/*` | 21 |
 | 9 | [Error Handling & Infrastructure](ch10-09-error-handling-infra.md) | Backend-only / cross-cutting | 7, 8, 10, 18, 22 |
+| 10 | [Role Management & Tear-down](ch10-10-role-management.md) | `/admin`, `/fpg`, `/fp` + impersonation + cascade delete + admin seed | 31, 32, 33, 34, 35, 36, 37, 38, 39 |
 
 ---
 

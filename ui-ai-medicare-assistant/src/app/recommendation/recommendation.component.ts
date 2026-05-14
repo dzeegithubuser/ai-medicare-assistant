@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { ChatSessionService } from '../services/chat-session.service';
 import { ChatWizardService } from '../services/chat-wizard.service';
 import { RecommendationService } from '../services/recommendation.service';
 import { RecommendationSummaryResponse, RecommendationCategory } from '../models/recommendation.model';
@@ -35,6 +36,7 @@ export class RecommendationComponent implements OnInit {
   private recommendationService = inject(RecommendationService);
   private router = inject(Router);
   private chatWizard = inject(ChatWizardService);
+  private chatSession = inject(ChatSessionService);
 
   readonly recommendations = signal<RecommendationSummaryResponse[]>([]);
   readonly loadingRecommendations = signal(true);
@@ -156,6 +158,7 @@ export class RecommendationComponent implements OnInit {
 
   // ── Navigation helpers ────────────────────────────────────────────────────
   startMedicareAnalysis() {
+    this.chatSession.startNewSession().subscribe({ error: () => {} });
     this.router.navigate([AppRoutes.abs.PROFILE]);
     this.chatWizard.requestMedicareAnalysisEntry();
   }
@@ -165,6 +168,7 @@ export class RecommendationComponent implements OnInit {
   }
 
   startLongTermAnalysis() {
+    this.chatSession.startNewSession().subscribe({ error: () => {} });
     this.router.navigate([AppRoutes.abs.LTC_PROFILE]);
   }
 

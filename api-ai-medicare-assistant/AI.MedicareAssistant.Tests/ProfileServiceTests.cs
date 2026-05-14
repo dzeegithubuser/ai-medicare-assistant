@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Services;
 using Domain.Documents;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,13 +13,18 @@ namespace AI.MedicareAssistant.Tests;
 /// </summary>
 public class ProfileServiceTests
 {
-    private readonly Mock<IProfileRepository> _repoMock;
+    private readonly Mock<IProfileRepository> _profileRepoMock;
+    private readonly Mock<IUserRepository> _userRepoMock;
     private readonly ProfileService _sut;
 
     public ProfileServiceTests()
     {
-        _repoMock = new Mock<IProfileRepository>();
-        _sut = new ProfileService(_repoMock.Object, Mock.Of<ILogger<ProfileService>>());
+        _profileRepoMock = new Mock<IProfileRepository>();
+        _userRepoMock = new Mock<IUserRepository>();
+        _sut = new ProfileService(
+            _profileRepoMock.Object,
+            _userRepoMock.Object,
+            Mock.Of<ILogger<ProfileService>>());
     }
 
     // ═══════ GetProfileAsync ═══════
@@ -27,7 +33,8 @@ public class ProfileServiceTests
     public async Task GetProfile_ExistingProfile_ReturnsComplete()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(CreateTestUser(userId));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestProfile(userId));
 
         var result = await _sut.GetProfileAsync(userId);
 
@@ -41,7 +48,8 @@ public class ProfileServiceTests
     public async Task GetProfile_NoProfile_ReturnsIncomplete()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((UserDocument?)null);
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(CreateTestUser(userId));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((ProfileDocument?)null);
 
         var result = await _sut.GetProfileAsync(userId);
 
@@ -53,7 +61,7 @@ public class ProfileServiceTests
     public async Task GetProfile_RepoThrows_PropagatesException()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ThrowsAsync(new Exception("DB down"));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ThrowsAsync(new Exception("DB down"));
 
         await Assert.ThrowsAsync<Exception>(() => _sut.GetProfileAsync(userId));
     }
@@ -61,31 +69,48 @@ public class ProfileServiceTests
     // ═══════ SaveAsync ═══════
 
     [Fact]
-    public async Task Save_ExistingUser_CallsUpdate()
+    public async Task Save_ExistingUserAndProfile_UpdatesBoth()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(CreateTestUser(userId));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestProfile(userId));
 
         await _sut.SaveAsync(userId, CreateTestDto());
 
-        _repoMock.Verify(r => r.UpdateAsync(It.Is<UserDocument>(p =>
-            p.UserId == userId && p.FirstName == "John")), Times.Once);
+        _userRepoMock.Verify(r => r.UpdateAsync(It.Is<UserDocument>(u =>
+            u.UserId == userId && u.FirstName == "John" && u.LastName == "Doe")), Times.Once);
+        _profileRepoMock.Verify(r => r.UpdateAsync(It.Is<ProfileDocument>(p =>
+            p.UserId == userId && p.ZipCode == "80113" && p.IsProfileComplete)), Times.Once);
     }
 
     [Fact]
-    public async Task Save_NoUserDocument_ThrowsInvalidOperation()
+    public async Task Save_NoUserDocument_ThrowsNotFound()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((UserDocument?)null);
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync((UserDocument?)null);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.SaveAsync(userId, CreateTestDto()));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.SaveAsync(userId, CreateTestDto()));
+    }
+
+    [Fact]
+    public async Task Save_NoProfileYet_CreatesNewProfileViaUpdateUpsert()
+    {
+        var userId = Guid.NewGuid();
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(CreateTestUser(userId));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((ProfileDocument?)null);
+
+        await _sut.SaveAsync(userId, CreateTestDto());
+
+        _profileRepoMock.Verify(r => r.UpdateAsync(It.Is<ProfileDocument>(p =>
+            p.UserId == userId && p.IsProfileComplete)), Times.Once);
     }
 
     [Fact]
     public async Task Save_ReturnsMappedDto()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(CreateTestUser(userId));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestProfile(userId));
 
         var result = await _sut.SaveAsync(userId, CreateTestDto());
 
@@ -98,11 +123,12 @@ public class ProfileServiceTests
     public async Task Save_SetsDateOfBirth()
     {
         var userId = Guid.NewGuid();
-        _repoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestUserDocument(userId));
+        _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(CreateTestUser(userId));
+        _profileRepoMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(CreateTestProfile(userId));
 
         await _sut.SaveAsync(userId, CreateTestDto());
 
-        _repoMock.Verify(r => r.UpdateAsync(It.Is<UserDocument>(p =>
+        _profileRepoMock.Verify(r => r.UpdateAsync(It.Is<ProfileDocument>(p =>
             p.DateOfBirth == "1958-01-15")), Times.Once);
     }
 
@@ -111,17 +137,17 @@ public class ProfileServiceTests
     [Fact]
     public void MapToDto_MapsAllFields()
     {
-        var entity = CreateTestUserDocument(Guid.NewGuid());
-        entity.IsProfileComplete = true;
-        var dto = ProfileService.MapToDto(entity);
+        var user = CreateTestUser(Guid.NewGuid());
+        var profile = CreateTestProfile(user.UserId);
+        var dto = ProfileService.MapToDto(user, profile);
 
-        Assert.Equal(entity.FirstName, dto.FirstName);
-        Assert.Equal(entity.LastName, dto.LastName);
-        Assert.Equal(entity.CoverageYear, dto.CoverageYear);
-        Assert.Equal(entity.Gender, dto.Gender);
-        Assert.Equal(entity.ZipCode, dto.ZipCode);
-        Assert.Equal(entity.County, dto.County);
-        Assert.Equal(entity.DateOfBirth, dto.DateOfBirth);
+        Assert.Equal(user.FirstName, dto.FirstName);
+        Assert.Equal(user.LastName, dto.LastName);
+        Assert.Equal(profile.CoverageYear, dto.CoverageYear);
+        Assert.Equal(profile.Gender, dto.Gender);
+        Assert.Equal(profile.ZipCode, dto.ZipCode);
+        Assert.Equal(profile.County, dto.County);
+        Assert.Equal(profile.DateOfBirth, dto.DateOfBirth);
     }
 
     // ═══════ Helpers ═══════
@@ -149,15 +175,20 @@ public class ProfileServiceTests
         Longitude = -104.9878
     };
 
-    private static UserDocument CreateTestUserDocument(Guid userId) => new()
+    private static UserDocument CreateTestUser(Guid userId) => new()
     {
         UserId = userId,
         Email = "test@example.com",
         Phone = "5551234567",
         PasswordHash = "hashed",
-        IsProfileComplete = true,
         FirstName = "John",
-        LastName = "Doe",
+        LastName = "Doe"
+    };
+
+    private static ProfileDocument CreateTestProfile(Guid userId) => new()
+    {
+        UserId = userId,
+        IsProfileComplete = true,
         CoverageYear = 2026,
         HealthCondition = 3,
         TaxFilingStatus = "Single",

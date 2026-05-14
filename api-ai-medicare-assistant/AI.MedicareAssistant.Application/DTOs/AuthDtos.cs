@@ -2,23 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs;
 
-public class SignUpRequest
-{
-    [Required, EmailAddress, MaxLength(256)]
-    public string Email { get; set; } = "";
-
-    [Required, MaxLength(20)]
-    [RegularExpression(@"^(\+1[\s.\-]?)?(\(?\d{3}\)?[\s.\-]?)(\d{3}[\s.\-]?\d{4})$",
-        ErrorMessage = "Enter a valid US phone number (e.g. (555) 123-4567).")]
-    public string Phone { get; set; } = "";
-
-    [Required, MinLength(8), MaxLength(128)]
-    public string Password { get; set; } = "";
-
-    [Required, Compare(nameof(Password))]
-    public string ConfirmPassword { get; set; } = "";
-}
-
 public class SignInRequest
 {
     [Required, EmailAddress]
@@ -72,6 +55,10 @@ public class UserDto
     public Guid Id { get; set; }
     public string Email { get; set; } = "";
     public string Phone { get; set; } = "";
+    public string Role { get; set; } = "";
+    public Guid? FpgId { get; set; }
+    public Guid? FpId { get; set; }
+    public bool MustChangePassword { get; set; }
 }
 
 public class VerifyEmailRequest

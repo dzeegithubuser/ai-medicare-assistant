@@ -18,6 +18,7 @@ import { LtcExpenseEntry, LtcCostEvaluation, LtcCostCategory, LtcProjectionRespo
 import { Router } from '@angular/router';
 import { AppRoutes } from '../../app-routes.const';
 import { ChartBuilderService } from '../../services/chart-builder.service';
+import { ChatSessionService } from '../../services/chat-session.service';
 
 @Component({
   selector: 'app-ltc-projection-step',
@@ -31,6 +32,7 @@ export class LtcProjectionStepComponent implements OnDestroy {
   private state = inject(LtcStateService);
   private router = inject(Router);
   private chartBuilder = inject(ChartBuilderService);
+  private chatSession = inject(ChatSessionService);
 
   readonly lineChart = viewChild<ElementRef<HTMLCanvasElement>>('lineChart');
   readonly stackedChart = viewChild<ElementRef<HTMLCanvasElement>>('stackedChart');
@@ -56,6 +58,7 @@ export class LtcProjectionStepComponent implements OnDestroy {
   }
 
   startNewAnalysis(): void {
+    this.chatSession.startNewSession().subscribe({ error: () => {} });
     this.state.resetAll();
     this.router.navigateByUrl(AppRoutes.abs.LTC_PROFILE);
   }

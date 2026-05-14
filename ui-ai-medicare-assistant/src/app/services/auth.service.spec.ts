@@ -44,15 +44,6 @@ describe('AuthService', () => {
 
   // ─── HTTP Methods ──────────────────────────────────────────────
 
-  it('should POST to signup endpoint', () => {
-    const req = { email: 'a@b.com', phone: '555', password: 'P@ss1', confirmPassword: 'P@ss1' };
-    service.signUp(req).subscribe(res => expect(res.success).toBe(true));
-
-    const httpReq = httpMock.expectOne(`${environment.apiUrl}/api/auth/signup`);
-    expect(httpReq.request.method).toBe('POST');
-    httpReq.flush(mockResponse);
-  });
-
   it('should POST to signin endpoint', () => {
     service.signIn({ email: 'a@b.com', password: 'P@ss1' }).subscribe();
 

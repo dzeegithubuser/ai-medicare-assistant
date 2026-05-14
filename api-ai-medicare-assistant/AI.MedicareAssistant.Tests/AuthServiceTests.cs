@@ -10,7 +10,7 @@ using Moq;
 namespace AI.MedicareAssistant.Tests;
 
 /// <summary>
-/// Tests for AuthService — signup, signin, forgot-password, reset-password.
+/// Tests for AuthService — signin, forgot-password, reset-password.
 /// </summary>
 public class AuthServiceTests
 {
@@ -38,103 +38,8 @@ public class AuthServiceTests
             _config,
             Mock.Of<ILogger<AuthService>>(),
             _cache,
-            Mock.Of<IEmailService>());
-    }
-
-    // ═══════ SignUp ═══════
-
-    [Fact]
-    public async Task SignUp_ValidRequest_ReturnsSuccess()
-    {
-        _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.PhoneExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<UserDocument>()))
-            .ReturnsAsync((UserDocument u) => u);
-
-        var result = await _sut.SignUpAsync(new SignUpRequest
-        {
-            Email = "test@example.com",
-            Phone = "5551234567",
-            Password = "Password123!",
-            ConfirmPassword = "Password123!"
-        });
-
-        Assert.True(result.Success);
-        Assert.Contains("Registration successful", result.Message);
-        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<UserDocument>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task SignUp_DuplicateEmail_ReturnsFailure()
-    {
-        _userRepoMock.Setup(r => r.EmailExistsAsync("dupe@example.com")).ReturnsAsync(true);
-
-        var result = await _sut.SignUpAsync(new SignUpRequest
-        {
-            Email = "dupe@example.com",
-            Phone = "5551234567",
-            Password = "Password123!"
-        });
-
-        Assert.False(result.Success);
-        Assert.Contains("Email already", result.Message);
-        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<UserDocument>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task SignUp_DuplicatePhone_ReturnsFailure()
-    {
-        _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.PhoneExistsAsync("5551234567")).ReturnsAsync(true);
-
-        var result = await _sut.SignUpAsync(new SignUpRequest
-        {
-            Email = "new@example.com",
-            Phone = "5551234567",
-            Password = "Password123!"
-        });
-
-        Assert.False(result.Success);
-        Assert.Contains("Phone", result.Message);
-    }
-
-    [Fact]
-    public async Task SignUp_NormalizesEmailToLowercase()
-    {
-        _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.PhoneExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<UserDocument>()))
-            .ReturnsAsync((UserDocument u) => u);
-
-        await _sut.SignUpAsync(new SignUpRequest
-        {
-            Email = "TEST@EXAMPLE.COM",
-            Phone = "5551234567",
-            Password = "Password123!"
-        });
-
-        _userRepoMock.Verify(r => r.CreateAsync(
-            It.Is<UserDocument>(u => u.Email == "test@example.com")), Times.Once);
-    }
-
-    [Fact]
-    public async Task SignUp_HashesPassword()
-    {
-        _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.PhoneExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<UserDocument>()))
-            .ReturnsAsync((UserDocument u) => u);
-
-        await _sut.SignUpAsync(new SignUpRequest
-        {
-            Email = "test@example.com",
-            Phone = "5551234567",
-            Password = "Password123!"
-        });
-
-        _userRepoMock.Verify(r => r.CreateAsync(
-            It.Is<UserDocument>(u => u.PasswordHash != "Password123!" && u.PasswordHash.StartsWith("$2"))),
-            Times.Once);
+            Mock.Of<IEmailService>(),
+            new JwtTokenIssuer(_config));
     }
 
     // ═══════ SignIn ═══════

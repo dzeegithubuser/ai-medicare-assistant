@@ -1,0 +1,57 @@
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FinancialPlannerService } from '../services/financial-planner.service';
+import { EndUserSummary } from '../models/role-management.model';
+
+@Component({
+  selector: 'app-create-end-user-dialog',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule, ReactiveFormsModule, MatDialogModule, MatButtonModule,
+    MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule,
+  ],
+  templateUrl: './create-end-user-dialog.component.html',
+})
+export class CreateEndUserDialogComponent {
+  private fb = inject(FormBuilder);
+  private fpService = inject(FinancialPlannerService);
+  private dialogRef = inject(MatDialogRef<CreateEndUserDialogComponent, EndUserSummary | undefined>);
+
+  protected submitting = signal(false);
+  protected error = signal('');
+
+  protected form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    firstName: ['', [Validators.required, Validators.maxLength(50)]],
+    lastName: ['', [Validators.required, Validators.maxLength(50)]],
+  });
+
+  protected submit() {
+    if (this.form.invalid || this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set('');
+    this.fpService.createEndUser({
+      email: this.form.value.email!,
+      firstName: this.form.value.firstName!,
+      lastName: this.form.value.lastName!,
+    }).subscribe({
+      next: user => this.dialogRef.close(user),
+      error: err => {
+        this.submitting.set(false);
+        this.error.set(err.error?.message ?? 'Failed to create user.');
+      },
+    });
+  }
+
+  protected cancel() {
+    this.dialogRef.close(undefined);
+  }
+}

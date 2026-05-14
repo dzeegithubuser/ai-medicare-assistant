@@ -8,53 +8,52 @@ using MongoDB.Driver;
 namespace Infrastructure.Repositories;
 
 /// <summary>
-/// MongoDB implementation of <see cref="IProfileRepository"/>.
-/// Profile fields are embedded directly in <see cref="UserDocument"/>; this repository
-/// delegates to the <c>users</c> collection.
+/// MongoDB implementation of <see cref="IProfileRepository"/> against the <c>userProfiles</c> collection.
 /// </summary>
 public class MongoProfileRepository : IProfileRepository
 {
-    private readonly IMongoCollection<UserDocument> _collection;
+    private readonly IMongoCollection<ProfileDocument> _collection;
     private readonly ILogger<MongoProfileRepository> _logger;
 
     public MongoProfileRepository(MongoDbContext context, ILogger<MongoProfileRepository> logger)
     {
-        _collection = context.Users;
+        _collection = context.UserProfiles;
         _logger = logger;
     }
 
-    public async Task<UserDocument?> GetByUserIdAsync(Guid userId) =>
-        await _collection.Find(u => u.UserId == userId).FirstOrDefaultAsync();
+    public async Task<ProfileDocument?> GetByUserIdAsync(Guid userId) =>
+        await _collection.Find(p => p.UserId == userId).FirstOrDefaultAsync();
 
-    public async Task<UserDocument> CreateAsync(UserDocument entity)
+    public async Task<ProfileDocument> CreateAsync(ProfileDocument entity)
     {
-        // Profile creation is an update on the existing user document
+        entity.CreatedAt = DateTime.UtcNow;
         entity.UpdatedAt = DateTime.UtcNow;
-        entity.IsProfileComplete = true;
-        await EnsureIdAsync(entity);
-        await _collection.ReplaceOneAsync(u => u.UserId == entity.UserId, entity);
+        if (string.IsNullOrEmpty(entity.Id))
+            entity.Id = ObjectId.GenerateNewId().ToString();
+        await _collection.InsertOneAsync(entity);
         return entity;
     }
 
-    public async Task UpdateAsync(UserDocument entity)
+    public async Task UpdateAsync(ProfileDocument entity)
     {
         entity.UpdatedAt = DateTime.UtcNow;
-        await EnsureIdAsync(entity);
-        await _collection.ReplaceOneAsync(u => u.UserId == entity.UserId, entity);
-    }
-
-    private async Task EnsureIdAsync(UserDocument entity)
-    {
         if (string.IsNullOrEmpty(entity.Id))
         {
             var existingId = await _collection
-                .Find(u => u.UserId == entity.UserId)
-                .Project(u => u.Id)
+                .Find(p => p.UserId == entity.UserId)
+                .Project(p => p.Id)
                 .FirstOrDefaultAsync();
             entity.Id = existingId ?? ObjectId.GenerateNewId().ToString();
         }
+        await _collection.ReplaceOneAsync(
+            p => p.UserId == entity.UserId,
+            entity,
+            new ReplaceOptions { IsUpsert = true });
     }
 
     public async Task<bool> ExistsByUserIdAsync(Guid userId) =>
-        await _collection.Find(u => u.UserId == userId && u.IsProfileComplete).AnyAsync();
+        await _collection.Find(p => p.UserId == userId && p.IsProfileComplete).AnyAsync();
+
+    public async Task DeleteByUserIdAsync(Guid userId) =>
+        await _collection.DeleteManyAsync(p => p.UserId == userId);
 }

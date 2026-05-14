@@ -49,7 +49,7 @@
 - **Fields:** First name (required, alphabetic with separators), last name (required, same pattern), coverage year (radio), health profile (dropdown), tax filing status (radio), MAGI tier (dropdown, depends on tax filing + coverage year), gender (radio), tobacco status (radio), date of birth (datepicker, 18+ validator), concierge (radio), concierge amount (conditional input), alternate email (optional), alternate mobile (optional, US phone), life expectancy (65-120, default 95), plus all address fields with ZIP-based county/city cascading dropdowns.
 - **Name Validation:** Pattern `^[A-Za-z]+([' -][A-Za-z]+)*$` — supports names like John, Mary-Jane, O'Connor, Anne Marie.
 - **Save Flow:** Single `POST /api/profile` saves all fields. Auto-navigates to `/medicare-analysis`. Note: the explicit "Save Profile" button has been removed from the profile form — saving is triggered by the wizard's Continue button when the user is embedded at `/medicare-analysis/profile`, keeping the form clean for the first-time onboarding flow.
-- **Backend:** `ProfileController` extracts UserId from JWT. `ProfileService` creates or updates the consolidated `Profile` entity.
+- **Backend:** `ProfileController` extracts UserId from JWT. `ProfileService` writes names to `UserDocument` (`users` collection) via `IUserRepository` and the rest of the fields to `ProfileDocument` (`userProfiles` collection) via `IProfileRepository`. The `ProfileDocument` is created lazily on first save (upsert), so users created top-down (admin → FPG → FP → end-user) live entirely in `users` until they complete the profile screen. The API contract (`ProfileDto` / `UserProfileResponse`) is unchanged by the split.
 
 ---
 

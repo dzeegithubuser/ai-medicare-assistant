@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Domain.Documents;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -7,12 +8,17 @@ namespace Application.Services;
 
 public class ProfileService
 {
-    private readonly IProfileRepository _repo;
+    private readonly IProfileRepository _profileRepo;
+    private readonly IUserRepository _userRepo;
     private readonly ILogger<ProfileService> _logger;
 
-    public ProfileService(IProfileRepository repo, ILogger<ProfileService> logger)
+    public ProfileService(
+        IProfileRepository profileRepo,
+        IUserRepository userRepo,
+        ILogger<ProfileService> logger)
     {
-        _repo = repo;
+        _profileRepo = profileRepo;
+        _userRepo = userRepo;
         _logger = logger;
     }
 
@@ -21,13 +27,16 @@ public class ProfileService
         try
         {
             _logger.LogInformation("Loading profile for user {UserId}", userId);
-            var entity = await _repo.GetByUserIdAsync(userId);
+
+            var user = await _userRepo.GetByIdAsync(userId);
+            var profile = await _profileRepo.GetByUserIdAsync(userId);
+            var isComplete = profile is not null && profile.IsProfileComplete;
 
             return new UserProfileResponse
             {
-                Profile = entity is not null && entity.IsProfileComplete ? MapToDto(entity) : null,
-                IsProfileComplete = entity is not null && entity.IsProfileComplete,
-                CurrentPrescriptionDocumentId = entity?.CurrentPrescriptionDocumentId
+                Profile = isComplete ? MapToDto(user!, profile!) : null,
+                IsProfileComplete = isComplete,
+                CurrentPrescriptionDocumentId = profile?.CurrentPrescriptionDocumentId
             };
         }
         catch (Exception ex)
@@ -43,42 +52,46 @@ public class ProfileService
         {
             _logger.LogInformation("Saving profile for user {UserId}", userId);
 
-            var entity = await _repo.GetByUserIdAsync(userId);
+            var user = await _userRepo.GetByIdAsync(userId)
+                ?? throw new NotFoundException("User", userId);
 
-            if (entity is null)
-                throw new InvalidOperationException($"User document not found for userId {userId}");
+            // Names live on the login doc; the profile screen can edit them.
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.ModifiedBy = userId.ToString();
+            await _userRepo.UpdateAsync(user);
 
-            entity.FirstName = dto.FirstName;
-            entity.LastName = dto.LastName;
-            entity.CoverageYear = dto.CoverageYear;
-            entity.HealthCondition = dto.HealthCondition;
-            entity.TaxFilingStatus = dto.TaxFilingStatus;
-            entity.MagiTier = dto.MagiTier;
-            entity.Gender = dto.Gender;
-            entity.TobaccoStatus = dto.TobaccoStatus;
-            entity.DateOfBirth = dto.DateOfBirth;
-            entity.Concierge = dto.Concierge;
-            entity.ConciergeAmount = dto.ConciergeAmount;
-            entity.AlternateEmail = dto.AlternateEmail;
-            entity.AlternateMobile = dto.AlternateMobile;
-            entity.LifeExpectancy = dto.LifeExpectancy;
+            var profile = await _profileRepo.GetByUserIdAsync(userId) ?? new ProfileDocument { UserId = userId };
 
-            // Address fields
-            entity.AddressLine1 = dto.AddressLine1;
-            entity.City = dto.City;
-            entity.State = dto.State;
-            entity.ZipCode = dto.ZipCode;
-            entity.County = dto.County;
-            entity.CountyCode = dto.CountyCode;
-            entity.Latitude = dto.Latitude;
-            entity.Longitude = dto.Longitude;
-            entity.ModifiedBy = userId.ToString();
-            entity.IsProfileComplete = true;
+            profile.CoverageYear = dto.CoverageYear;
+            profile.HealthCondition = dto.HealthCondition;
+            profile.TaxFilingStatus = dto.TaxFilingStatus;
+            profile.MagiTier = dto.MagiTier;
+            profile.Gender = dto.Gender;
+            profile.TobaccoStatus = dto.TobaccoStatus;
+            profile.DateOfBirth = dto.DateOfBirth;
+            profile.Concierge = dto.Concierge;
+            profile.ConciergeAmount = dto.ConciergeAmount;
+            profile.AlternateEmail = dto.AlternateEmail;
+            profile.AlternateMobile = dto.AlternateMobile;
+            profile.LifeExpectancy = dto.LifeExpectancy;
 
-            await _repo.UpdateAsync(entity);
+            profile.AddressLine1 = dto.AddressLine1;
+            profile.City = dto.City;
+            profile.State = dto.State;
+            profile.ZipCode = dto.ZipCode;
+            profile.County = dto.County;
+            profile.CountyCode = dto.CountyCode;
+            profile.Latitude = dto.Latitude;
+            profile.Longitude = dto.Longitude;
+
+            profile.IsProfileComplete = true;
+            profile.ModifiedBy = userId.ToString();
+
+            await _profileRepo.UpdateAsync(profile);
 
             _logger.LogInformation("Profile saved for user {UserId}", userId);
-            return MapToDto(entity);
+            return MapToDto(user, profile);
         }
         catch (Exception ex)
         {
@@ -87,29 +100,29 @@ public class ProfileService
         }
     }
 
-    public static ProfileDto MapToDto(UserDocument e) => new()
+    public static ProfileDto MapToDto(UserDocument user, ProfileDocument profile) => new()
     {
-        FirstName = e.FirstName,
-        LastName = e.LastName,
-        CoverageYear = e.CoverageYear,
-        HealthCondition = e.HealthCondition,
-        TaxFilingStatus = e.TaxFilingStatus,
-        MagiTier = e.MagiTier,
-        Gender = e.Gender,
-        TobaccoStatus = e.TobaccoStatus,
-        DateOfBirth = e.DateOfBirth ?? "",
-        Concierge = e.Concierge,
-        ConciergeAmount = e.ConciergeAmount,
-        AlternateEmail = e.AlternateEmail,
-        AlternateMobile = e.AlternateMobile,
-        LifeExpectancy = e.LifeExpectancy,
-        AddressLine1 = e.AddressLine1,
-        City = e.City,
-        State = e.State,
-        ZipCode = e.ZipCode,
-        County = e.County,
-        CountyCode = e.CountyCode,
-        Latitude = e.Latitude,
-        Longitude = e.Longitude
+        FirstName = user.FirstName,
+        LastName = user.LastName,
+        CoverageYear = profile.CoverageYear,
+        HealthCondition = profile.HealthCondition,
+        TaxFilingStatus = profile.TaxFilingStatus,
+        MagiTier = profile.MagiTier,
+        Gender = profile.Gender,
+        TobaccoStatus = profile.TobaccoStatus,
+        DateOfBirth = profile.DateOfBirth ?? "",
+        Concierge = profile.Concierge,
+        ConciergeAmount = profile.ConciergeAmount,
+        AlternateEmail = profile.AlternateEmail,
+        AlternateMobile = profile.AlternateMobile,
+        LifeExpectancy = profile.LifeExpectancy,
+        AddressLine1 = profile.AddressLine1,
+        City = profile.City,
+        State = profile.State,
+        ZipCode = profile.ZipCode,
+        County = profile.County,
+        CountyCode = profile.CountyCode,
+        Latitude = profile.Latitude,
+        Longitude = profile.Longitude
     };
 }

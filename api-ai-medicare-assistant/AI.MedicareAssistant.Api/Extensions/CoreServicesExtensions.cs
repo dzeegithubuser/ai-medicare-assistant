@@ -1,10 +1,15 @@
+using Api.Filters;
+
 namespace Api.Extensions;
 
 internal static class CoreServicesExtensions
 {
     internal static IServiceCollection AddCoreServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddControllers();
+        services.AddControllers(options =>
+        {
+            options.Filters.Add<MustChangePasswordFilter>();
+        });
         services.AddSignalR();
         services.AddMemoryCache();
 

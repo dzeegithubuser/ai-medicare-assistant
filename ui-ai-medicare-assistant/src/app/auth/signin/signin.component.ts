@@ -8,7 +8,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
-import { ChatSessionService } from '../../services/chat-session.service';
 import { ErrorAlertComponent } from '../../shared/error-alert/error-alert.component';
 import { AuthFormShellComponent } from '../../shared/auth-form-shell/auth-form-shell.component';
 
@@ -26,7 +25,6 @@ import { AuthFormShellComponent } from '../../shared/auth-form-shell/auth-form-s
 export class SigninComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private chatSession = inject(ChatSessionService);
   private router = inject(Router);
 
   form = this.fb.group({
@@ -50,10 +48,10 @@ export class SigninComponent {
       next: res => {
         if (res.success) {
           this.auth.handleAuthSuccess(res);
-          // Navigate immediately after auth so the user is not blocked by chat session reset.
           this.loading.set(false);
           this.router.navigate(['/']);
-          this.chatSession.startNewSession().subscribe({ error: () => {} });
+          // Chat sessions are not started at sign-in; they start when the user
+          // explicitly invokes Medicare/LTC analysis or clicks "New analysis".
         } else {
           this.loading.set(false);
           this.error.set(res.message);

@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize } from 'rxjs/operators';
+import { ChatSessionService } from '../services/chat-session.service';
 import { MedicareStateService } from '../services/drug-state.service';
 import { PrescriptionService } from '../services/prescription.service';
 import { ProfileService } from '../services/profile.service';
@@ -23,6 +24,7 @@ import { AppRoutes } from '../app-routes.const';
 export class AnalysisShellComponent {
   protected state = inject(MedicareStateService);
   private router = inject(Router);
+  private chatSession = inject(ChatSessionService);
 
   /** Cost projections are terminal for editing prior inputs — hide shell Back/Continue; disable stepper navigation. */
   private readonly routerUrl = toSignal(
@@ -164,6 +166,7 @@ export class AnalysisShellComponent {
   }
 
   startNewAnalysis() {
+    this.chatSession.startNewSession().subscribe({ error: () => {} });
     this.state.addSystemMessage('Started a new analysis');
     this.state.resetAll();
     this.router.navigate([AppRoutes.abs.MEDICARE_ANALYSIS, 'profile']);

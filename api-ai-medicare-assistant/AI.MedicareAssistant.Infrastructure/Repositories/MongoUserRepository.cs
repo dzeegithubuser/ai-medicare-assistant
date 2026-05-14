@@ -1,3 +1,4 @@
+using Domain.Constants;
 using Domain.Documents;
 using Domain.Interfaces;
 using Infrastructure.Data;
@@ -52,9 +53,38 @@ public class MongoUserRepository : IUserRepository
         await _collection.ReplaceOneAsync(u => u.UserId == user.UserId, user);
     }
 
+    public async Task DeleteAsync(Guid userId) =>
+        await _collection.DeleteOneAsync(u => u.UserId == userId);
+
     public async Task<bool> EmailExistsAsync(string email) =>
         await _collection.Find(u => u.Email == email).AnyAsync();
 
     public async Task<bool> PhoneExistsAsync(string phone) =>
         await _collection.Find(u => u.Phone == phone).AnyAsync();
+
+    public async Task<List<UserDocument>> GetByFpIdAsync(Guid fpUserId) =>
+        await _collection.Find(u => u.FpId == fpUserId).ToListAsync();
+
+    public async Task<List<UserDocument>> GetByFpgIdAndRoleAsync(Guid fpgId, string role) =>
+        await _collection.Find(u => u.FpgId == fpgId && u.Role == role).ToListAsync();
+
+    public async Task<List<UserDocument>> GetAllByRoleAsync(string role) =>
+        await _collection.Find(u => u.Role == role).ToListAsync();
+
+    public async Task<List<UserDocument>> GetEndUsersByFpgAsync(Guid fpgId)
+    {
+        var fpUserIds = await _collection
+            .Find(u => u.FpgId == fpgId && u.Role == UserRoles.FinancialPlanner)
+            .Project(u => u.UserId)
+            .ToListAsync();
+
+        if (fpUserIds.Count == 0)
+            return new List<UserDocument>();
+
+        var nullableFpIds = fpUserIds.Select(g => (Guid?)g).ToList();
+        var filter = Builders<UserDocument>.Filter.Eq(u => u.Role, UserRoles.User) &
+                     Builders<UserDocument>.Filter.In(u => u.FpId, nullableFpIds);
+
+        return await _collection.Find(filter).ToListAsync();
+    }
 }

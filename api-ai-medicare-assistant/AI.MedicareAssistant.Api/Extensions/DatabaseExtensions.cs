@@ -25,7 +25,9 @@ internal static class DatabaseExtensions
         services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoConnectionString));
         services.AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName));
         services.AddSingleton<MongoDbContext>();
+        services.AddHostedService<UserProfileSplitMigrationInitializer>();
         services.AddHostedService<MongoIndexInitializer>();
+        services.AddHostedService<AdminSeedInitializer>();
 
         // ------- MongoDB repositories -------
         services.AddScoped<IUserAnalysisSelectionsRepository, UserAnalysisSelectionsRepository>();

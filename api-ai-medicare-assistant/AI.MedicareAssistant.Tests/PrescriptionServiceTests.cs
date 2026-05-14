@@ -88,7 +88,7 @@ public class PrescriptionServiceTests
             .ReturnsAsync((UserAnalysisSelectionsDocument?)null);
         _selectionsMock.Setup(r => r.ReplaceCurrentForUserAsync(It.IsAny<UserAnalysisSelectionsDocument>()))
             .ReturnsAsync((UserAnalysisSelectionsDocument d) => d);
-        _profileMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((UserDocument?)null);
+        _profileMock.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((ProfileDocument?)null);
 
         var request = new SaveCurrentDrugsRequest
         {

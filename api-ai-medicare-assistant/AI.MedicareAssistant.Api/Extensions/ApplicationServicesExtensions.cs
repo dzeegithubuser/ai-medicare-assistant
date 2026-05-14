@@ -1,3 +1,4 @@
+using Application.Interfaces;
 using Domain.Interfaces;
 using Infrastructure.Repositories;
 
@@ -10,9 +11,16 @@ internal static class ApplicationServicesExtensions
         // ------- MongoDB repositories -------
         services.AddScoped<IUserRepository, MongoUserRepository>();
         services.AddScoped<IProfileRepository, MongoProfileRepository>();
+        services.AddScoped<IFinancialPlannerGroupRepository, MongoFinancialPlannerGroupRepository>();
 
         // ------- Core application services -------
-        services.AddScoped<Application.Services.AuthService>();
+        services.AddSingleton<IJwtTokenIssuer, Application.Services.JwtTokenIssuer>();
+        services.AddScoped<IAuthService, Application.Services.AuthService>();
+        services.AddScoped<IAdminService, Application.Services.AdminService>();
+        services.AddScoped<IFinancialPlannerGroupService, Application.Services.FinancialPlannerGroupService>();
+        services.AddScoped<IFinancialPlannerService, Application.Services.FinancialPlannerService>();
+        services.AddScoped<IEndUserService, Application.Services.EndUserService>();
+        services.AddScoped<IImpersonationService, Application.Services.ImpersonationService>();
         services.AddScoped<Application.Services.ProfileService>();
         services.AddScoped<Application.Services.PrescriptionService>();
         services.AddScoped<Application.Services.RecommendationService>();

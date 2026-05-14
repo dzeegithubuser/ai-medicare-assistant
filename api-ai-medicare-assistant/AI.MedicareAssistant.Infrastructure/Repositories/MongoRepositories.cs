@@ -92,6 +92,9 @@ public class UserAnalysisSelectionsRepository : IUserAnalysisSelectionsRepositor
         await _context.UserAnalysisSelections.UpdateOneAsync(
             CurrentFilter(userId), update, new UpdateOptions { IsUpsert = false });
     }
+
+    public async Task DeleteByUserIdAsync(Guid userId) =>
+        await _context.UserAnalysisSelections.DeleteManyAsync(d => d.UserId == userId);
 }
 
 public class LtcSelectionsRepository : ILtcSelectionsRepository
@@ -139,4 +142,7 @@ public class LtcSelectionsRepository : ILtcSelectionsRepository
             .Find(CurrentFilter(userId))
             .FirstOrDefaultAsync();
     }
+
+    public async Task DeleteByUserIdAsync(Guid userId) =>
+        await _context.LtcCurrentSelections.DeleteManyAsync(d => d.UserId == userId);
 }

@@ -40,6 +40,7 @@ try
     app.UseRequestLogging();
     app.UseCors();
     app.UseAuthentication();
+    app.UseMiddleware<ImpersonationLoggingMiddleware>();
     app.UseAuthorization();
 
     app.MapControllers();

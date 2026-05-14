@@ -8,9 +8,11 @@
 
 ## ✅ MongoDB (Single Database)
 - **Driver:** `MongoDB.Driver` 3.4.0 with `MongoDB.Bson` 3.4.0.
-- **User Document:** `UserDocument` merges user credentials and profile fields into a single document in the `users` collection. Unique indexes on `Email`, `Phone`, and `UserId`.
-- **Collections:** `users`, `prescriptions`, `chat_sessions`, `userAnalysisSelections`, `recommendations`, `ltcCurrentSelections`, `logs`.
-- **Repositories:** `MongoUserRepository`, `MongoProfileRepository` (both operate on `users` collection), plus `PrescriptionDocRepository`, `ChatSessionRepository`, `UserAnalysisSelectionsRepository`, `RecommendationRepository`, `LtcSelectionsRepository`.
+- **User documents (split):** `UserDocument` holds login / identity (email, phone, passwordHash, isEmailVerified, mustChangePassword, firstName, lastName, role, fpgId, fpId, audit) in the `users` collection. `ProfileDocument` holds personal / medical / address data in the `userProfiles` collection, linked by `userId`. Both decorated `[BsonIgnoreExtraElements]` so legacy unified documents read cleanly during transition.
+- **Migration:** `UserProfileSplitMigrationInitializer` is a one-shot `IHostedService` that on first startup against legacy data scans every unified `users` doc, upserts profile fields into a `userProfiles` doc, then `$unset`s them on `users`. Idempotent via a marker doc in `schemaMigrations`. Registered before `MongoIndexInitializer` so the unique-`UserId` index on `userProfiles` only sees post-split data.
+- **Indexes:** Unique sparse `Email` / `Phone` / `UserId` on `users`; unique `UserId` on `userProfiles`; non-unique `FpId` / `FpgId` / `Role` on `users`.
+- **Collections:** `users`, `userProfiles`, `schemaMigrations`, `prescriptions`, `chatSessions`, `userAnalysisSelections`, `recommendations`, `ltcCurrentSelections`, `logs`.
+- **Repositories:** `MongoUserRepository` (operates on `users`), `MongoProfileRepository` (operates on `userProfiles` — `UpdateAsync` is an upsert so the profile doc is created lazily on first save), plus `PrescriptionDocRepository`, `ChatSessionRepository`, `UserAnalysisSelectionsRepository`, `RecommendationRepository`, `LtcSelectionsRepository`.
 
 ---
 

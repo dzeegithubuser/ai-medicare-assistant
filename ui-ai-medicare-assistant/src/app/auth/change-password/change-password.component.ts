@@ -55,6 +55,7 @@ export class ChangePasswordComponent {
       next: res => {
         this.loading.set(false);
         if (res.success) {
+          this.auth.handleAuthSuccess(res);
           this.successMessage.set('Password changed successfully!');
           this.form.reset();
           setTimeout(() => this.router.navigate(['/']), 2000);

@@ -11,6 +11,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { ChatComponent } from '../chat/chat.component';
+import { ImpersonationBannerComponent } from '../shared/impersonation-banner/impersonation-banner.component';
 import { AuthService } from '../services/auth.service';
 import { ProfileService } from '../services/profile.service';
 import { RecommendationStateService } from '../services/recommendation-state.service';
@@ -28,7 +29,7 @@ import { AppRoutes } from '../app-routes.const';
   imports: [
     RouterOutlet,
     MatIconModule, MatButtonModule, MatTooltipModule, MatMenuModule, MatProgressSpinnerModule, MatDividerModule,
-    ChatComponent
+    ChatComponent, ImpersonationBannerComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -60,6 +61,18 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit() {
+    // Only end-users have a profile + recommendation + chat session to bootstrap.
+    // Admin / FPG / FP roles, and any user still flagged mustChangePassword=true,
+    // would just trip the server's MustChangePasswordFilter or hit endpoints they
+    // don't have access to. Skip bootstrap and mark ready so the shell renders.
+    const user = this.auth.currentUser();
+    const skipBootstrap = !user || user.mustChangePassword || user.role !== 'user';
+    if (skipBootstrap) {
+      this.bootstrapReady.set(true);
+      this.showChat.set(false);
+      return;
+    }
+
     this.bootstrapDashboardState();
     this.showChat.set(this.isChatRoute(this.router.url));
     this.router.events.pipe(
@@ -91,6 +104,13 @@ export class DashboardComponent implements OnInit {
     this.drugState.resetAll();
     this.ltcState.resetAll();
     this.router.navigate([AppRoutes.abs.SAVED]);
+  }
+
+  /** Logo click — dispatches to the caller's role-specific landing via dashboardRedirectGuard. */
+  goToLanding() {
+    this.drugState.resetAll();
+    this.ltcState.resetAll();
+    this.router.navigateByUrl('/');
   }
 
   private bootstrapDashboardState(): void {
