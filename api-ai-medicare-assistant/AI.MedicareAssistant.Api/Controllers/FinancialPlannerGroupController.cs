@@ -28,7 +28,7 @@ public class FinancialPlannerGroupController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<FpgSummaryDto>> GetMyGroup() =>
+    public async Task<ActionResult<FpgSummaryDto?>> GetMyGroup() =>
         Ok(await _fpg.GetGroupAsync(CallerFpgId));
 
     [HttpGet("me/financial-planners")]

@@ -31,11 +31,12 @@ public class RecommendationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<ActionResult<RecommendationResponse?>> Get()
     {
         var doc = await _service.GetActiveAsync(GetUserId());
-        if (doc is null) return NotFound();
-        return Ok(MapToResponse(doc));
+        // Absence is part of the model — return 200 OK with null body so the client
+        // doesn't have to treat "no active recommendation" as an error condition.
+        return Ok(doc is null ? null : MapToResponse(doc));
     }
 
     [HttpGet("{id}")]

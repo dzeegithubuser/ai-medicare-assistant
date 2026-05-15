@@ -12,7 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FinancialPlannerService } from '../services/financial-planner.service';
 import { AuthService } from '../services/auth.service';
-import { EndUserSummary, RecommendationByUser } from '../models/role-management.model';
+import { EndUserSummary, RecommendationByUser, RecommendationSummary } from '../models/role-management.model';
 import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../shared/empty-state/empty-state.component';
 import { CreateEndUserDialogComponent } from './create-end-user-dialog.component';
@@ -173,17 +173,28 @@ export class FpHomeComponent {
     });
   }
 
-  protected deleteRecommendation(recId: string) {
-    if (!confirm('Delete this recommendation? This cannot be undone.')) return;
-    this.error.set('');
-    this.fpService.deleteRecommendation(recId).subscribe({
-      next: () => this.recsByUser.update(list =>
-        list
-          .map(g => ({ ...g, recommendations: g.recommendations.filter(r => r.id !== recId) }))
-          .filter(g => g.recommendations.length > 0)
-      ),
-      error: err => this.error.set(err.error?.message ?? 'Failed to delete recommendation.'),
-    });
+  protected deleteRecommendation(rec: RecommendationSummary) {
+    const data: ConfirmDeleteDialogData = {
+      title: 'Delete recommendation',
+      subject: rec.name || '(unnamed)',
+      warning: 'This permanently removes the saved analysis. Other recommendations for this user are untouched.',
+      confirmationToken: 'delete',
+      inputLabel: 'Type "delete" to confirm',
+      confirmLabel: 'Delete',
+    };
+    this.dialog.open(ConfirmDeleteDialogComponent, { data, autoFocus: 'first-tabbable', restoreFocus: true })
+      .afterClosed().subscribe(confirmed => {
+        if (!confirmed) return;
+        this.error.set('');
+        this.fpService.deleteRecommendation(rec.id).subscribe({
+          next: () => this.recsByUser.update(list =>
+            list
+              .map(g => ({ ...g, recommendations: g.recommendations.filter(r => r.id !== rec.id) }))
+              .filter(g => g.recommendations.length > 0)
+          ),
+          error: err => this.error.set(err.error?.message ?? 'Failed to delete recommendation.'),
+        });
+      });
   }
 
   protected toggleExpand(userId: string) {

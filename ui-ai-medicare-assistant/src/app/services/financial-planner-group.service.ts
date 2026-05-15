@@ -11,8 +11,13 @@ export class FinancialPlannerGroupService {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/api/financial-planner-group`;
 
+  /**
+   * Returns the caller's group, or `null` when none exists.
+   * The backend returns `200 OK` with a `null` body for the empty case
+   * (legacy FPG admin whose auto-created group was deleted out of band).
+   */
   getMyGroup() {
-    return this.http.get<FpgSummary>(`${this.base}/me`);
+    return this.http.get<FpgSummary | null>(`${this.base}/me`);
   }
 
   listFinancialPlanners() {

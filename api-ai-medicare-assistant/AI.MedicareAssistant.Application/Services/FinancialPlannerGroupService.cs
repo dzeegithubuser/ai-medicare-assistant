@@ -27,10 +27,13 @@ public class FinancialPlannerGroupService : IFinancialPlannerGroupService
         _logger = logger;
     }
 
-    public async Task<FpgSummaryDto> GetGroupAsync(Guid fpgId)
+    public async Task<FpgSummaryDto?> GetGroupAsync(Guid fpgId)
     {
-        var group = await _fpgRepo.GetByIdAsync(fpgId)
-            ?? throw new NotFoundException("FinancialPlannerGroup", fpgId);
+        // Absence of the group is part of the model — return null so the caller can
+        // render an empty/placeholder state without the global error dialog firing.
+        // (Edge case: legacy FPG admin whose group was deleted out of band.)
+        var group = await _fpgRepo.GetByIdAsync(fpgId);
+        if (group is null) return null;
 
         return new FpgSummaryDto
         {

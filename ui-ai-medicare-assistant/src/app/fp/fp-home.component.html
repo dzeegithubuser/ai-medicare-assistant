@@ -128,7 +128,7 @@
                         <p class="font-medium text-gray-800 truncate">{{ rec.name || '(unnamed)' }}</p>
                         <p class="text-gray-400">{{ rec.createdAt | date:'MMM d, y' }}</p>
                       </div>
-                      <button mat-icon-button color="warn" class="!w-8 !h-8" matTooltip="Delete recommendation" (click)="deleteRecommendation(rec.id)">
+                      <button mat-icon-button color="warn" class="!w-8 !h-8" matTooltip="Delete recommendation" (click)="deleteRecommendation(rec)">
                         <mat-icon class="!text-base">delete_outline</mat-icon>
                       </button>
                     </div>

@@ -14,7 +14,7 @@ export class RecommendationStateService {
   private readonly recommendationService = inject(RecommendationService);
   private readonly state = inject(MedicareStateService);
 
-  loadActiveRecommendation$(): Observable<RecommendationResponse> {
+  loadActiveRecommendation$(): Observable<RecommendationResponse | null> {
     this.isLoading.set(true);
     return this.recommendationService.getActive().pipe(
       tap({

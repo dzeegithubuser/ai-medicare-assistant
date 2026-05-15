@@ -20,6 +20,10 @@ import {
 import { LoadingSpinnerComponent } from '../shared/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../shared/empty-state/empty-state.component';
 import { CreateFpDialogComponent } from './create-fp-dialog.component';
+import {
+  ConfirmDeleteDialogComponent,
+  ConfirmDeleteDialogData,
+} from '../shared/confirm-delete-dialog/confirm-delete-dialog.component';
 
 type View = 'planners' | 'end-users' | 'recommendations';
 type SortOption = 'newest' | 'oldest' | 'name-asc' | 'name-desc';
@@ -170,13 +174,26 @@ export class FpgHomeComponent {
       });
   }
 
-  protected deleteFp(fpUserId: string, name: string) {
-    if (!confirm(`Delete financial planner ${name}? This cannot be undone.`)) return;
-    this.error.set('');
-    this.fpgService.deleteFinancialPlanner(fpUserId).subscribe({
-      next: () => this.fps.update(list => list.filter(f => f.userId !== fpUserId)),
-      error: err => this.error.set(err.error?.message ?? 'Failed to delete.'),
-    });
+  protected deleteFp(fp: FpSummary) {
+    const data: ConfirmDeleteDialogData = {
+      title: 'Remove financial planner',
+      subject: `${fp.firstName} ${fp.lastName} (${fp.email})`,
+      warning:
+        'This removes the planner from your group. ' +
+        'The request will be rejected if the planner still has end-users assigned — ' +
+        'sign in as the planner first (or impersonate them) and clear out their end-users.',
+      confirmationToken: fp.email,
+      confirmLabel: 'Remove planner',
+    };
+    this.dialog.open(ConfirmDeleteDialogComponent, { data, autoFocus: 'first-tabbable', restoreFocus: true })
+      .afterClosed().subscribe(confirmed => {
+        if (!confirmed) return;
+        this.error.set('');
+        this.fpgService.deleteFinancialPlanner(fp.userId).subscribe({
+          next: () => this.fps.update(list => list.filter(f => f.userId !== fp.userId)),
+          error: err => this.error.set(err.error?.message ?? 'Failed to remove planner.'),
+        });
+      });
   }
 
   protected setSearch(value: string) { this.searchQuery.set(value); this.currentPage.set(1); }
