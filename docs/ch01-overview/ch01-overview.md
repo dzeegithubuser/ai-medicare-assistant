@@ -105,7 +105,7 @@ Angular Router (lazy-loaded routes)
       ├── IAdminService / AdminService (FPG-admin user list + create — auto-creates the underlying FinancialPlannerGroup; legacy group CRUD retained for back-compat)
       ├── IFinancialPlannerGroupService / FinancialPlannerGroupService (FP CRUD scoped to group)
       ├── IFinancialPlannerService / FinancialPlannerService (recommendations grouped by user, delete)
-      ├── IEndUserService / EndUserService (default password Aivante@1234 + dummy phone 55501XXXXX)
+      ├── IEndUserService / EndUserService (creator supplies first/last/email/phone/password; phone normalized + uniqueness-checked)
       ├── IImpersonationService / ImpersonationService (60-min JWT issuance with mustChangePassword override)
       ├── ProfileService (consolidated profile CRUD)
       ├── PrescriptionService

@@ -11,7 +11,7 @@
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
 | 31.1 | Open admin landing | Sign in as `admin@aivante.com`, complete first-login password change | Lands on `/admin`. Header logo + "Medicare Assistant". Welcome banner reads "Admin Console / FPG Admin Users". No reference to "groups" anywhere in the UI. |
-| 31.2 | Create FPG admin | Click "New FPG admin" → fill first/last/email/initial password → Create | Dialog closes. New card appears at the top of the list with an amber "Pending" badge. Backend silently created a `FinancialPlannerGroup` named `"{First} {Last}"` and assigned `fpgId` to the user. |
+| 31.2 | Create FPG admin | Click "New FPG admin" → fill first/last/email/phone/initial password → Create | Dialog closes. New card appears at the top of the list with an amber "Pending" badge. Phone normalized to 10 digits server-side. Backend silently created a `FinancialPlannerGroup` named `"{First} {Last}"` and assigned `fpgId` to the user. Duplicate email or duplicate phone → inline 409 message, no record created. |
 | 31.3 | Auto-named group collision | Create two FPG admins with identical first+last (e.g., "Jane Doe" twice but different emails) | Both succeed. Second group is named `"Jane Doe 2"` (collision suffix). Inspect `db.financialPlannerGroups.find()` to confirm. |
 | 31.4 | Duplicate email | Create FPG admin with an email that already exists anywhere in `users` | Dialog stays open with inline error: "Email already registered." |
 | 31.5 | Search / sort / pagination | After ~7 FPG admins exist: type a name in search, switch sort to "Name A-Z", change page size | Filtering is client-side and immediate. Pagination footer shows `Showing N–M of total`. |
@@ -36,7 +36,7 @@
 | # | Scenario | Steps | Expected Result |
 |---|----------|-------|-----------------|
 | 33.1 | First sign-in | Sign in as the FP from 32.3, complete forced password change | Lands on `/fp`. Welcome banner reads "My Practice / Users & Recommendations". |
-| 33.2 | New user → auto-impersonate → /saved | Click "New user" → fill email/first/last → "Create & start" | Dialog closes. **Full page reload.** Lands on `/saved` (the impersonated user's empty saved-analyses page). Amber impersonation banner is visible across the top. |
+| 33.2 | New user → auto-impersonate → /saved | Click "New user" → fill first/last/email/phone/initial password → "Create & start" | Dialog closes. **Full page reload.** Lands on `/saved` (the impersonated user's empty saved-analyses page). Amber impersonation banner is visible across the top. The end-user must change the password on first non-impersonated sign-in. Duplicate phone → inline 409 message, no record created. |
 | 33.3 | Continue as user | From the FP landing, click "Continue as user" on an existing end-user card | Full page reload. Lands on `/saved` for that user. Amber banner shows the impersonated user's name + countdown. |
 | 33.4 | Filter chips | Switch filter to "Has analyses" / "No analyses" / "All" | Card grid filters client-side. Result count updates. Sorting and search still work within the filtered set. |
 | 33.5 | Per-user rec drilldown | Click "View" on a user card with recommendations | Inline list of that user's recommendations expands inside the card. Each row has a small red delete icon. |

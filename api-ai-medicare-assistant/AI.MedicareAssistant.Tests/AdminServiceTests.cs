@@ -43,6 +43,7 @@ public class AdminServiceTests
             Email = "Jane.Doe@example.com",
             FirstName = "Jane",
             LastName = "Doe",
+            Phone = "(555) 123-4567",
             Password = "Password123!"
         });
 
@@ -54,6 +55,7 @@ public class AdminServiceTests
         _fpgRepoMock.Verify(r => r.CreateAsync(It.Is<FinancialPlannerGroupDocument>(d => d.Name == "Jane Doe")), Times.Once);
         _userRepoMock.Verify(r => r.CreateAsync(It.Is<UserDocument>(u =>
             u.Email == "jane.doe@example.com"
+            && u.Phone == "5551234567"
             && u.Role == UserRoles.FinancialPlannerGroup
             && u.FpgId.HasValue
             && u.MustChangePassword)), Times.Once);
@@ -69,10 +71,30 @@ public class AdminServiceTests
             Email = "dup@example.com",
             FirstName = "Jane",
             LastName = "Doe",
+            Phone = "5551234567",
             Password = "Password123!"
         }));
 
         _fpgRepoMock.Verify(r => r.CreateAsync(It.IsAny<FinancialPlannerGroupDocument>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateFpgAdminUser_DuplicatePhone_ThrowsBeforeGroupCreate()
+    {
+        _userRepoMock.Setup(r => r.EmailExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
+        _userRepoMock.Setup(r => r.PhoneExistsAsync("5551234567")).ReturnsAsync(true);
+
+        await Assert.ThrowsAsync<ConflictException>(() => _sut.CreateFpgAdminUserAsync(new CreateFpgAdminUserRequest
+        {
+            Email = "new@example.com",
+            FirstName = "Jane",
+            LastName = "Doe",
+            Phone = "(555) 123-4567",
+            Password = "Password123!"
+        }));
+
+        _fpgRepoMock.Verify(r => r.CreateAsync(It.IsAny<FinancialPlannerGroupDocument>()), Times.Never);
+        _userRepoMock.Verify(r => r.CreateAsync(It.IsAny<UserDocument>()), Times.Never);
     }
 
     [Fact]
@@ -92,6 +114,7 @@ public class AdminServiceTests
             Email = "jane2@example.com",
             FirstName = "Jane",
             LastName = "Doe",
+            Phone = "5559876543",
             Password = "Password123!"
         });
 

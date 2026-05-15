@@ -66,6 +66,7 @@ export interface CreateFpgAdminUserRequest {
   email: string;
   firstName: string;
   lastName: string;
+  phone: string;
   password: string;
 }
 
@@ -87,4 +88,6 @@ export interface CreateEndUserRequest {
   email: string;
   firstName: string;
   lastName: string;
+  phone: string;
+  password: string;
 }

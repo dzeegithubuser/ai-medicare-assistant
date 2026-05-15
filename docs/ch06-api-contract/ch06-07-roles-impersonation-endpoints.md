@@ -34,17 +34,17 @@ List every user with role `financial_planner_group`, newest first. Returns `User
 
 ### `POST api/admin/fpg-admin-users`
 
-Create an FPG-admin user without exposing the group. Behind the scenes the backend creates a `FinancialPlannerGroupDocument` named `"{FirstName} {LastName}"` (or `"{First} {Last} 2"`, `" 3"`, … on collision, fails after 50) and assigns the new user to it. The user is created with `Role = financial_planner_group`, `FpgId = <auto-group>`, `MustChangePassword = true`, `IsEmailVerified = true`, and a randomized `55501XXXXX` dummy phone.
+Create an FPG-admin user without exposing the group. Behind the scenes the backend creates a `FinancialPlannerGroupDocument` named `"{FirstName} {LastName}"` (or `"{First} {Last} 2"`, `" 3"`, … on collision, fails after 50) and assigns the new user to it. Phone is normalized to a 10-digit string and checked against the unique-phone index. The user is created with `Role = financial_planner_group`, `FpgId = <auto-group>`, `MustChangePassword = true`, `IsEmailVerified = true`.
 
 **Request:**
 ```json
-{ "email": "fpg@example.com", "firstName": "Jane", "lastName": "Doe", "password": "InitialPassword!" }
+{ "email": "fpg@example.com", "firstName": "Jane", "lastName": "Doe", "phone": "(555) 123-4567", "password": "InitialPassword!" }
 ```
 
 **Response:** `UserSummaryDto` with `role: "financial_planner_group"` and the auto-assigned `fpgId`.
 
 **Errors:**
-- `409 Conflict` — duplicate email, or 50 group-name suffixes already taken.
+- `409 Conflict` — duplicate email, duplicate phone, or 50 group-name suffixes already taken.
 
 ---
 
@@ -97,14 +97,14 @@ Remove an FPG-admin user and their auto-created `FinancialPlannerGroup`. The adm
 | Verb | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/me/end-users` | — | `EndUserSummaryDto[]` — users created by the caller |
-| POST | `/me/end-users` | `CreateEndUserRequest` (email, first/last) | `EndUserSummaryDto` — created with default password **`Aivante@1234`**, randomized `55501XXXXX` dummy phone, `MustChangePassword = true`, `IsEmailVerified = true`, `FpId = caller.UserId` |
+| POST | `/me/end-users` | `CreateEndUserRequest` (email, first/last, phone, password) | `EndUserSummaryDto` — created with the FP-supplied phone (normalized + checked against the unique-phone index) and password (BCrypt-hashed), `MustChangePassword = true`, `IsEmailVerified = true`, `FpId = caller.UserId`. Returns `409 Conflict` on duplicate email or duplicate phone. |
 | DELETE | `/me/end-users/{endUserId}` | — | `204 No Content`. **Cascade delete:** verifies `target.FpId = caller.UserId`, then deletes every per-user document — `userProfiles`, `chatSessions`, `recommendations`, `userAnalysisSelections`, `ltcCurrentSelections` — before deleting the user itself. Required to make the FPG-admin delete usable (the FPG-admin delete refuses while planners have end-users, and the FP delete refuses while planners have end-users). |
 | GET | `/me/recommendations` | — | `RecommendationByUserDto[]` — recs grouped by user, latest rec per user on top |
 | DELETE | `/me/recommendations/{recommendationId}` | — | `204 No Content`. Verifies that the recommendation's user has `FpId = caller.UserId` before deleting. |
 
 **`CreateEndUserRequest`:**
 ```json
-{ "email": "user@example.com", "firstName": "Alex", "lastName": "Kim" }
+{ "email": "user@example.com", "firstName": "Alex", "lastName": "Kim", "phone": "(555) 123-4567", "password": "InitialPwd!" }
 ```
 
 **`RecommendationByUserDto`:**

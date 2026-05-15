@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Utilities;
 using Domain.Constants;
 using Domain.Documents;
 using Domain.Exceptions;
@@ -58,7 +59,9 @@ public class AdminService : IAdminService
         if (await _userRepo.EmailExistsAsync(email))
             throw new ConflictException("Email already registered.");
 
-        var phone = await GenerateUniqueDummyPhoneAsync();
+        var phone = PhoneNormalizer.NormalizeUsPhone(request.Phone);
+        if (await _userRepo.PhoneExistsAsync(phone))
+            throw new ConflictException("Phone number already registered.");
 
         var user = new UserDocument
         {
@@ -98,6 +101,12 @@ public class AdminService : IAdminService
         if (await _userRepo.EmailExistsAsync(email))
             throw new ConflictException("Email already registered.");
 
+        // Validate phone uniqueness up front so we don't orphan the auto-created group
+        // if it turns out the phone is already taken.
+        var phone = PhoneNormalizer.NormalizeUsPhone(request.Phone);
+        if (await _userRepo.PhoneExistsAsync(phone))
+            throw new ConflictException("Phone number already registered.");
+
         var groupName = await GenerateUniqueGroupNameAsync(request.FirstName, request.LastName);
 
         var group = new FinancialPlannerGroupDocument
@@ -108,8 +117,6 @@ public class AdminService : IAdminService
             ModifiedBy = "admin"
         };
         await _fpgRepo.CreateAsync(group);
-
-        var phone = await GenerateUniqueDummyPhoneAsync();
 
         var user = new UserDocument
         {
@@ -176,18 +183,6 @@ public class AdminService : IAdminService
                 return candidate;
         }
         throw new ConflictException("Unable to allocate a unique group name; please retry.");
-    }
-
-    private async Task<string> GenerateUniqueDummyPhoneAsync()
-    {
-        for (var attempt = 0; attempt < 25; attempt++)
-        {
-            var suffix = Random.Shared.Next(0, 100_000).ToString("D5");
-            var phone = $"55501{suffix}";
-            if (!await _userRepo.PhoneExistsAsync(phone))
-                return phone;
-        }
-        throw new ConflictException("Unable to allocate a unique dummy phone number; please retry.");
     }
 
     private static FpgSummaryDto MapToDto(FinancialPlannerGroupDocument doc) => new()

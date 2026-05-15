@@ -387,19 +387,6 @@ public class AuthService : IAuthService
         }
     }
 
-    private static string NormalizeUsPhone(string phone)
-    {
-        // Strip all non-digit characters
-        var digits = new string(phone.Where(char.IsDigit).ToArray());
-
-        // If 11 digits starting with 1 (country code), drop the leading 1
-        if (digits.Length == 11 && digits.StartsWith('1'))
-            digits = digits[1..];
-
-        // Store as plain 10-digit string for consistent uniqueness checks
-        return digits.Length == 10 ? digits : phone.Trim();
-    }
-
     private static UserDto MapToDto(UserDocument user) => new()
     {
         Id = user.UserId,

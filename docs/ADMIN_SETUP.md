@@ -87,7 +87,7 @@ The admin is seeded with `MustChangePassword=true`, `IsEmailVerified=true`, and 
 ## Step 3 — Cascade the rest
 
 From `/admin`:
-- Click **New FPG admin** → fill in email / first / last / initial password. One action creates both the FPG-admin user and an auto-named `FinancialPlannerGroup` (`"{First} {Last}"`, with a `" 2"`, `" 3"`, … suffix if the name is already taken). The user is created with `MustChangePassword=true` and a randomized `55501XXXXX` dummy phone.
+- Click **New FPG admin** → fill in first / last / email / phone / initial password. One action creates both the FPG-admin user and an auto-named `FinancialPlannerGroup` (`"{First} {Last}"`, with a `" 2"`, `" 3"`, … suffix if the name is already taken). Phone is normalized to a 10-digit string and validated against the unique-phone index. The user is created with `MustChangePassword=true`.
 
 > The legacy two-step flow (create group → add admin user inside it) still works at the API level via the `/api/admin/financial-planner-groups*` endpoints, but the admin UI no longer surfaces the group as a separate concept.
 
@@ -95,7 +95,7 @@ The FPG-admin signs in at `/signin`, is forced to change their password, lands o
 - Create Financial Planners (email, first/last, real phone, initial password). Each FP also lands with `MustChangePassword=true`.
 
 Each FP signs in, lands on `/fp`. From there:
-- Click **New user + recommendation** → email + first/last only. End-user is created with the default password **`Aivante@1234`** and a randomized `55501XXXXX` dummy phone, then the FP is auto-impersonated and dropped into `/medicare-analysis/profile` to walk the wizard on the user's behalf.
+- Click **New user** → fill first / last / email / phone / initial password. End-user is created with the supplied phone (normalized + checked against the unique-phone index), then the FP is auto-impersonated and dropped on `/saved` for that user. The user must change the password on first sign-in (`MustChangePassword=true`).
 - Click **Continue as user** on any existing user to impersonate them.
 
 ## Impersonation lifecycle
@@ -126,6 +126,6 @@ The 409 messages on each delete name the dependent type + count and tell whoever
 | Admin | `admin@aivante.com` | `Seed:AdminPassword` (config) | Yes |
 | FPG-admin | (set by admin) | (set by admin) | Yes |
 | FP | (set by FPG) | (set by FPG) | Yes |
-| End-user | (set by FP) | `Aivante@1234` | Yes |
+| End-user | (set by FP) | (set by FP via the create-end-user dialog) | Yes |
 
-`Aivante@1234` is hardcoded in [`EndUserService.DefaultPassword`](../api-ai-medicare-assistant/AI.MedicareAssistant.Application/Services/EndUserService.cs).
+Every role's initial password is chosen by the creator at the time of account creation. There is no hardcoded default for any role.

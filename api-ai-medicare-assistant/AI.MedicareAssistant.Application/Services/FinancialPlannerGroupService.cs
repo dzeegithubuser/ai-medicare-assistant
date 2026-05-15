@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Utilities;
 using Domain.Constants;
 using Domain.Documents;
 using Domain.Exceptions;
@@ -59,7 +60,7 @@ public class FinancialPlannerGroupService : IFinancialPlannerGroupService
         if (await _userRepo.EmailExistsAsync(email))
             throw new ConflictException("Email already registered.");
 
-        var phone = NormalizeUsPhone(request.Phone);
+        var phone = PhoneNormalizer.NormalizeUsPhone(request.Phone);
         if (await _userRepo.PhoneExistsAsync(phone))
             throw new ConflictException("Phone number already registered.");
 
@@ -88,7 +89,7 @@ public class FinancialPlannerGroupService : IFinancialPlannerGroupService
     {
         var fp = await GetOwnedFpOrThrowAsync(fpgId, targetFpUserId);
 
-        var phone = NormalizeUsPhone(request.Phone);
+        var phone = PhoneNormalizer.NormalizeUsPhone(request.Phone);
         if (phone != fp.Phone && await _userRepo.PhoneExistsAsync(phone))
             throw new ConflictException("Phone number already registered.");
 
@@ -156,13 +157,6 @@ public class FinancialPlannerGroupService : IFinancialPlannerGroupService
         return fp;
     }
 
-    private static string NormalizeUsPhone(string phone)
-    {
-        var digits = new string(phone.Where(char.IsDigit).ToArray());
-        if (digits.Length == 11 && digits.StartsWith('1'))
-            digits = digits[1..];
-        return digits.Length == 10 ? digits : phone.Trim();
-    }
 
     private static FpSummaryDto MapToFpSummary(UserDocument user) => new()
     {

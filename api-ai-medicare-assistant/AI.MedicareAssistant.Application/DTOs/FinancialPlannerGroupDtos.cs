@@ -30,6 +30,9 @@ public class CreateFpgAdminUserRequest
     [Required, MaxLength(50)]
     public string LastName { get; set; } = "";
 
+    [Required, MaxLength(20), Phone]
+    public string Phone { get; set; } = "";
+
     [Required, MinLength(8), MaxLength(128)]
     public string Password { get; set; } = "";
 }

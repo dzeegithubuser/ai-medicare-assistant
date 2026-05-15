@@ -27,10 +27,18 @@
       <mat-label>Last name</mat-label>
       <input matInput formControlName="lastName" autocomplete="off">
     </mat-form-field>
-    <mat-form-field appearance="outline" class="sm:col-span-2">
+    <mat-form-field appearance="outline">
       <mat-label>Email</mat-label>
       <input matInput formControlName="email" type="email" autocomplete="off">
-      <mat-hint>Default password is "Aivante@1234" — the user is prompted to change it on first sign-in.</mat-hint>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Phone</mat-label>
+      <input matInput formControlName="phone" placeholder="(555) 123-4567" autocomplete="off">
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="sm:col-span-2">
+      <mat-label>Initial password</mat-label>
+      <input matInput formControlName="password" type="password" autocomplete="new-password">
+      <mat-hint>The user must change this on first sign-in.</mat-hint>
     </mat-form-field>
 
     <div class="sm:col-span-2 flex justify-end gap-2 pt-3">

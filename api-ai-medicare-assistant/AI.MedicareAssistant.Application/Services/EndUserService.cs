@@ -1,5 +1,6 @@
 using Application.DTOs;
 using Application.Interfaces;
+using Application.Utilities;
 using Domain.Constants;
 using Domain.Documents;
 using Domain.Exceptions;
@@ -10,9 +11,6 @@ namespace Application.Services;
 
 public class EndUserService : IEndUserService
 {
-    /// <summary>Default password every FP-created end-user starts with.</summary>
-    public const string DefaultPassword = "Aivante@1234";
-
     private readonly IUserRepository _userRepo;
     private readonly ILogger<EndUserService> _logger;
 
@@ -33,13 +31,15 @@ public class EndUserService : IEndUserService
         if (await _userRepo.EmailExistsAsync(email))
             throw new ConflictException("Email already registered.");
 
-        var phone = await GenerateUniqueDummyPhoneAsync();
+        var phone = PhoneNormalizer.NormalizeUsPhone(request.Phone);
+        if (await _userRepo.PhoneExistsAsync(phone))
+            throw new ConflictException("Phone number already registered.");
 
         var user = new UserDocument
         {
             Email = email,
             Phone = phone,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(DefaultPassword),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             FirstName = request.FirstName,
             LastName = request.LastName,
             Role = UserRoles.User,
@@ -54,18 +54,6 @@ public class EndUserService : IEndUserService
         _logger.LogInformation("FP {FpUserId} created end-user {UserId} ({Email})", fpUserId, user.UserId, email);
 
         return MapToDto(user);
-    }
-
-    private async Task<string> GenerateUniqueDummyPhoneAsync()
-    {
-        for (var attempt = 0; attempt < 25; attempt++)
-        {
-            var suffix = Random.Shared.Next(0, 100_000).ToString("D5");
-            var phone = $"55501{suffix}";
-            if (!await _userRepo.PhoneExistsAsync(phone))
-                return phone;
-        }
-        throw new ConflictException("Unable to allocate a unique dummy phone number; please retry.");
     }
 
     private static EndUserSummaryDto MapToDto(UserDocument user) => new()

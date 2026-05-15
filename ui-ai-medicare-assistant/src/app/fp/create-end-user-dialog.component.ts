@@ -32,6 +32,8 @@ export class CreateEndUserDialogComponent {
     email: ['', [Validators.required, Validators.email]],
     firstName: ['', [Validators.required, Validators.maxLength(50)]],
     lastName: ['', [Validators.required, Validators.maxLength(50)]],
+    phone: ['', [Validators.required, Validators.pattern(/^(\+1[\s.\-]?)?(\(?\d{3}\)?[\s.\-]?)(\d{3}[\s.\-]?\d{4})$/)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   protected submit() {
@@ -42,6 +44,8 @@ export class CreateEndUserDialogComponent {
       email: this.form.value.email!,
       firstName: this.form.value.firstName!,
       lastName: this.form.value.lastName!,
+      phone: this.form.value.phone!,
+      password: this.form.value.password!,
     }).subscribe({
       next: user => this.dialogRef.close(user),
       error: err => {

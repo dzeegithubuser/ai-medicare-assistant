@@ -134,7 +134,7 @@ app/
     create-fp-dialog.component.ts/html → MatDialog: creates a financial planner via `POST /api/financial-planner-group/me/financial-planners`
   fp/
     fp-home.component.ts/html     → FP landing (`/fp`). Welcome banner + filter chips (All / Has analyses / No analyses) + search/sort/pagination card grid. Each user card has "Continue as user" (auto-impersonate, lands on `/saved`), a red "Remove" that opens the shared type-to-confirm dialog and calls `DELETE /api/financial-planner/me/end-users/{userId}` (cascade), and an expandable recommendations list with per-rec delete. "New user" opens a dialog that creates the user, immediately impersonates them, and lands on `/saved`
-    create-end-user-dialog.component.ts/html → MatDialog: creates an end-user via `POST /api/financial-planner/me/end-users` (default password `Aivante@1234`, randomized dummy phone, `MustChangePassword=true`)
+    create-end-user-dialog.component.ts/html → MatDialog: creates an end-user via `POST /api/financial-planner/me/end-users` (FP supplies first/last/email/phone/password — same shape as admin/FPG/FP dialogs; `MustChangePassword=true`)
   user-profile/
     user-profile.component.ts     → Consolidated single-form profile (all fields in one form, with ZIP/MAGI subscription cancellation guards)
     user-profile.component.html   → Profile form template
@@ -349,7 +349,7 @@ AI.MedicareAssistant.Application/
     IAdminService.cs              → List/create FPGs, create initial FPG-admin user
     IFinancialPlannerGroupService.cs → FP CRUD + group end-user/recommendation read-only views
     IFinancialPlannerService.cs    → End-user list, recommendations grouped by user, delete recommendation
-    IEndUserService.cs            → Create end-user with default password + dummy phone
+    IEndUserService.cs            → Create end-user with FP-supplied first/last/email/phone/password (phone normalized + uniqueness-checked)
     IImpersonationService.cs      → Issue 60-min impersonation token (with mustChangePassword override)
     IChatIntentClassifier.cs, IDrugSelectionExtractor.cs, IPharmacySelectionExtractor.cs, IPlanSelectionExtractor.cs, IProfileExtractor.cs (existing AI extractor contracts)
   DTOs/
@@ -378,7 +378,7 @@ AI.MedicareAssistant.Application/
     AdminService.cs               → IAdminService impl. `ListFpgAdminUsersAsync` + `CreateFpgAdminUserAsync` (atomically auto-creates a `FinancialPlannerGroup` named `"{First} {Last}"` with numeric suffix on collision, fails after 50) + `DeleteFpgAdminUserAsync` (deletes the FPG admin and their auto-created group; throws `ConflictException` if the group still has FPs). Randomized 55501XXXXX dummy phone. Legacy `ListGroupsAsync` / `CreateGroupAsync` / `CreateGroupAdminUserAsync` retained for back-compat
     FinancialPlannerGroupService.cs → IFinancialPlannerGroupService impl. Verifies `target.FpgId == callerFpgId` on every mutation. DeleteFinancialPlannerAsync rejects with 409 if FP still has end-users (no orphaning). Group views go through IRecommendationRepository.GetByUserIdsAsync
     FinancialPlannerService.cs    → IFinancialPlannerService impl. Queries `WHERE FpId = caller.UserId`. DeleteRecommendationAsync verifies the rec's user belongs to the caller before deleting. **DeleteEndUserAsync** cascades through `IProfileRepository`, `IChatSessionRepository`, `IRecommendationRepository`, `IUserAnalysisSelectionsRepository`, `ILtcSelectionsRepository` (all expose `DeleteByUserIdAsync`) before deleting the user via `IUserRepository.DeleteAsync` — verifies caller owns the target first
-    EndUserService.cs             → IEndUserService impl. Creates end-user with default password Aivante@1234, randomized 55501XXXXX phone, MustChangePassword=true, FpId=caller.UserId. DefaultPassword constant lives here
+    EndUserService.cs             → IEndUserService impl. Creates end-user with first/last/email/phone/password from `CreateEndUserRequest`. Phone normalized via `PhoneNormalizer.NormalizeUsPhone` + uniqueness-checked. Password BCrypt-hashed. MustChangePassword=true, FpId=caller.UserId
     ImpersonationService.cs       → IImpersonationService impl. Verifies caller is FP and target is one of their end-users, then clones the target user with `MustChangePassword=false` and issues a 60-min token via IJwtTokenIssuer with `actingAs = fpUserId`
     ChatIntentService.cs          → AI-powered chat intent classification (file-based prompt)
     ChatSessionService.cs         → Chat session persistence (get/update messages + ui-state)

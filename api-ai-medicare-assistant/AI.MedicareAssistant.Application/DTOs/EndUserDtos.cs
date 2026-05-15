@@ -24,6 +24,16 @@ public class CreateEndUserRequest
 
     [Required, MaxLength(50)]
     public string LastName { get; set; } = "";
+
+    [Required, MaxLength(20), Phone]
+    public string Phone { get; set; } = "";
+
+    /// <summary>
+    /// Initial password chosen by the FP. The end-user is forced to change it on first sign-in
+    /// (<c>MustChangePassword = true</c>), matching the admin/FPG/FP creation pattern.
+    /// </summary>
+    [Required, MinLength(8), MaxLength(128)]
+    public string Password { get; set; } = "";
 }
 
 public class RecommendationSummaryDto
