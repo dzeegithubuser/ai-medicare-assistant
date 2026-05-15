@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet format:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet remove:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet list:*)",
+      "Bash(dotnet --info:*)",
+      "Bash(dotnet --version:*)",
+      "Bash(dotnet user-secrets:*)",
+      "Bash(npm --prefix ui-ai-medicare-assistant run start:dev:*)",
+      "Bash(npm --prefix ui-ai-medicare-assistant run build:prod:*)",
+      "Bash(npm --prefix ui-ai-medicare-assistant test:*)",
+      "Bash(npm --prefix ui-ai-medicare-assistant run check:maintainability:*)",
+      "Bash(npm --prefix ui-ai-medicare-assistant run lint:*)",
+      "Bash(npm --prefix ui-ai-medicare-assistant install:*)",
+      "Bash(ng:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git restore:*)",
+      "Bash(git stash:*)",
+      "Bash(git remote:*)",
+      "Bash(git config --get:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(unzip -l:*)",
+      "Bash(curl -s http://localhost:5024/*)",
+      "Bash(curl -s http://localhost:4200/*)",
+      "PowerShell(dotnet build:*)",
+      "PowerShell(dotnet test:*)",
+      "PowerShell(npm --prefix ui-ai-medicare-assistant run build:prod:*)",
+      "PowerShell(git status:*)",
+      "PowerShell(git diff:*)",
+      "PowerShell(git log:*)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "TodoWrite"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose down:*)",
+      "Bash(./deploy.sh:*)",
+      "PowerShell(./deploy.ps1:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(dotnet nuget push:*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git branch -D*)",
+      "Bash(git checkout -f*)",
+      "Bash(rm -rf:*)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/appsettings.Development.json)",
+      "Read(**/appsettings.Production.json)",
+      "Read(**/secrets.json)",
+      "Read(**/credentials.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.pfx)",
+      "Read(**/*.snk)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-violations.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
