@@ -118,7 +118,7 @@
                 </div>
                 <div class="grid grid-cols-1 gap-y-1 text-xs">
                   <div><span class="text-gray-600">Address:</span> <span class="text-gray-700 font-medium">{{ ph.address }}</span></div>
-                  <div><span class="text-gray-600">City:</span> <span class="text-gray-700 font-medium">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</span></div>
+                  <div><span class="text-gray-600">Zipcode:</span> <span class="text-gray-700 font-medium">{{ ph.zipCode }}</span></div>
                   <div class="flex items-center gap-3 mt-1">
                     <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase bg-indigo-100 text-indigo-700">{{ ph.pharmacyType }}</span>
                     @if (ph.distance) {
@@ -164,7 +164,7 @@
                 </div>
                 <div class="grid grid-cols-1 gap-y-1 text-xs">
                   <div><span class="text-gray-600">Address:</span> <span class="text-gray-700 font-medium">{{ ph.address }}</span></div>
-                  <div><span class="text-gray-600">City:</span> <span class="text-gray-700 font-medium">{{ ph.city }}, {{ ph.state }} {{ ph.zipCode }}</span></div>
+                  <div><span class="text-gray-600">Zipcode:</span> <span class="text-gray-700 font-medium">{{ ph.zipCode }}</span></div>
                   <div class="flex items-center gap-3 mt-1">
                     <span class="px-1.5 py-0.5 rounded-full text-xs font-bold uppercase bg-cyan-100 text-cyan-700">{{ ph.pharmacyType }}</span>
                     @if (ph.distance) {
@@ -219,7 +219,7 @@
                   <div><span class="text-gray-600">Premium:</span> <span class="text-gray-700 font-medium">{{ p.monthlyPremium | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div><span class="text-gray-600">Deductible:</span> <span class="text-gray-700 font-medium">{{ p.deductible | currency:'USD':'symbol':'1.0-0' }}</span></div>
                   <div>
-                    <span class="text-gray-600">Stars:</span>
+                    <span class="text-gray-600">Ratings:</span>
                     <span class="inline-flex items-center gap-0.5 ml-0.5">
                       @for (filled of starArray(p.starRating); track $index) {
                         <mat-icon class="!text-xs" [class.text-amber-400]="filled" [class.text-gray-500]="!filled">star</mat-icon>
@@ -242,7 +242,7 @@
                 </div>
                 @if (p.unavailableDrugs?.length) {
                   <div class="mt-2 pt-2 border-t border-gray-300">
-                    <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Unavailable Drugs</p>
+                    <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Uncovered Drugs</p>
                     <div class="flex flex-wrap gap-1">
                       @for (drug of p.unavailableDrugs; track drug) {
                         <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">{{ drug }}</span>
@@ -286,7 +286,7 @@
                   <div><span class="text-gray-600">Premium:</span> <span class="text-gray-700 font-medium">{{ p.monthlyPremium | currency:'USD':'symbol':'1.2-2' }}</span></div>
                   <div><span class="text-gray-600">Deductible:</span> <span class="text-gray-700 font-medium">{{ p.deductible | currency:'USD':'symbol':'1.0-0' }}</span></div>
                   <div>
-                    <span class="text-gray-600">Stars:</span>
+                    <span class="text-gray-600">Ratings:</span>
                     <span class="inline-flex items-center gap-0.5 ml-0.5">
                       @for (filled of starArray(p.starRating); track $index) {
                         <mat-icon class="!text-xs" [class.text-amber-400]="filled" [class.text-gray-500]="!filled">star</mat-icon>
@@ -309,7 +309,7 @@
                 </div>
                 @if (p.unavailableDrugs?.length) {
                   <div class="mt-2 pt-2 border-t border-gray-300">
-                    <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Unavailable Drugs</p>
+                    <p class="text-xs text-amber-600 uppercase font-semibold mb-1">Uncovered Drugs</p>
                     <div class="flex flex-wrap gap-1">
                       @for (drug of p.unavailableDrugs; track drug) {
                         <span class="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">{{ drug }}</span>
