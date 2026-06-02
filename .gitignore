@@ -82,3 +82,4 @@ coverage/
 TestResults/
 *.coveragexml
 *.trx
+*.lscache
